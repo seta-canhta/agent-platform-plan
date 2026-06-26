@@ -1,0 +1,41 @@
+/* ============================================================
+   Seta — Spacing, radii, elevation
+   Base unit 4px. 8px rhythm. Radii top out at 16px (24 is rare).
+   Elevation is carried by the surface ladder + hairline borders;
+   shadows are restrained (cards on dark have no shadow).
+   ============================================================ */
+
+:root {
+  /* ---- Spacing (4px base) ---- */
+  --spacing-xxs:    4px;
+  --spacing-xs:     8px;
+  --spacing-sm:    12px;
+  --spacing-md:    16px;
+  --spacing-lg:    24px;
+  --spacing-xl:    32px;
+  --spacing-xxl:   48px;
+  --spacing-section: 96px;
+
+  /* ---- Radii ---- */
+  --radius-xs:   4px;   /* chips, status badges */
+  --radius-sm:   6px;   /* inline tags, nav rows */
+  --radius-md:   8px;   /* buttons, inputs */
+  --radius-lg:  12px;   /* cards */
+  --radius-xl:  16px;   /* product panels, composer, HITL card */
+  --radius-xxl: 24px;   /* oversized CTA (rare) */
+  --radius-pill: 9999px;
+  --radius-full: 9999px;
+
+  /* ---- Elevation ---- */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.06);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.18);
+  --shadow-lg: 0 12px 28px -10px rgb(0 0 0 / 0.30);
+  /* The HITL / focus glow — a primary-tint ring, not a drop shadow */
+  --shadow-focus: 0 0 0 3px var(--color-primary-tint);
+
+  /* ---- Layout widths ---- */
+  --max-width-page: 73.75rem;        /* 1180px — canonical page column */
+  --page-padding:    24px;
+  --max-width-conversation: 45rem;   /* agent chat column */
+  --max-width-message-bubble: 33.75rem;
+}

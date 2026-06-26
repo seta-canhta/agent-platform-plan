@@ -1,0 +1,12 @@
+/* ============================================================
+   Seta — Webfonts
+   Geist + Geist Mono. The product wires these via @fontsource;
+   here we load the identical families from Google Fonts so the
+   design system is self-contained for consumers.
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+body {
+  font-family: var(--font-text);
+  font-feature-settings: 'ss01', 'cv11';
+}
