@@ -19,6 +19,9 @@
   // Per-column-kind cell HTML.
   function cell(r, col) {
     const v = r[col.key];
+    const link = '#item=' + encodeURIComponent(r.id);
+    if (col.key === 'id') return `<a class="item-link t-code" href="${link}" title="open detail">${esc(v)}</a>`;
+    if (col.key === 'title') return `<a class="item-link" href="${link}" title="open detail">${esc(v)}</a>`;
     if (col.key === 'type') {
       const c = r._type === 'enabler' ? ENABLER : 'var(--ink-dim)';
       return `<span class="t-tag" style="color:${c};border-color:${c}">${esc(v)}</span>`;
@@ -71,6 +74,8 @@
 
     function visibleRows() {
       let rs = rows;
+      if (window.WBS.filter && window.WBS.filter.active())
+        rs = rs.filter((r) => window.WBS.filter.itemMatches(r, r._moduleId));
       const q = state.q.trim().toLowerCase();
       if (q) rs = rs.filter((r) =>
         (r.id + ' ' + r.title + ' ' + r.story + ' ' + r.roles + ' ' + r.epic + ' ' + r.screen)
@@ -145,6 +150,7 @@
       draw();
     }));
 
+    if (window.WBS.filter) window.WBS.filter.onChange(draw);   // global filter → redraw table
     draw();
   }
 

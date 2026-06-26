@@ -1,0 +1,51 @@
+/* ============================================================
+   Seta — Typography tokens
+   Geist for everything; Geist Mono for code, task IDs, kbd hints.
+   The marketing-display scale and the product-UI scale share one
+   family — the change of cut is silent. Product chrome lives at
+   14 / 13 / 12 px on Linear-calm density.
+   ============================================================ */
+
+:root {
+  /* ---- Families ---- */
+  --font-display: 'Geist', 'Inter', 'SF Pro Display', -apple-system, system-ui, sans-serif;
+  --font-text:    'Geist', 'Inter', 'SF Pro Display', -apple-system, system-ui, sans-serif;
+  --font-mono:    'Geist Mono', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ---- Display + headline scale (negative tracking) ---- */
+  --text-display-xl: 80px;  --text-display-xl-lh: 1.05; --text-display-xl-ls: -3.0px; --text-display-xl-fw: 600;
+  --text-display-lg: 56px;  --text-display-lg-lh: 1.10; --text-display-lg-ls: -1.8px; --text-display-lg-fw: 600;
+  --text-display-md: 40px;  --text-display-md-lh: 1.15; --text-display-md-ls: -1.0px; --text-display-md-fw: 600;
+  --text-headline:   28px;  --text-headline-lh:   1.20; --text-headline-ls:   -0.6px; --text-headline-fw:   600;
+  --text-card-title: 22px;  --text-card-title-lh: 1.25; --text-card-title-ls: -0.4px; --text-card-title-fw: 500;
+  --text-section-title: 17px; --text-section-title-lh: 1.30; --text-section-title-ls: -0.085px; --text-section-title-fw: 600;
+
+  /* ---- Body scale ---- */
+  --text-subhead:  20px;  --text-subhead-lh: 1.40;  --text-subhead-ls: -0.2px;
+  --text-body-lg:  18px;  --text-body-lg-lh: 1.50;  --text-body-lg-ls: -0.1px;
+  --text-body:     16px;  --text-body-lh:    1.50;  --text-body-ls:    -0.05px;
+  --text-body-sm:  13px;  --text-body-sm-lh: 1.50;  --text-body-sm-ls: 0;
+  --text-caption:  12px;  --text-caption-lh: 1.40;  --text-caption-ls: 0;
+
+  /* ---- Functional ---- */
+  --text-button:   13px;  --text-button-lh:  1.20;  --text-button-fw: 500;
+  --text-eyebrow:  11px;  --text-eyebrow-lh: 1.35;  --text-eyebrow-ls: 0.66px; --text-eyebrow-fw: 500;
+  --text-mono:     13px;  --text-mono-lh:    1.50;
+  --font-size-xs:  11px;
+}
+
+/* ---- Optional helper classes (specimens / quick use) ---- */
+.t-display-xl { font-family: var(--font-display); font-size: var(--text-display-xl); line-height: var(--text-display-xl-lh); letter-spacing: var(--text-display-xl-ls); font-weight: var(--text-display-xl-fw); }
+.t-display-lg { font-family: var(--font-display); font-size: var(--text-display-lg); line-height: var(--text-display-lg-lh); letter-spacing: var(--text-display-lg-ls); font-weight: var(--text-display-lg-fw); }
+.t-display-md { font-family: var(--font-display); font-size: var(--text-display-md); line-height: var(--text-display-md-lh); letter-spacing: var(--text-display-md-ls); font-weight: var(--text-display-md-fw); }
+.t-headline   { font-family: var(--font-display); font-size: var(--text-headline);   line-height: var(--text-headline-lh);   letter-spacing: var(--text-headline-ls);   font-weight: var(--text-headline-fw); }
+.t-card-title { font-family: var(--font-display); font-size: var(--text-card-title); line-height: var(--text-card-title-lh); letter-spacing: var(--text-card-title-ls); font-weight: var(--text-card-title-fw); }
+.t-section-title { font-family: var(--font-text); font-size: var(--text-section-title); line-height: var(--text-section-title-lh); letter-spacing: var(--text-section-title-ls); font-weight: var(--text-section-title-fw); }
+.t-subhead    { font-family: var(--font-text); font-size: var(--text-subhead); line-height: var(--text-subhead-lh); letter-spacing: var(--text-subhead-ls); }
+.t-body-lg    { font-family: var(--font-text); font-size: var(--text-body-lg);  line-height: var(--text-body-lg-lh);  letter-spacing: var(--text-body-lg-ls); }
+.t-body       { font-family: var(--font-text); font-size: var(--text-body);     line-height: var(--text-body-lh);     letter-spacing: var(--text-body-ls); }
+.t-body-sm    { font-family: var(--font-text); font-size: var(--text-body-sm);  line-height: var(--text-body-sm-lh); }
+.t-caption    { font-family: var(--font-text); font-size: var(--text-caption);  line-height: var(--text-caption-lh); color: var(--color-ink-subtle); }
+.t-button     { font-family: var(--font-text); font-size: var(--text-button); line-height: var(--text-button-lh); font-weight: var(--text-button-fw); }
+.t-eyebrow    { font-family: var(--font-text); font-size: var(--text-eyebrow); line-height: var(--text-eyebrow-lh); letter-spacing: var(--text-eyebrow-ls); font-weight: var(--text-eyebrow-fw); text-transform: uppercase; color: var(--color-ink-subtle); }
+.t-mono       { font-family: var(--font-mono); font-size: var(--text-mono); line-height: var(--text-mono-lh); font-variant-numeric: tabular-nums; }

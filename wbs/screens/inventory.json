@@ -1,0 +1,226 @@
+{
+  "capturedAt": "2026-06-26T05:17:48.050Z",
+  "origin": "Seta People.dc.html",
+  "screens": [
+    {
+      "screen": "ai/chat",
+      "label": "Super Century AI",
+      "heading": "",
+      "digest": "Super Century AI Ask anything across People, Hiring, Project & Lifecycle — one assistant, four agents. People Agent Headcount, utilization, attrition, skills & workforce health Hiring Agent Open positions, candidates, interviews & offers PM Agent Portfolio health, RA, KPIs & proj",
+      "thumb": "_walk/ai-chat.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 103680
+    },
+    {
+      "screen": "people/dashboard",
+      "label": "Dashboard",
+      "heading": "Workforce Overview",
+      "digest": "PEOPLE ANALYTICS · EXECUTIVE DASHBOARD Workforce Overview The 30-second read on your people — who you have, who is billable, where the risks are, and whether you can staff what is coming. Seta signals What needs a decision this week — ranked by urgency All 8 Critical 3 Warning 3 ",
+      "thumb": "_walk/people-dashboard.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 275676
+    },
+    {
+      "screen": "people/employees",
+      "label": "Employees",
+      "heading": "Employees",
+      "digest": "E-01/E-05 · EMPLOYEE HUB & DIRECTORY Employees Full roster across all accounts. Sensitive fields are masked unless you are HR Admin or the record owner. Import Excel Add employee Table Cards Status All active probation onboard offboard leave Account All Vinfast Maybank Globex Ret",
+      "thumb": "_walk/people-employees.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 228767
+    },
+    {
+      "screen": "people/org",
+      "label": "Org Chart",
+      "heading": "Org Chart",
+      "digest": "E-02 · ORGANIZATIONAL DYNAMICS Org Chart Company structure under the Board / CEO — PMO governance, Operation functions, and Delivery accounts. Admins can browse any account or project; AM / EM / Members see only their own. Company Account Project Zoom 80% Fit Drag horizontally to",
+      "thumb": "_walk/people-org.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 156581
+    },
+    {
+      "screen": "people/allocation",
+      "label": "Resource Allocation",
+      "heading": "Resource Allocation",
+      "digest": "GROUP RESOURCE ALLOCATION Resource Allocation Monthly staffing grid — planned % vs actual utilization across the portfolio. Export RA 223 TOTAL MM Effort by account · 223 MM Vinfast 58 Aeris 47 AVIA 45 Maybank 42 Globex Retail 19 AI R&D 12 Avg. utilization 68% target ≥ 85% Total ",
+      "thumb": "_walk/people-allocation.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 174767
+    },
+    {
+      "screen": "people/performance",
+      "label": "Performance",
+      "heading": "Performance reviews",
+      "digest": "PEOPLE · PERFORMANCE Performance reviews Monthly two-tier reviews — PMO evaluates Team Leads; Team Leads evaluate their members. Period Apr 2026 May 2026 Jun 2026 Team Leads to review 16 2 evaluated by PMO Member reviews 3/29 10% complete Company avg score 4.14 this period Cycle ",
+      "thumb": "_walk/people-performance.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 158824
+    },
+    {
+      "screen": "hiring/reports",
+      "label": "Reports",
+      "heading": "Recruitment Reports",
+      "digest": "HIRING MANAGEMENT · EXECUTIVE DASHBOARD Recruitment Reports The 30-second read on hiring health — where we are short, which roles are at risk, where the pipeline stalls, and whether hiring keeps pace with demand. Open positions 7 +4 vs last month Demand up 28% vs last month Candi",
+      "thumb": "_walk/hiring-reports.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 191349
+    },
+    {
+      "screen": "hiring/requisitions",
+      "label": "Requisitions",
+      "heading": "Requisitions",
+      "digest": "HIRING MANAGEMENT · OPEN POSITIONS Requisitions Live open positions across every account — track hiring status and let internal staff browse and apply. 7 Open positions 4 Internal applicants 2 Pending review 1 Approved Browse & manage open positions Board List New requisition Sen",
+      "thumb": "_walk/hiring-requisitions.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 169790
+    },
+    {
+      "screen": "hiring/candidates",
+      "label": "Candidates",
+      "heading": "Candidates",
+      "digest": "HIRING MANAGEMENT · TALENT PIPELINE Candidates Every applicant tracked from CV to offer — open a card to move it through the pipeline, schedule interviews, and keep the funnel moving. 2 New 2 Screening 3 Interviewing 1 Offering 1 Hired 1 Cancelled Role All open roles Senior React",
+      "thumb": "_walk/hiring-candidates.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 140506
+    },
+    {
+      "screen": "hiring/interviews",
+      "label": "Interviews",
+      "heading": "Interviews",
+      "digest": "HIRING MANAGEMENT · INTERVIEW CONTROL Interviews Schedule rounds, attach meeting links, record outcomes — one control table for the whole panel. 5 Scheduled 5 This week 2 Completed 50% Pass rate All Upcoming Completed Schedule interview CANDIDATE POSITION ROUND WHEN MODE PANEL ME",
+      "thumb": "_walk/hiring-interviews.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 169403
+    },
+    {
+      "screen": "hiring/knowledge",
+      "label": "Knowledge Base",
+      "heading": "Recruitment Knowledge Base",
+      "digest": "HIRING MANAGEMENT · KNOWLEDGE BASE Recruitment Knowledge Base Every closed position by account & project — CVs, interviews, final outcome and lessons. The clean dataset that future recommendations are built on. Executive read 7 final-stage candidates analyzed Final-round conversi",
+      "thumb": "_walk/hiring-knowledge.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 184087
+    },
+    {
+      "screen": "project/portfolio",
+      "label": "Portfolio",
+      "heading": "Portfolio",
+      "digest": "PROJECT MONITORING Portfolio Account-level health rolled up from project QCDP and RA. Insights and exceptions surface what needs attention this week. Week 2026-W-21 2026-W-20 2026-W-19 Accounts 1H 3W 5C healthy · watch · critical Billable rate 76% target ≥ 80% · 82.3 / 108.6 MM P",
+      "thumb": "_walk/project-portfolio.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 141416
+    },
+    {
+      "screen": "project/requests",
+      "label": "Requests",
+      "heading": "Project Requests",
+      "digest": "PROJECT MONITORING · GOVERNANCE Project Requests PM submits a project charter → PMO sign-off → BoD approval → project is created in the Portfolio → staffing & access (R&R) granted per person. New project request Total requests 4 Awaiting PMO 1 PMO sign-off required Awaiting BoD 1",
+      "thumb": "_walk/project-requests.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 183445
+    },
+    {
+      "screen": "project/weekly",
+      "label": "Weekly Reports",
+      "heading": "Weekly Reports",
+      "digest": "PROJECT MONITORING · WEEKLY Weekly Reports Choose an account and project to open its weekly report. You can see every account and project. New weekly report Week 2026-W-21 2026-W-20 2026-W-19 Account All (9) Aeris GridBeyond Teacher Zone RSP Commerce Canal Veritone Motion Global ",
+      "thumb": "_walk/project-weekly.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 125476
+    },
+    {
+      "screen": "project/resourcing",
+      "label": "RA Monitoring",
+      "heading": "RA Monitoring",
+      "digest": "PROJECT MONITORING · RESOURCE ALLOCATION RA Monitoring Add, edit and remove allocations directly in the table. The top row is blank — fill it and press Add. Calendar effort is computed from the dates × planned effort. Calendar effort 135.0 MM total across records Billable 99.6 MM",
+      "thumb": "_walk/project-resourcing.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 146217
+    },
+    {
+      "screen": "project/risks",
+      "label": "Risks & Issues",
+      "heading": "Risks & Issues",
+      "digest": "PROJECT MONITORING · RAID Risks & Issues Consolidated log — including Recovery actions auto-created by non-Green weekly reports (road-to-green). Total logged 7 Open 5 Recovery actions 0 from road-to-green Critical / P0 3 Risk & issue log Type All Customer Bug Resource Stability I",
+      "thumb": "_walk/project-risks.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 177553
+    },
+    {
+      "screen": "project/metrics",
+      "label": "KPI Metrics",
+      "heading": "KPI Metrics Performance",
+      "digest": "PROJECT MONITORING · PERFORMANCE KPI Metrics Performance Operational Health Score, QCDP pillars and per-project KPIs across the portfolio. Account All (9) Aeris GridBeyond Teacher Zone RSP Commerce Canal Veritone Motion Global SunWest Bank Avia Project PGE Automotive Security Aut",
+      "thumb": "_walk/project-metrics.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 154940
+    },
+    {
+      "screen": "lifecycle/lc_dashboard",
+      "label": "Dashboard",
+      "heading": "Journey Dashboard",
+      "digest": "PEOPLE ANALYTICS · JOURNEY Journey Dashboard Workforce lifecycle health across every stage — from preboarding to alumni. Overview Operational New joiners (30d) 5 preboarding + onboarding In probation 2 2 confirmations due ≤45d Internal transfers 1 in progress Promotions 2 in revi",
+      "thumb": "_walk/lifecycle-lc_dashboard.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 156298
+    },
+    {
+      "screen": "lifecycle/lc_directory",
+      "label": "Directory",
+      "heading": "Directory",
+      "digest": "JOURNEY Directory Every employee and where they are in their journey. Filter by stage or department, then open a journey. Stage All Preboarding Onboarding Probation Active Offboarding Alumni Dept All Engineering QA Business 13 of 13 employees EMPLOYEE DEPARTMENT POSITION MANAGER ",
+      "thumb": "_walk/lifecycle-lc_directory.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 168421
+    },
+    {
+      "screen": "lifecycle/lc_onboarding",
+      "label": "Onboarding",
+      "heading": "Onboarding",
+      "digest": "JOURNEY · ONBOARDING Onboarding Track every new joiner through Seta’s defined onboarding process — by phase, owner (PIC), SLA and audit gate. Each party can filter to their own swimlane. People onboarding 5 in the company process Steps complete 33/80 41% done Audit gates open 17 ",
+      "thumb": "_walk/lifecycle-lc_onboarding.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 165584
+    },
+    {
+      "screen": "lifecycle/lc_probation",
+      "label": "Probation",
+      "heading": "Probation",
+      "digest": "JOURNEY · PROBATION Probation Track objectives and 30/60/90-day reviews, then confirm, extend, or end probation. In probation 2 being evaluated Confirmation due 1 within 14 days High risk 1 risk score ≥ 60 Avg objective progress 64% across cohort EMPLOYEE STAGE OBJECTIVE PROGRESS",
+      "thumb": "_walk/lifecycle-lc_probation.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 95934
+    },
+    {
+      "screen": "lifecycle/lc_offboarding",
+      "label": "Offboarding",
+      "heading": "Offboarding",
+      "digest": "JOURNEY · OFFBOARDING Offboarding Seta’s defined exit process — pre-offboarding through the last working day, with an owner (PIC), SLA and PMO / Finance audit on every step. Click a person to work their clearance. Active offboarding 2 in the exit process Overdue 1 past SLA Audit ",
+      "thumb": "_walk/lifecycle-lc_offboarding.png",
+      "w": 1672,
+      "h": 1024,
+      "bytes": 121481
+    }
+  ]
+}

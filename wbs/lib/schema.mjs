@@ -34,6 +34,25 @@ function normalizeExternal(ed) {
   return typeof ed === 'string' ? { needs: ed } : (ed ?? {});
 }
 
+// A mockup_ref is a *resolvable* pointer to the design, in one of two shapes:
+//   - string  : a directly-openable URL/anchor (routed mockups)
+//   - object  : { screen: "<module>/<tab>", persona?: string, actions?: string[] }
+//               for app-shell SPAs with no addressable routes (the capture tool
+//               drives the DOM to `screen`, sets `persona`, clicks `actions`).
+// Returns an error string, or null if valid. (Existence of the screen in the
+// actual mockup is the capture tool's coverage job, not the schema's.)
+export function mockupRefError(ref) {
+  if (ref == null) return null;
+  if (typeof ref === 'string') return ref.length ? null : 'empty mockup_ref string';
+  if (typeof ref !== 'object') return `mockup_ref must be a string or object, got ${typeof ref}`;
+  if (typeof ref.screen !== 'string' || !/^[\w-]+\/[\w-]+$/.test(ref.screen))
+    return `mockup_ref.screen must be "module/tab", got ${JSON.stringify(ref.screen)}`;
+  if (ref.persona != null && typeof ref.persona !== 'string') return 'mockup_ref.persona must be a string';
+  if (ref.actions != null && !(Array.isArray(ref.actions) && ref.actions.every((a) => typeof a === 'string')))
+    return 'mockup_ref.actions must be an array of selector strings';
+  return null;
+}
+
 // Resolved-dependency edges, cross-module edges, cycles, and unresolved flags.
 export function dependencyAnalysis(data) {
   const idx = indexById(data);
@@ -114,6 +133,8 @@ export function validate(data) {
       for (const sc of sm.screens ?? []) {
         seen(sc.id, 'screen');
         check(ID.screen.test(sc.id), `bad screen id: ${sc.id}`);
+        const scRefErr = mockupRefError(sc.mockup_ref);
+        if (scRefErr) errors.push(`screen ${sc.id}: ${scRefErr}`);
         const items = sc.items ?? [];
         if (items.length === 0) warnings.push(`coverage: screen ${sc.id} "${sc.name}" has no items`);
         for (const ss of sc.sub_screens ?? []) {
@@ -132,6 +153,10 @@ export function validate(data) {
             `item ${it.id}: needs acceptance_criteria`);
           if (it.status && !STATUSES.includes(it.status))
             warnings.push(`item ${it.id}: unknown status "${it.status}"`);
+          const itRefErr = mockupRefError(it.mockup_ref);
+          if (itRefErr) errors.push(`item ${it.id}: ${itRefErr}`);
+          if (it.sprint != null && typeof it.sprint !== 'string')
+            errors.push(`item ${it.id}: sprint must be a string`);
         }
       }
     }

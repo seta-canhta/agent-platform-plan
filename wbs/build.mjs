@@ -14,6 +14,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const srcPath = process.argv[2] ?? join(here, 'wbs.json');
 const mapOut = join(here, 'index.html');
 const tableOut = join(here, 'table.html');
+const backlogOut = join(here, 'backlog.html');
 
 const data = JSON.parse(readFileSync(srcPath, 'utf8'));
 const { errors, warnings } = validate(data);
@@ -23,20 +24,34 @@ if (errors.length) { console.error('\nBuild aborted — fix schema errors above.
 
 // Inline every client script (in load order) into one <script> for the snapshot.
 const renderJs = CLIENT_SCRIPTS.map((s) => readFileSync(join(here, 'lib', s.slice(1)), 'utf8')).join('\n;\n');
-const snapshotLabel = `
-const live = document.getElementById('live');
-live.textContent = 'snapshot'; live.className = ''; live.style.color = 'var(--ink-faint)';`;
+const snapshotLabel = '';   // (the live/offline indicator was removed from the header)
+// Inline the captured-screenshot index if present (graceful if capture hasn't run).
+let screens = null;
+try { screens = JSON.parse(readFileSync(join(here, 'screens', 'index.json'), 'utf8')); } catch { /* no shots yet */ }
+// Inline item comments read-only (the static snapshot has no server to post to).
+let comments = {};
+try { comments = JSON.parse(readFileSync(join(here, 'comments.json'), 'utf8')).comments || {}; } catch { /* none yet */ }
+// Inline the team-member list (powers the assignee dropdown; read-only in a snapshot).
+let assignees = [];
+try { assignees = JSON.parse(readFileSync(join(here, 'assignees.json'), 'utf8')).members || []; } catch { /* none yet */ }
+
 const dataDecl = `
 const data = ${JSON.stringify(data)};
-const stats = ${JSON.stringify(s)};`;
+const stats = ${JSON.stringify(s)};
+const screens = ${JSON.stringify(screens)};
+const comments = ${JSON.stringify(comments)};
+const assignees = ${JSON.stringify(assignees)};`;
 
-const mapBoot = `${dataDecl}\nWBS.renderWBS(data, stats);${snapshotLabel}`;
-const tableBoot = `${dataDecl}\nWBS.renderHeader(data, stats); WBS.renderTable(data); WBS.setData(data); WBS.bindExport();${snapshotLabel}`;
+const mapBoot = `${dataDecl}\nWBS.setScreens(screens);\nWBS.setComments(comments);\nWBS.setAssignees(assignees);\nWBS.renderWBS(data, stats);${snapshotLabel}`;
+const modalDeps = `WBS.setScreens(screens); WBS.setComments(comments); WBS.setAssignees(assignees); WBS.indexItems(data);`;
+const tableBoot = `${dataDecl}\n${modalDeps} WBS.renderHeader(data, stats); WBS.renderTable(data); WBS.setData(data); WBS.bindExport();${snapshotLabel}`;
+const backlogBoot = `${dataDecl}\n${modalDeps} WBS.renderHeader(data, stats); WBS.setData(data); WBS.renderBacklog(data, { assignees, live: false });${snapshotLabel}`;
 
-const nav = { mapHref: 'index.html', tableHref: 'table.html' };
+const nav = { mapHref: 'index.html', tableHref: 'table.html', backlogHref: 'backlog.html' };
 writeFileSync(mapOut, assemble(mapBoot, { renderInline: renderJs, view: 'map', nav }));
 writeFileSync(tableOut, assemble(tableBoot, { renderInline: renderJs, view: 'table', nav }));
-console.log(`\n  ✓ wrote ${mapOut} + ${tableOut} (static snapshot, 2 pages)\n`);
+writeFileSync(backlogOut, assemble(backlogBoot, { renderInline: renderJs, view: 'backlog', nav }));
+console.log(`\n  ✓ wrote ${mapOut} + ${tableOut} + ${backlogOut} (static snapshot, 3 pages)\n`);
 
 export function report(data, s, errors, warnings) {
   console.log(`\nWBS: ${data._meta?.project ?? '(untitled)'}  v${data._meta?.version ?? '?'}`);

@@ -18,32 +18,228 @@
   const isModule = d => d.data.type==='module';
 
   let itemsById = {};   // id → item node, for resolving dependency links
+  let screenIndex = null;   // { byItem, byScreen } from screens/index.json — item id → png
 
-  // Builds the detail HTML for a node's data — shared by the hover tooltip and the click modal.
-  function detailHTML(dd){
-    let h='<div class="tt-id">'+dd.id+'</div><div class="tt-name">'+dd.name+'</div>';
-    if (isItem({data:dd})){
-      const c = dd.type==='enabler'?ENABLER:statusColor(dd.status);
-      h += '<div class="tt-badge" style="color:'+c+'">'+dd.type.toUpperCase()+' · SP '+dd.sp+' · '+(dd.status||'')+'</div>';
+  // Resolve an item's captured screenshot filename (null if none / not captured).
+  function shotFor(dd){
+    if (!screenIndex || !dd) return null;
+    return (screenIndex.byItem && screenIndex.byItem[dd.id])
+        || (screenIndex.byScreen && screenIndex.byScreen[dd.id]) || null;
+  }
+
+  // Convert any <i data-lucide="..."> placeholders the last render injected into SVG icons.
+  const icons = () => { try { if (window.lucide) window.lucide.createIcons(); } catch {} };
+
+  // Builds the detail HTML for a node's data — shared by the hover tooltip and the
+  // click modal. `withShot` adds the related-screen screenshot (modal only; the
+  // hover tooltip stays compact/text-only).
+  // The read-only meta of an item (notes / roles / dependencies / external needs) —
+  // shared by the read-only detail and the in-place edit view. The screenshot is
+  // rendered separately (shotHTML) so the Edit button can sit between meta and screen.
+  const assigneeLineHTML = dd => '<div class="tt-meta"><i data-lucide="user"></i> '+(dd.assignee ? esc(dd.assignee) : '<span style="opacity:.55">Unassigned</span>')+'</div>';
+  function itemTailHTML(dd){
+    let h='';
+    if (dd.notes) h += '<div class="tt-meta"><i data-lucide="pin"></i> '+dd.notes+'</div>';
+    if (dd.roles && dd.roles.length) h += '<div class="tt-meta"><i data-lucide="users"></i> '+dd.roles.join(' · ')+'</div>';
+    if (dd.deps && dd.deps.length){
+      const parts = dd.deps.map(x => {
+        const cross = dd.crossDeps&&dd.crossDeps.indexOf(x)>=0 ? ' ⤴' : '';
+        return itemsById[x] ? '<a class="dep-link" data-dep="'+x+'">'+x+'</a>'+cross : x+cross;
+      });
+      h += '<div class="tt-meta" style="color:'+(dd.crossBlocked?C.blocked:C.dim)+'"><i data-lucide="lock"></i> blocked by '+parts.join(', ')+(dd.crossDeps&&dd.crossDeps.length?'  · ⤴ cross-module':'')+'</div>';
+    }
+    if (dd.blocks && dd.blocks.length){
+      const parts = dd.blocks.map(x => {
+        const cross = dd.crossBlocks&&dd.crossBlocks.indexOf(x)>=0 ? ' ⤴' : '';
+        return (itemsById[x] ? '<a class="dep-link" data-dep="'+x+'">'+x+'</a>' : x)+cross;
+      });
+      h += '<div class="tt-meta" style="color:'+C.dim+'"><i data-lucide="ban"></i> blocks '+parts.join(', ')+(dd.crossBlocks&&dd.crossBlocks.length?'  · ⤴ cross-module':'')+'</div>';
+    }
+    if (dd.ext && dd.ext.length)
+      h += '<div class="tt-meta" style="color:'+C.blocked+'"><i data-lucide="triangle-alert"></i> external need: '+dd.ext.map(e=>e.needs+(e.likely_module?' ['+e.likely_module+']':'')).join(' · ')+'</div>';
+    return h;
+  }
+
+  // The RELATED SCREEN screenshot block (modal only; '' when no shot was captured).
+  function shotHTML(dd){
+    const shot = shotFor(dd);
+    if (!shot) return '';
+    return '<div class="tt-shot-wrap"><b class="tt-shot-h">RELATED SCREEN</b>'
+      + '<a href="screens/'+shot+'" target="_blank" rel="noopener" title="open full screenshot in a new tab">'
+      + '<img class="tt-shot" src="screens/'+shot+'" loading="lazy" alt="Related mockup screen for '+dd.id+'"></a></div>';
+  }
+
+  // `modal` true → render the editable quick-edit strip up top (status / SP /
+  // assignee / sprint) and drop the read-only assignee line (the dropdown replaces
+  // it). The hover tooltip passes modal=false, so it stays read-only and compact.
+  function detailHTML(dd, withShot, modal){
+    const item = isItem({data:dd});
+    const c = item ? (dd.type==='enabler'?ENABLER:statusColor(dd.status)) : null;
+    // In the modal the type sits inline before the title (no separate badge);
+    // SP/status live in the editable strip below. The tooltip keeps the plain
+    // title + the full TYPE · SP · status badge.
+    const typePrefix = (item && modal) ? '<span class="tt-type" style="color:'+c+';border-color:'+c+'">'+dd.type.toUpperCase()+'</span> ' : '';
+    let h='<div class="tt-id">'+dd.id+'</div><div class="tt-name">'+typePrefix+dd.name+'</div>';
+    if (item){
+      if (!modal) h += '<div class="tt-badge" style="color:'+c+'">'+dd.type.toUpperCase()+' · SP '+dd.sp+' · '+(dd.status||'')+'</div>';
+      else h += quickStripHTML(dd);     // editable controls, at the top
       if (dd.story) h += '<div class="tt-story">'+dd.story+'</div>';
       if (dd.ac && dd.ac.length) h += '<div class="tt-ac"><b>Acceptance</b><ul>'+dd.ac.map(a=>'<li>'+a+'</li>').join('')+'</ul></div>';
-      if (dd.notes) h += '<div class="tt-meta">📌 '+dd.notes+'</div>';
-      if (dd.roles && dd.roles.length) h += '<div class="tt-meta">◢ '+dd.roles.join(' · ')+'</div>';
-      if (dd.deps && dd.deps.length){
-        const parts = dd.deps.map(x => {
-          const cross = dd.crossDeps&&dd.crossDeps.indexOf(x)>=0 ? ' ⤴' : '';
-          return itemsById[x] ? '<a class="dep-link" data-dep="'+x+'">'+x+'</a>'+cross : x+cross;
-        });
-        h += '<div class="tt-meta" style="color:'+(dd.crossBlocked?C.blocked:C.dim)+'">⛓ blocked by '+parts.join(', ')+(dd.crossDeps&&dd.crossDeps.length?'  · ⤴ cross-module':'')+'</div>';
-      }
-      if (dd.ext && dd.ext.length)
-        h += '<div class="tt-meta" style="color:'+C.blocked+'">⚠ external need: '+dd.ext.map(e=>e.needs+(e.likely_module?' ['+e.likely_module+']':'')).join(' · ')+'</div>';
+      h += (modal ? '' : assigneeLineHTML(dd)) + itemTailHTML(dd) + (withShot ? shotHTML(dd) : '');
     } else {
       if (dd.description) h += '<div class="tt-story">'+dd.description+'</div>';
       if (dd.total_us) h += '<div class="tt-meta">Σ '+dd.total_us+' items · '+dd.total_sp+' pts</div>';
-      if (dd.roles && dd.roles.length) h += '<div class="tt-meta">◢ '+dd.roles.join(' · ')+'</div>';
+      if (dd.roles && dd.roles.length) h += '<div class="tt-meta"><i data-lucide="users"></i> '+dd.roles.join(' · ')+'</div>';
     }
     return h;
+  }
+
+  // ── item comments (stored in comments.json; posting is live-mode only) ───
+  let commentsByItem = {};   // itemId → [ {id,text,author,state,created,updated,agent_note} ]
+  let liveMode = false;      // true only when served by serve.mjs (enables the post UI)
+  let assignees = [];        // team-member names for the assignee dropdown (assignees.json)
+  const draft = {};          // itemId → in-progress comment text (survives live re-renders)
+  const CM_STATES = ['open', 'resolved', 'unresolved', 'skip'];
+
+  const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+  function fmtTime(iso){
+    const d = new Date(iso); if (isNaN(d)) return '';
+    return d.toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' ' + d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+  }
+
+  function commentItemHTML(itemId, c){
+    const cls = 'cm-' + c.state;
+    let h = '<div class="cm-item '+cls+'" data-cid="'+c.id+'">';
+    h += '<div class="cm-meta"><span class="cm-badge '+cls+'">'+c.state+'</span>'
+       + '<span class="cm-author">'+esc(c.author||'you')+'</span>'
+       + '<span class="cm-time">'+fmtTime(c.created)+'</span></div>';
+    h += '<div class="cm-text">'+esc(c.text)+'</div>';
+    if (c.agent_note) h += '<div class="cm-agent"><i data-lucide="corner-down-right"></i> '+esc(c.agent_note)+'</div>';
+    if (liveMode){
+      h += '<div class="cm-actions">';
+      if (c.state!=='skip') h += '<button class="cm-act" data-act="skip" data-item="'+itemId+'" data-cid="'+c.id+'">skip</button>';
+      if (c.state!=='open') h += '<button class="cm-act" data-act="open" data-item="'+itemId+'" data-cid="'+c.id+'">reopen</button>';
+      h += '<button class="cm-act cm-del" data-act="delete" data-item="'+itemId+'" data-cid="'+c.id+'">delete</button>';
+      h += '</div>';
+    }
+    return h + '</div>';
+  }
+
+  function commentsHTML(itemId){
+    const list = commentsByItem[itemId] || [];
+    const n = { open:0, resolved:0, unresolved:0, skip:0 };
+    list.forEach(c => { if (n[c.state]!=null) n[c.state]++; });
+    let h = '<div class="cm-wrap"><div class="cm-head"><b class="cm-h">COMMENTS</b><span class="cm-summary">'
+      + CM_STATES.map(s => '<span class="cm-count cm-'+s+(n[s]?'':' z')+'">'+n[s]+' '+s+'</span>').join('')
+      + '</span></div>';
+    h += list.length ? '<div class="cm-list">'+list.map(c=>commentItemHTML(itemId,c)).join('')+'</div>'
+                     : '<div class="cm-empty">No comments yet.</div>';
+    if (liveMode)
+      h += '<div class="cm-form"><textarea class="cm-input" rows="2" placeholder="Add a comment for the review agent…"></textarea>'
+         + '<button class="cm-add" data-item="'+itemId+'">Add comment</button></div>';
+    return h + '</div>';
+  }
+
+  // POST an add/setState/delete op; the server writes comments.json, which fires
+  // the file-watch → SSE → re-render (same path wbs.json edits use).
+  function postComment(payload){
+    return fetch('/comments', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+      .then(r => r.json())
+      .then(res => { if (res && res.error) throw new Error(res.error); return res; })
+      .catch(e => { flash('✗ '+e.message); throw e; });
+  }
+
+  // ── inline item editing (live mode only) ────────────────────────────────
+  let editing = null;   // id of the item being edited in place (suppresses SSE rebuilds)
+  const acRow = a => '<div class="ed-ac-row"><input type="text" class="ed-ac-input" value="'+esc(a)+'"><button class="ed-ac-del" type="button" title="remove">×</button></div>';
+  // Edit view: the SAME top fields as the read-only detail, but rendered as inputs in
+  // place (no duplicated read-only copy). The tail (notes/deps/screenshot) stays read-only.
+  function editDetailHTML(dd){
+    const sel = (cur, opts) => opts.map(o => '<option value="'+o+'"'+(String(o)===String(cur)?' selected':'')+'>'+o+'</option>').join('');
+    const ac = dd.ac && dd.ac.length ? dd.ac : [''];
+    let h = '<div class="tt-id">'+dd.id+' · editing</div>';
+    h += '<div class="ed-field"><label>Title</label><input class="ed-title" type="text" value="'+esc(dd.name)+'"></div>';
+    const asgOpts = '<option value=""'+(dd.assignee?'':' selected')+'>— Unassigned —</option>'
+      + assignees.map(m => '<option value="'+esc(m)+'"'+(m===dd.assignee?' selected':'')+'>'+esc(m)+'</option>').join('');
+    const sprints = window.WBS.quickSprints ? window.WBS.quickSprints(_data) : [];
+    const curSp = dd.sprint || '';
+    const spOpts = '<option value=""'+(curSp?'':' selected')+'>— Backlog —</option>'
+      + sprints.map(s => '<option value="'+esc(s)+'"'+(s===curSp?' selected':'')+'>'+esc(s)+'</option>').join('')
+      + (curSp && sprints.indexOf(curSp)<0 ? '<option value="'+esc(curSp)+'" selected>'+esc(curSp)+'</option>' : '');
+    h += '<div class="ed-grid">'
+       +   '<div class="ed-field"><label>Status</label><select class="ed-status">'+sel(dd.status,['not-started','in-progress','done','blocked'])+'</select></div>'
+       +   '<div class="ed-field"><label>Story points</label><select class="ed-sp">'+sel(dd.sp,[1,2,3,5,8,13])+'</select></div>'
+       +   '<div class="ed-field"><label>Assignee</label><select class="ed-assignee">'+asgOpts+'</select></div>'
+       +   '<div class="ed-field"><label>Sprint</label><select class="ed-sprint">'+spOpts+'</select></div>'
+       + '</div>';
+    h += '<div class="ed-field"><label>Story</label><textarea class="ed-story" rows="4">'+esc(dd.story)+'</textarea></div>';
+    h += '<div class="ed-field"><label>Acceptance criteria</label><div class="ed-ac">'
+       +   ac.map(acRow).join('') + '<button class="ed-ac-add" type="button">+ add criterion</button></div></div>';
+    h += itemTailHTML(dd);          // notes / roles / deps stay read-only
+    h += '<div class="ed-actions"><button class="ed-save">Save changes</button><button class="ed-cancel">Cancel</button></div>';
+    h += shotHTML(dd);              // related screen below the editor
+    return h;
+  }
+  // Quick-edit strip (status / assignee / sprint) shown in the read-only modal
+  // view, so these three fields are editable without entering the full edit form.
+  // Reuses the shared controls (quickedit.js); disabled when not live.
+  function quickStripHTML(dd){
+    if (!window.WBS.quickControlsHTML) return '';
+    const ctx = { sprints: window.WBS.quickSprints(_data), assignees, live: liveMode };
+    return '<div class="qe-strip">' + window.WBS.quickControlsHTML(dd, ctx) + '</div>';
+  }
+  function postItem(id, patch){
+    return fetch('/item', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, patch }) })
+      .then(r => r.json())
+      .then(res => { if (res && res.error) throw new Error(res.error); return res; })
+      .catch(e => { flash('✗ '+e.message); throw e; });
+  }
+
+  // ── right comments drawer: every comment across all items, with state filter ──
+  let drawerOpen = false;     // closed by default; opened via the 💬 control
+  let drawerFilter = 'all';   // all | open | resolved | unresolved | skip
+
+  function allComments(){
+    const out = [];
+    for (const id in commentsByItem)
+      for (const c of commentsByItem[id]) out.push(Object.assign({ item_id:id }, c));
+    out.sort((a,b) => (b.created||'').localeCompare(a.created||''));   // newest first
+    return out;
+  }
+  function drawerEntryHTML(c){
+    const item = itemsById[c.item_id], cls = 'cm-'+c.state;
+    let h = '<div class="dw-item '+cls+'">';
+    h += '<div class="dw-top"><a class="cm-jump" data-jump="'+c.item_id+'">'+c.item_id+'</a>'
+       + '<span class="cm-badge '+cls+'">'+c.state+'</span>'
+       + '<span class="dw-time">'+fmtTime(c.created)+'</span></div>';
+    if (item) h += '<div class="dw-name">'+esc(item.name)+(item.assignee?' <span class="dw-asg">· <i data-lucide="user"></i> '+esc(item.assignee)+'</span>':'')+'</div>';
+    h += '<div class="cm-text">'+esc(c.text)+'</div>';
+    if (c.agent_note) h += '<div class="cm-agent"><i data-lucide="corner-down-right"></i> '+esc(c.agent_note)+'</div>';
+    if (liveMode){
+      h += '<div class="cm-actions">';
+      if (c.state!=='skip') h += '<button class="cm-act" data-act="skip" data-item="'+c.item_id+'" data-cid="'+c.id+'">skip</button>';
+      if (c.state!=='open') h += '<button class="cm-act" data-act="open" data-item="'+c.item_id+'" data-cid="'+c.id+'">reopen</button>';
+      h += '<button class="cm-act cm-del" data-act="delete" data-item="'+c.item_id+'" data-cid="'+c.id+'">delete</button></div>';
+    }
+    return h + '</div>';
+  }
+  function renderDrawer(){
+    const inner = document.getElementById('cm-drawer-inner');
+    if (!inner) return;   // map page only
+    document.body.classList.toggle('drawer-open', drawerOpen);
+    const all = allComments();
+    const n = { all: all.length, open:0, resolved:0, unresolved:0, skip:0 };
+    all.forEach(c => { if (n[c.state]!=null) n[c.state]++; });
+    const chips = ['all','open','resolved','unresolved','skip'].map(f =>
+      '<button class="dw-chip cm-'+f+(drawerFilter===f?' active':'')+'" data-filter="'+f+'">'+f+' '+n[f]+'</button>').join('');
+    const list = all.filter(c => drawerFilter==='all' || c.state===drawerFilter);
+    const body = list.length ? list.map(drawerEntryHTML).join('')
+                             : '<div class="dw-empty">No '+(drawerFilter==='all'?'':drawerFilter+' ')+'comments yet.</div>';
+    inner.innerHTML =
+      '<div class="dw-head"><b class="dw-h">COMMENTS</b><button class="dw-close" title="Close drawer" aria-label="Close drawer"><i data-lucide="x"></i></button></div>'
+      + '<div class="dw-filter">'+chips+'</div>'
+      + '<div class="dw-list">'+body+'</div>';
+    icons();
   }
 
   // Modal: a pinned, dismissable view of a node's detail (same content as the hover tooltip).
@@ -53,10 +249,34 @@
     const back = document.getElementById('modal-back');
     const body = document.getElementById('modal-body');
     if (!back || !body) return;
-    body.innerHTML = detailHTML(dd);
+    if (editing && editing !== dd.id) editing = null;   // navigated to a different item
+    // While editing this item in place, don't rebuild — preserve in-progress edits.
+    if (editing === dd.id && body.dataset.itemId === dd.id && body.querySelector('.ed-title')){
+      back.classList.add('visible'); return;
+    }
+    // Preserve any in-progress comment draft + caret across live SSE re-renders.
+    const ta = body.querySelector('.cm-input');
+    if (ta && body.dataset.itemId) draft[body.dataset.itemId] = ta.value;
+    const hadFocus = ta && document.activeElement === ta;
+    const selS = ta ? ta.selectionStart : 0, selE = ta ? ta.selectionEnd : 0;
+    body.dataset.itemId = dd.id;
+    const item = isItem({data:dd});
+    // In edit mode the editable top REPLACES the read-only detail (no duplicate).
+    // Read-only: detail (no shot) → Edit button → related screen, so the button
+    // sits just above the screenshot.
+    const top = (liveMode && item && editing === dd.id)
+      ? editDetailHTML(dd)
+      : detailHTML(dd, false, true)
+        + (liveMode && item ? '<button class="ed-toggle"><i data-lucide="pencil"></i> Edit fields</button>' : '')
+        + (item ? shotHTML(dd) : '');
+    body.innerHTML = top + (item ? commentsHTML(dd.id) : '');
+    const ta2 = body.querySelector('.cm-input');
+    if (ta2){ ta2.value = draft[dd.id] || ''; if (hadFocus){ ta2.focus(); try { ta2.setSelectionRange(selS, selE); } catch {} } }
     back.classList.add('visible');
+    icons();
   }
   function hideModalUI(){
+    editing = null;
     const back = document.getElementById('modal-back');
     if (back) back.classList.remove('visible');
   }
@@ -79,9 +299,68 @@
   if (typeof document !== 'undefined' && !document.body.dataset.modalWired){
     document.body.dataset.modalWired = '1';
     document.addEventListener('click', e => {
-      const link = e.target && e.target.closest && e.target.closest('.dep-link');
+      const t = e.target;
+      // mindmap expand-all / collapse-all
+      if (t && t.closest && t.closest('#btn-expand')){ expandAll(); return; }
+      if (t && t.closest && t.closest('#btn-collapse')){ collapseAll(); return; }
+      // comments drawer: toggle / close / filter / jump-to-item
+      if (t && t.closest && t.closest('#cm-drawer-btn')){ drawerOpen = true; renderDrawer(); return; }
+      if (t && t.closest && t.closest('.dw-close')){ drawerOpen = false; renderDrawer(); return; }
+      const chip = t && t.closest && t.closest('.dw-chip');
+      if (chip){ drawerFilter = chip.dataset.filter; renderDrawer(); return; }
+      const jump = t && t.closest && t.closest('.cm-jump');
+      if (jump){ openModal(itemsById[jump.dataset.jump]); return; }
+      const link = t && t.closest && t.closest('.dep-link');
       if (link){ openModal(itemsById[link.dataset.dep]); return; }
-      if (e.target && (e.target.id === 'modal-back' || e.target.id === 'modal-close')) closeModal();
+      const add = t && t.closest && t.closest('.cm-add');
+      if (add){
+        const item = add.dataset.item;
+        const box = add.closest('.cm-form').querySelector('.cm-input');
+        const text = (box.value || '').trim();
+        if (!text) return;
+        add.disabled = true;
+        postComment({ op:'add', item_id:item, text })
+          .then(() => { draft[item] = ''; box.value = ''; flash('comment added'); })
+          .catch(()=>{}).finally(() => { add.disabled = false; });
+        return;
+      }
+      const act = t && t.closest && t.closest('.cm-act');
+      if (act){
+        const op = act.dataset.act, item = act.dataset.item, cid = act.dataset.cid;
+        const payload = op==='delete' ? { op:'delete', item_id:item, comment_id:cid }
+                                      : { op:'setState', item_id:item, comment_id:cid, state:op };
+        postComment(payload).then(()=>flash(op==='delete'?'comment deleted':'marked '+op)).catch(()=>{});
+        return;
+      }
+      const curId = () => { const b = document.getElementById('modal-body'); return b && b.dataset.itemId; };
+      if (t && t.closest && t.closest('.ed-toggle')){ editing = curId(); showModalUI(itemsById[editing]); return; }
+      if (t && t.closest && t.closest('.ed-cancel')){ const id = curId(); editing = null; showModalUI(itemsById[id]); return; }
+      if (t && t.closest && t.closest('.ed-ac-add')){ t.closest('.ed-ac-add').insertAdjacentHTML('beforebegin', acRow('')); return; }
+      if (t && t.closest && t.closest('.ed-ac-del')){ const r = t.closest('.ed-ac-row'); if (r) r.remove(); return; }
+      const save = t && t.closest && t.closest('.ed-save');
+      if (save){
+        const id = curId(), body = document.getElementById('modal-body');
+        const patch = {
+          status: body.querySelector('.ed-status').value,
+          story_points: Number(body.querySelector('.ed-sp').value),
+          assignee: body.querySelector('.ed-assignee').value,
+          sprint: body.querySelector('.ed-sprint') ? body.querySelector('.ed-sprint').value : '',
+          title: body.querySelector('.ed-title').value,
+          story: body.querySelector('.ed-story').value,
+          acceptance_criteria: [...body.querySelectorAll('.ed-ac-input')].map(i => i.value.trim()).filter(Boolean),
+        };
+        save.disabled = true;
+        postItem(id, patch).then(() => { editing = null; flash('saved'); }).catch(()=>{}).finally(() => { save.disabled = false; });
+        return;
+      }
+      if (t && (t.id === 'modal-back' || t.id === 'modal-close')) closeModal();
+    });
+    // Keep the draft in sync so an SSE re-render never loses half-typed text.
+    document.addEventListener('input', e => {
+      if (e.target && e.target.classList && e.target.classList.contains('cm-input')){
+        const body = document.getElementById('modal-body');
+        if (body && body.dataset.itemId) draft[body.dataset.itemId] = e.target.value;
+      }
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
     window.addEventListener('hashchange', syncModalFromHash);
@@ -90,6 +369,9 @@
   function wbsToHierarchy(data){
     const root = { id:'root', name:data._meta.project, status:data._meta.status||'in-progress', type:'root', children:[] };
     const idMod = {}, flatItems = [];
+    // When the global filter is active, prune item/screen/epic/module nodes that
+    // have nothing matching — so the map shows only what passes the filter.
+    const filtering = !!(window.WBS.filter && window.WBS.filter.active());
     itemsById = {};
     for (const mod of data.modules||[]){
       const modNode = { id:mod.id, name:mod.name, description:mod.description||'', status:mod.status||'not-started', type:'module', children:[] };
@@ -99,19 +381,24 @@
           const items = (screen.items||[]).map(it => {
             const node = {
               id:it.id, name:it.title, type:it.type, story:it.story||'', status:it.status||'not-started',
-              sp:it.story_points||0, roles:it.roles||[], ac:it.acceptance_criteria||[],
-              deps:it.dependencies||[], ext:(it.external_deps||[]).map(e=> typeof e==='string'?{needs:e}:e), notes:it.notes||'', _mod:mod.id
+              sp:it.story_points||0, roles:it.roles||[], ac:it.acceptance_criteria||[], assignee:it.assignee||'', sprint:it.sprint||'',
+              deps:it.dependencies||[], ext:(it.external_deps||[]).map(e=> typeof e==='string'?{needs:e}:e), notes:it.notes||'',
+              mockup: it.mockup_ref || screen.mockup_ref || null, _mod:mod.id
             };
             idMod[it.id] = mod.id; flatItems.push(node); itemsById[it.id] = node;
             return node;
           });
+          // idMod/flatItems/itemsById are populated above for ALL items (so dependency
+          // classification + modal lookups stay complete); only the shown subset is rendered.
+          const shown = filtering ? items.filter(n => window.WBS.filter.itemMatches(n, mod.id)) : items;
+          if (filtering && !shown.length) continue;
           subNode.children.push({ id:screen.id, name:screen.name, description:screen.description||'', status:screen.status||'not-started',
-            type:'screen', roles:screen.roles||[], children: items.length?items:undefined });
+            type:'screen', roles:screen.roles||[], children: shown.length?shown:undefined });
         }
-        if (!subNode.children.length) delete subNode.children;
+        if (!subNode.children.length){ if (filtering) continue; delete subNode.children; }
         modNode.children.push(subNode);
       }
-      if (!modNode.children.length) delete modNode.children;
+      if (!modNode.children.length){ if (filtering) continue; delete modNode.children; }
       root.children.push(modNode);
     }
     // classify blockers: cross-module if a resolved dep lives in another module, or any external flag exists
@@ -119,6 +406,14 @@
       it.crossDeps = it.deps.filter(d => idMod[d] && idMod[d] !== it._mod);
       it.blocked = it.deps.length > 0 || it.ext.length > 0;
       it.crossBlocked = it.crossDeps.length > 0 || it.ext.length > 0;
+    }
+    // reverse edges: for each item, which items it blocks (the inverse of `deps`).
+    const blockMap = {};
+    for (const it of flatItems)
+      for (const d of it.deps) (blockMap[d] = blockMap[d] || []).push(it.id);
+    for (const it of flatItems){
+      it.blocks = blockMap[it.id] || [];
+      it.crossBlocks = it.blocks.filter(b => idMod[b] && idMod[b] !== it._mod);
     }
     const oosNode = (o) => ({ id:o.id, name:o.name, description:o.reason||'', status:'out-of-scope', type:'oos',
       children: (o.children && o.children.length) ? o.children.map(oosNode) : undefined });
@@ -145,13 +440,17 @@
       blk.innerHTML = (x+f) + '<small>' + x + ' x-mod · ' + f + ' open</small>';
       blk.style.color = (x+f) ? 'var(--block)' : 'var(--ink)';
     }
-    const maxH = Math.max(1, ...Object.values(S.histogram));
-    $('hist').innerHTML = Object.entries(S.histogram)
-      .map(([p,n]) => '<div class="bar" style="height:'+Math.round(3+18*n/maxH)+'px" title="'+p+' pt × '+n+'"><span>'+p+'</span></div>').join('');
+    if (window.WBS.filter) window.WBS.filter.mount(data);   // builds the dropdown bar + filtered counts
   }
 
   const collapsed = new Set(), expanded = new Set();
   let lastTransform = null, firstRender = true;
+  let _data = null, _nodeIds = [];   // cached for expand-all / collapse-all re-renders
+
+  // Expand/collapse every branch by stuffing the expanded/collapsed sets with all
+  // parent ids, then re-rendering. State lives in the sets, so it survives live updates.
+  function expandAll(){ collapsed.clear(); _nodeIds.forEach(n => { if (n.kids) expanded.add(n.id); }); if (_data) render(wbsToHierarchy(_data)); }
+  function collapseAll(){ expanded.clear(); _nodeIds.forEach(n => { if (n.kids && n.depth >= 1) collapsed.add(n.id); }); if (_data) render(wbsToHierarchy(_data)); }
 
   function render(hierarchyData){
     const container = document.getElementById('svg-container');
@@ -167,6 +466,7 @@
     const zoom = d3.zoom().scaleExtent([0.04,3]).on('zoom', e => { g.attr('transform', e.transform); lastTransform = e.transform; });
     svg.call(zoom);
     const root = d3.hierarchy(hierarchyData);
+    _nodeIds = root.descendants().map(d => ({ id: d.data.id, depth: d.depth, kids: !!d.children }));
     root.each(d => {
       const id = d.data.id, defaultCollapsed = d.depth >= 3;
       const shouldCollapse = expanded.has(id) ? false : (collapsed.has(id) || defaultCollapsed);
@@ -196,11 +496,16 @@
         .on('click',(ev,d)=>{ ev.stopPropagation();
           const id=d.data.id;
           if (isItem(d)){ openModal(d.data); return; }   // leaf items: open the detail modal
-          if (d._children){ d.children=d._children; d._children=null; expanded.add(id); collapsed.delete(id); }
+          if (d._children){ d.children=d._children; d._children=null; expanded.add(id); collapsed.delete(id);
+            // Reveal one level only: collapse any grandchildren so the click doesn't cascade
+            // open a whole subtree (children hidden in a collapsed branch keep their .children).
+            d.children.forEach(c => { if (c.children){ c._children=c.children; c.children=null; collapsed.add(c.data.id); expanded.delete(c.data.id); } }); }
           else if (d.children){ d._children=d.children; d.children=null; collapsed.add(id); expanded.delete(id); }
           update(d); })
         .on('mousemove',(ev,d)=>{
-          tooltip.innerHTML=detailHTML(d.data); tooltip.classList.add('visible');
+          // Rebuild (and re-convert icons) only when the hovered node changes — not every move.
+          if (tooltip._nid !== d.data.id){ tooltip.innerHTML=detailHTML(d.data); tooltip._nid=d.data.id; icons(); }
+          tooltip.classList.add('visible');
           tooltip.style.left=Math.min(ev.clientX+16, innerWidth-396)+'px';
           tooltip.style.top=Math.max(66, ev.clientY-10)+'px';
         })
@@ -270,6 +575,7 @@
     if (lastTransform && !firstRender) svg.call(zoom.transform, lastTransform);
     else { const t = d3.zoomIdentity.translate(RECT_W/2+40, H/2); svg.call(zoom.transform, t); lastTransform = t; }
     firstRender = false;
+    icons();   // convert the static control-stack placeholders (#map-ctl)
   }
 
   // hex (#rrggbb) → rgba string with alpha
@@ -288,8 +594,16 @@
 
   window.WBS = window.WBS || {};
   Object.assign(window.WBS, {
-    renderWBS(data, stats){ renderHeader(data, stats); render(wbsToHierarchy(data)); syncModalFromHash(); },
+    renderWBS(data, stats){ _data = data; renderHeader(data, stats); render(wbsToHierarchy(data)); renderDrawer(); syncModalFromHash();
+      if (window.WBS.filter) window.WBS.filter.onChange(() => render(wbsToHierarchy(_data))); },
+    // Build itemsById (and stash _data) WITHOUT rendering the map — lets the table
+    // and backlog pages open the same detail modal via #item=<id> deeplinks.
+    indexItems(data){ _data = data; wbsToHierarchy(data); syncModalFromHash(); },
     renderHeader,
+    setScreens(idx){ screenIndex = idx || null; },    // { byItem, byScreen } from screens/index.json
+    setComments(map){ commentsByItem = map || {}; },  // itemId → comments[]; from comments.json
+    setAssignees(list){ assignees = list || []; },    // team-member names; from assignees.json
+    setLive(v){ liveMode = !!v; },                     // enable the post UI (serve.mjs only)
     flash,
   });
 })();

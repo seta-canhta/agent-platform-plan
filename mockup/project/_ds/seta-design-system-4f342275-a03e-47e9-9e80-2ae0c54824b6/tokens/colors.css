@@ -1,0 +1,150 @@
+/* ============================================================
+   Seta — Color tokens
+   Ported verbatim from packages/shared-ui/src/styles/tokens.css.
+   Dark is the DEFAULT theme (the product ships dark-first); add
+   class="theme-light" on <html> for the light surface ladder.
+   ============================================================ */
+
+:root {
+  /* ---- Brand / accent — the single chromatic accent ---- */
+  --color-primary:          #0047FF;   /* Seta blue — CTA, focus, links, current selection */
+  --color-primary-hover:    #1A3CFF;
+  --color-primary-focus:    #022DAD;
+  --color-on-primary:       #ffffff;
+  --color-brand-secure:     #475467;
+
+  /* Primary tint/border/ink triad — focus rings, status banners, HITL */
+  --color-primary-tint:     color-mix(in oklch, #0047FF 14%, transparent);
+  --color-primary-border:   color-mix(in oklch, #0047FF 35%, transparent);
+  --color-primary-ink:      #93b1ff;
+
+  /* The agentic accent — used ONLY for the Agent affordance (Sparkles, gradient) */
+  --color-agent-from:       #8b5cf6;   /* violet-500 */
+  --color-agent-to:         #2563eb;   /* blue-600 */
+
+  /* ---- Surface ladder (dark) — hierarchy via lift, not shadow ---- */
+  --color-canvas:           #010102;   /* near-pure black with a faint blue tint — never #000 */
+  --color-surface-1:        #0f1011;
+  --color-surface-2:        #181a1d;
+  --color-surface-3:        #23252a;
+  --color-surface-4:        #2c2f34;
+  --color-hairline:         #23252a;   /* 1px card borders & dividers */
+  --color-hairline-strong:  #2c2f34;
+  --color-hairline-tertiary:#3a3d42;
+
+  --color-inverse-canvas:   #ffffff;
+  --color-inverse-surface-1:#f6f7f8;
+  --color-inverse-surface-2:#eceef1;
+  --color-inverse-ink:      #08090a;
+
+  /* ---- Text / ink ramp ---- */
+  --color-ink:              #f7f8f8;   /* headlines + emphasized body */
+  --color-ink-muted:        #d0d6e0;   /* secondary */
+  --color-ink-subtle:       #8a8f98;   /* tertiary, placeholders, deselected */
+  --color-ink-tertiary:     #62666d;   /* quaternary, disabled, footnotes */
+
+  /* ---- Semantic (low-saturation, dot+label pills) ---- */
+  --color-semantic-success:      #27a644;
+  --color-semantic-success-tint: color-mix(in oklch, #27a644 18%, transparent);
+  --color-semantic-warning:      #f4a73a;
+  --color-semantic-warning-tint: color-mix(in oklch, #f4a73a 18%, transparent);
+  --color-semantic-overlay:      rgb(0 0 0 / 0.60);
+
+  --color-destructive:      #e5484d;
+  --color-destructive-tint: color-mix(in oklch, #e5484d 16%, transparent);
+  --color-on-destructive:   #ffffff;
+
+  /* Semantic aliases used by status/priority composites */
+  --color-danger:        #e5484d;
+  --color-danger-tint:   color-mix(in oklch, #e5484d 14%, transparent);
+  --color-danger-ink:    #ff9ea0;
+  --color-warning:       #f4a73a;
+  --color-warning-tint:  color-mix(in oklch, #f4a73a 14%, transparent);
+  --color-warning-ink:   #ffcf7a;
+  --color-success:       #27a644;
+  --color-success-tint:  color-mix(in oklch, #27a644 14%, transparent);
+  --color-success-ink:   #6dd98a;
+  --color-info:          #3b8ef3;
+  --color-info-tint:     color-mix(in oklch, #3b8ef3 14%, transparent);
+  --color-info-ink:      #93c4ff;
+
+  /* ---- Group theming (plan / project accents) ---- */
+  --color-group-theme-teal:   #207087;
+  --color-group-theme-purple: #7a2f7c;
+  --color-group-theme-green:  #1f8a4c;
+  --color-group-theme-blue:   #0047FF;
+  --color-group-theme-pink:   #c0367f;
+  --color-group-theme-orange: #b86e00;
+  --color-group-theme-red:    #c53030;
+
+  /* ---- Task priority palette — single source for chips, dots, icons ---- */
+  --color-priority-urgent:         #f87171;
+  --color-priority-urgent-tint:    color-mix(in oklch, #f87171 18%, transparent);
+  --color-priority-urgent-ink:     #fecaca;
+  --color-priority-important:      #fb923c;
+  --color-priority-important-tint: color-mix(in oklch, #fb923c 18%, transparent);
+  --color-priority-important-ink:  #fed7aa;
+  --color-priority-medium:         #38bdf8;
+  --color-priority-medium-tint:    color-mix(in oklch, #38bdf8 14%, transparent);
+  --color-priority-medium-ink:     #bae6fd;
+  --color-priority-low:            #94a3b8;
+  --color-priority-low-tint:       color-mix(in oklch, #94a3b8 12%, transparent);
+  --color-priority-low-ink:        #cbd5e1;
+}
+
+/* ============================================================
+   Light theme — warm off-white surface ladder.
+   Add class="theme-light" to <html>.
+   ============================================================ */
+.theme-light {
+  --color-canvas:           #ffffff;
+  --color-surface-1:        #fafaf9;
+  --color-surface-2:        #f4f4f3;
+  --color-surface-3:        #ecebea;
+  --color-surface-4:        #e2e1df;
+  --color-hairline:         #e9e8e6;
+  --color-hairline-strong:  #d8d7d4;
+  --color-hairline-tertiary:#f0efed;
+
+  --color-ink:              #0b0b0d;
+  --color-ink-muted:        #4a4a52;
+  --color-ink-subtle:       #82828c;
+  --color-ink-tertiary:     #b4b4bc;
+
+  --color-primary-tint:     #ecf1ff;
+  --color-primary-border:   #c5d3ff;
+  --color-primary-ink:      #0034c0;
+
+  --color-semantic-success:      #1f8a4c;
+  --color-semantic-success-tint: #e7f4ec;
+  --color-semantic-warning:      #b86e00;
+  --color-semantic-warning-tint: #fbf0dd;
+  --color-destructive:           #c53030;
+  --color-destructive-tint:      #fbe9e9;
+
+  --color-danger:        #c53030;
+  --color-danger-tint:   #fbe9e9;
+  --color-danger-ink:    #8b1a1a;
+  --color-warning:       #b86e00;
+  --color-warning-tint:  #fbf0dd;
+  --color-warning-ink:   #7a4900;
+  --color-success:       #1f8a4c;
+  --color-success-tint:  #e7f4ec;
+  --color-success-ink:   #155c32;
+  --color-info:          #1d6fca;
+  --color-info-tint:     #e8f0fd;
+  --color-info-ink:      #103d72;
+
+  --color-priority-urgent:         #dc2626;
+  --color-priority-urgent-tint:    #fdecec;
+  --color-priority-urgent-ink:     #7f1d1d;
+  --color-priority-important:      #ea580c;
+  --color-priority-important-tint: #fdebd9;
+  --color-priority-important-ink:  #7c2d12;
+  --color-priority-medium:         #0284c7;
+  --color-priority-medium-tint:    #e3f1fb;
+  --color-priority-medium-ink:     #075985;
+  --color-priority-low:            #64748b;
+  --color-priority-low-tint:       #eef0f3;
+  --color-priority-low-ink:        #334155;
+}

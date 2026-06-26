@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/seta-design-system-4f342275-a03e-47e9-9e80-2ae0c54824b6/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/seta-design-system-4f342275-a03e-47e9-9e80-2ae0c54824b6/tokens/colors.css">
+<link rel="stylesheet" href="_ds/seta-design-system-4f342275-a03e-47e9-9e80-2ae0c54824b6/tokens/typography.css">
+<link rel="stylesheet" href="_ds/seta-design-system-4f342275-a03e-47e9-9e80-2ae0c54824b6/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/seta-design-system-4f342275-a03e-47e9-9e80-2ae0c54824b6/tokens/base.css">
+<link rel="stylesheet" href="_ds/seta-design-system-4f342275-a03e-47e9-9e80-2ae0c54824b6/styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="app.css">
+</helmet>
+<div class="app {{ appClass }}">
+  <aside class="sidebar">
+    <div class="brand">
+      <img class="brand-full" src="assets/seta-logo.png" alt="SETA International">
+      <div class="brand-mark"><img src="assets/seta-logo.png" alt="SETA"></div>
+    </div>
+    <nav id="sideNav"></nav>
+    <div class="nav-foot"><div class="env"><span class="dot"></span> Prototype · in-memory data · resets on reload</div></div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <button class="nav-toggle icon-btn" onClick="{{ toggleNav }}" title="Collapse sidebar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><path d="M14 9l-2 3 2 3"/></svg></button>
+      <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="globalSearch" placeholder="Search people, skills, projects…"></div>
+      <div class="topbar-right">
+        <button class="agent-btn" onClick="{{ toggleAgent }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 4.6L18 9l-4.4 1.4L12 15l-1.6-4.6L6 9l4.4-1.4z"/><path d="M19 14l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></svg><span class="agent-btn-lbl">Ask Seta</span></button>
+        <button class="icon-btn theme-toggle" onClick="{{ toggleTheme }}" title="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"/></svg>
+        </button>
+        <div class="persona-pick"><span class="lbl">Viewing as</span>
+          <select id="persona">
+            <option value="admin" selected>Admin / BOD / PMO</option>
+            <option value="am">Account Manager</option>
+            <option value="manager">EM / Team Lead</option>
+            <option value="employee">Member</option>
+          </select>
+        </div>
+        <button class="icon-btn" id="bellBtn" title="Notifications"><span class="ping" id="bellPing"></span><span id="bellCount" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--accent);color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:8px;place-items:center;padding:0 3px"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
+        <div class="me"><div class="av" style="width:34px;height:34px;font-size:12px;background:#4338CA">NH</div><div><div class="nm">Nguyen Trung Hieu</div><div class="rl" id="meRole">Admin</div></div></div>
+      </div>
+    </header>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+
+<div class="agent-panel" data-open="{{ agentOpen }}">
+  <div class="agent-h">
+    <div class="agent-spark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"><path d="M12 3l1.7 4.8L18.5 9l-4.8 1.2L12 15l-1.7-4.8L5.5 9l4.8-1.2z"/></svg></div>
+    <div><div class="agent-title">Seta agent</div><div class="agent-sub">Reads system state · proposes actions</div></div>
+  </div>
+  <div class="agent-body">
+    <div class="agent-line">I can scan People &amp; Project state, surface risks, and draft transactional changes for you to approve.</div>
+    <div class="agent-chips">
+      <sc-for list="{{ chips }}" as="chip" hint-placeholder-count="3">
+        <button class="agent-chip" onClick="{{ chip.on }}">{{ chip.text }}</button>
+      </sc-for>
+    </div>
+    <div class="agent-compose">
+      <input placeholder="Ask Seta to do something…" value="{{ agentInput }}" onChange="{{ onAgentInput }}" onKeyDown="{{ onAgentKey }}">
+      <button class="agent-send" onClick="{{ submitAgent }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    </div>
+    <sc-if value="{{ agentReply }}" hint-placeholder-val="">
+      <div class="agent-reply">{{ agentReply }}</div>
+    </sc-if>
+    <div class="agent-hitl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Every change is held for your approval before it writes.</div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer"></aside>
+<div class="modal-wrap" id="modalWrap"><div class="mback" id="mback"></div><div class="modal" id="modalBox"></div></div>
+<div id="toastWrap"></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { agentOpen:false, navCollapsed:false, theme:'light', agentInput:'', agentReply:'' };
+
+  applyTheme(t){ try{ document.documentElement.classList.toggle('theme-light', t!=='dark'); }catch(e){} }
+
+  componentDidMount(){
+    // restore prefs
+    let theme='light', nav=false;
+    try{ theme = localStorage.getItem('seta_theme') || 'light'; nav = localStorage.getItem('seta_nav_collapsed')==='1'; }catch(e){}
+    this.applyTheme(theme);
+    this.setState({ theme, navCollapsed:nav });
+
+    if(!this._booted){ this._booted=true; import('./seta-engine.js').catch(e=>console.error('Seta engine failed to load', e)); }
+
+    this._onDoc=(e)=>{ if(!this.state.agentOpen) return; const p=document.querySelector('.agent-panel'), b=document.querySelector('.agent-btn'); if(p&&!p.contains(e.target)&&b&&!b.contains(e.target)) this.setState({agentOpen:false}); };
+    this._onKey=(e)=>{ if(e.key==='Escape'&&this.state.agentOpen) this.setState({agentOpen:false}); };
+    document.addEventListener('mousedown', this._onDoc);
+    document.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount(){ document.removeEventListener('mousedown', this._onDoc); document.removeEventListener('keydown', this._onKey); }
+
+  toggleTheme(){ const t=this.state.theme==='dark'?'light':'dark'; this.applyTheme(t); this.setState({theme:t}); try{ localStorage.setItem('seta_theme', t); }catch(e){} }
+  toggleNav(){ const nc=!this.state.navCollapsed; this.setState({navCollapsed:nc}); try{ localStorage.setItem('seta_nav_collapsed', nc?'1':'0'); }catch(e){} }
+  submitAgent(){ if(!this.state.agentInput.trim()){ return; } this.setState({ agentReply:'Seta agent is a preview in this prototype. Connect your workspace to let me read live People & Project data and propose changes for your approval.' }); }
+
+  renderVals(){
+    const PROMPTS=['Who is over-allocated this month?','Draft a backfill plan for offboarding staff',"Summarize this week's non-green projects"];
+    return {
+      appClass: this.state.navCollapsed ? 'nav-collapsed' : '',
+      agentOpen: this.state.agentOpen ? 'true' : 'false',
+      agentInput: this.state.agentInput,
+      agentReply: this.state.agentReply,
+      chips: PROMPTS.map(t=>({ text:t, on:()=>this.setState({agentInput:t}) })),
+      toggleAgent: ()=> this.setState(s=>({agentOpen:!s.agentOpen})),
+      toggleNav: ()=> this.toggleNav(),
+      toggleTheme: ()=> this.toggleTheme(),
+      onAgentInput: (e)=> this.setState({agentInput:e.target.value}),
+      onAgentKey: (e)=>{ if(e.key==='Enter'){ this.submitAgent(); } },
+      submitAgent: ()=> this.submitAgent(),
+    };
+  }
+}
+</script>
+</body>
+</html>

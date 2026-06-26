@@ -24,7 +24,8 @@ A JSON fragment: the sub-module object with its `screens[]`, each screen carryin
 
 - `story` — "As a [role], I want [action] so that [benefit]" (enabler: plain statement).
 - `acceptance_criteria` — 2–5 Given/When/Then lines describing observable behavior. **Cover the key empty/error/permission cases.** Define DONE. **Never name an API, endpoint, table, or component** — the dev derives those from the mockup.
-- `roles`, `mockup_ref`, `status: "not-started"`.
+- `roles`, `status: "not-started"`.
+- `mockup_ref` — only to **override** your screen's ref (a persona-scoped view or sub-state); otherwise omit and inherit the screen's. **Use the navigable handle the Inventory gave your screen — never invent a `#fragment`.** It must actually open the screen (see `schema.md`).
 - `dependencies` — only ids **inside your own sub-module** that you can actually see. Keep minimal. Never guess an id from another module.
 - `notes` — only if there's a non-obvious **business rule** (permission scope, validation limit, computed-value definition, data freshness). Otherwise omit.
 
