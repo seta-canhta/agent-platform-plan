@@ -22,8 +22,9 @@
     { key: 'roles',  label: 'Roles',               kind: 'text', width: 22 },
     { key: 'deps',   label: 'Dependencies',        kind: 'text', width: 22 },
     { key: 'notes',  label: 'Notes',               kind: 'wide', width: 40 },
-    { key: 'status', label: 'Status',              kind: 'tag',  width: 13 },
-    { key: 'sprint', label: 'Sprint',              kind: 'text', width: 14 },
+    { key: 'status',   label: 'Status',            kind: 'tag',  width: 13 },
+    { key: 'assignee', label: 'Assignee',          kind: 'text', width: 18 },
+    { key: 'sprint',   label: 'Sprint',            kind: 'text', width: 14 },
   ];
 
   const join = (a, sep) => (Array.isArray(a) ? a.filter(Boolean).join(sep) : (a || ''));

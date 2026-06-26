@@ -491,7 +491,10 @@
         .on('click',(ev,d)=>{ ev.stopPropagation();
           const id=d.data.id;
           if (isItem(d)){ openModal(d.data); return; }   // leaf items: open the detail modal
-          if (d._children){ d.children=d._children; d._children=null; expanded.add(id); collapsed.delete(id); }
+          if (d._children){ d.children=d._children; d._children=null; expanded.add(id); collapsed.delete(id);
+            // Reveal one level only: collapse any grandchildren so the click doesn't cascade
+            // open a whole subtree (children hidden in a collapsed branch keep their .children).
+            d.children.forEach(c => { if (c.children){ c._children=c.children; c.children=null; collapsed.add(c.data.id); expanded.delete(c.data.id); } }); }
           else if (d.children){ d._children=d.children; d.children=null; collapsed.add(id); expanded.delete(id); }
           update(d); })
         .on('mousemove',(ev,d)=>{

@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-06-26T06:41:37.812Z",
+  "capturedAt": "2026-06-26T06:46:30.218Z",
   "viewport": {
     "w": 1920,
     "h": 1080
@@ -84,6 +84,14 @@
     "US-M1.6.S1-08": "lifecycle-lc_onboarding.png",
     "US-M1.6.S1-09": "lifecycle-lc_onboarding-manager.png",
     "US-M1.6.S1-10": "lifecycle-lc_onboarding.png",
+    "EN-M1.7-01": "lifecycle-lc_probation.png",
+    "US-M1.7.S1-01": "lifecycle-lc_probation.png",
+    "US-M1.7.S1-02": "lifecycle-lc_probation.png",
+    "US-M1.7.S1-03": "lifecycle-lc_probation-manager.png",
+    "US-M1.7.S1-04": "lifecycle-lc_probation-employee.png",
+    "US-M1.7.S2-01": "lifecycle-lc_probation.png",
+    "US-M1.7.S2-02": "lifecycle-lc_probation.png",
+    "US-M1.7.S2-03": "lifecycle-lc_probation.png",
     "EN-M1.8-01": "lifecycle-lc_offboarding.png",
     "US-M1.8.S1-01": "lifecycle-lc_offboarding.png",
     "US-M1.8.S1-02": "lifecycle-lc_offboarding.png",
@@ -244,6 +252,8 @@
     "M1.5.S2": "people-performance.png",
     "M1.5.S3": "people-performance.png",
     "M1.6.S1": "lifecycle-lc_onboarding.png",
+    "M1.7.S1": "lifecycle-lc_probation.png",
+    "M1.7.S2": "lifecycle-lc_probation.png",
     "M1.8.S1": "lifecycle-lc_offboarding.png",
     "M2.1.S1": "hiring-reports.png",
     "M2.2.S1": "hiring-requisitions.png",

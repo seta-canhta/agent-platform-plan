@@ -2345,9 +2345,254 @@
         {
           "id": "M1.7",
           "name": "Probation",
-          "description": "Probation tracking and verdicts across a new joiner's probationary period. Moved from the former Journey module into People.",
-          "status": "not-started",
-          "screens": []
+          "description": "Tracks new joiners through probation: weighted objectives, 30/60/90-day reviews, and a risk score, leading to a confirmation decision — Pass (→ Active/confirmed employee), Extend (+30 days), or Do-not-confirm (→ Offboarding as involuntary). A cohort board lists everyone in probation with objective progress, risk and confirmation due-date; a per-person detail captures objectives, reviews and the decision. Continues the same lifecycle case created at onboarding.",
+          "status": "in-progress",
+          "screens": [
+            {
+              "id": "M1.7.S1",
+              "name": "Probation board",
+              "description": "Cohort view of everyone in probation: a KPI strip (in probation, confirmation due within 14 days, high-risk count, average objective progress) and a table of each probationer with their sub-stage, weighted objective progress, risk score, confirmation due-date and decision/verdict, with a Review action. BOD/PMO/HR see all; EM/TL/PM see their team; a Member sees only their own probation.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "HR",
+                "EM/TL/PM",
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "lifecycle/lc_probation"
+              },
+              "sub_screens": [
+                {
+                  "id": "M1.7.S1.1",
+                  "name": "KPI strip",
+                  "description": "In probation, confirmation due ≤14d, high-risk (≥60), average objective progress."
+                },
+                {
+                  "id": "M1.7.S1.2",
+                  "name": "Probation cohort table",
+                  "description": "Per-probationer: sub-stage, weighted objective progress, risk score, confirmation due, verdict, Review action."
+                }
+              ],
+              "items": [
+                {
+                  "id": "EN-M1.7-01",
+                  "type": "enabler",
+                  "title": "Probation case & confirmation model",
+                  "story": "Establish the probation capability on the lifecycle case: weighted probation objectives, the 30/60/90-day review set (each a 1–5 score with a reviewer note), a risk score, and the confirmation decision with its stage transitions — Pass confirms the employee and moves the case to Active; Extend pushes the confirmation date out 30 days and flags the case At risk; Do-not-confirm ends probation as not-passed and initiates offboarding as an involuntary exit.",
+                  "acceptance_criteria": [
+                    "Given a probation case, when objective progress is computed, then it is the weight-weighted average of the objectives' progress.",
+                    "Given a 30/60/90-day review is recorded, then its score and note are stored against the case and surfaced in the case history.",
+                    "Given a confirmation decision, when Pass is chosen the case moves to Active (confirmed), when Extend is chosen the confirmation date moves out 30 days and health becomes At risk, and when Do-not-confirm is chosen the case enters Offboarding as an involuntary exit with the reason 'Probation not passed'.",
+                    "Given a case in probation, then its confirmation due-date and risk score are available for the cohort view."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "PMO",
+                    "HR",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M1.2-01",
+                    "EN-M1.6-01"
+                  ],
+                  "notes": "Probation continues the same lifecycle case created at onboarding (stage Probation). The 30/60/90-day probation reviews are distinct from the M1.5 monthly performance scorecard. A Do-not-confirm verdict hands the case to the Offboarding sub-module (M1.8).",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.7.S1-01",
+                  "type": "story",
+                  "title": "View probation KPI strip",
+                  "story": "As a BOD/PMO/HR user, I want a KPI strip for the probation cohort so that I can see confirmation pressure and risk at a glance.",
+                  "acceptance_criteria": [
+                    "Given probation cases in my scope, when I open the board, then I see counts for people in probation, confirmations due within 14 days, high-risk cases (risk ≥ 60), and the cohort's average objective progress.",
+                    "Given a confirmation due-date passes or a review is recorded, when the board re-renders, then the affected KPIs update.",
+                    "Given no one is in probation in my scope, then the KPIs show zero/empty values without error."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.7-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.7.S1-02",
+                  "type": "story",
+                  "title": "View the probation cohort table",
+                  "story": "As a BOD/PMO/HR user, I want a table of everyone in probation so that I can spot who is at risk or due for confirmation.",
+                  "acceptance_criteria": [
+                    "Given probation cases, when the table renders, then each row shows the person, sub-stage, weighted objective progress, risk score, confirmation due-date and the decision/verdict (or pending), with a Review action.",
+                    "Given a confirmation due-date is overdue or within 14 days, when its row renders, then the due-date is visually emphasised.",
+                    "Given no one is in probation, then an empty state is shown instead of a table."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.7-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.7.S1-03",
+                  "type": "story",
+                  "title": "View my team's probationers",
+                  "story": "As an EM/TL/PM, I want the probation board scoped to my own team so that I focus on the people I am responsible for confirming.",
+                  "acceptance_criteria": [
+                    "Given I am a manager, when I open the board, then I see only probation cases for people in my scope.",
+                    "Given a probationer outside my scope, then their case is not visible to me.",
+                    "Given I have no probationers, then an empty-scope state is shown."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "lifecycle/lc_probation",
+                    "persona": "manager"
+                  },
+                  "dependencies": [
+                    "EN-M1.7-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.7.S1-04",
+                  "type": "story",
+                  "title": "View my own probation status",
+                  "story": "As a Member on probation, I want to see my own objectives, reviews and confirmation due-date so that I know how I am tracking toward confirmation.",
+                  "acceptance_criteria": [
+                    "Given I am on probation, when I open the board, then I see only my own probation case with my objective progress and confirmation due-date.",
+                    "Given the confirmation decision and reviews, then I can read them but cannot record reviews or make the decision.",
+                    "Given I am not on probation, then an empty-scope state is shown."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "Member"
+                  ],
+                  "mockup_ref": {
+                    "screen": "lifecycle/lc_probation",
+                    "persona": "employee"
+                  },
+                  "dependencies": [
+                    "EN-M1.7-01"
+                  ],
+                  "notes": "Member view is read-only — recording reviews and making the confirmation decision are reserved for the manager/HR tier.",
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M1.7.S2",
+              "name": "Probation review detail",
+              "description": "Per-person probation detail: the weighted objectives with progress, the 30/60/90-day reviews (each recordable with a 1–5 score and note), the risk score, and the confirmation decision panel offering Pass & confirm, Extend 30 days, or Do-not-confirm. Reached by opening a probationer from the board.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "HR",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "lifecycle/lc_probation"
+              },
+              "sub_screens": [
+                {
+                  "id": "M1.7.S2.1",
+                  "name": "Objectives",
+                  "description": "Weighted probation objectives with per-objective progress."
+                },
+                {
+                  "id": "M1.7.S2.2",
+                  "name": "30/60/90-day reviews",
+                  "description": "The review set; record a score and note per review."
+                },
+                {
+                  "id": "M1.7.S2.3",
+                  "name": "Confirmation decision",
+                  "description": "Pass & confirm / Extend 30 days / Do-not-confirm."
+                }
+              ],
+              "items": [
+                {
+                  "id": "US-M1.7.S2-01",
+                  "type": "story",
+                  "title": "View a probationer's objectives and reviews",
+                  "story": "As a BOD/PMO/HR or EM/TL/PM user, I want to open a probationer's detail showing weighted objectives, the 30/60/90-day reviews and the risk score so that I can judge their progress before a decision.",
+                  "acceptance_criteria": [
+                    "Given a probation case, when I open its detail, then I see each objective with its weight and progress and the overall weighted objective %.",
+                    "Given the reviews, then each of the 30/60/90-day reviews shows its score, note and reviewer when recorded, or a not-yet-recorded state otherwise.",
+                    "Given the case, then its risk score and confirmation due-date are shown."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M1.7-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.7.S2-02",
+                  "type": "story",
+                  "title": "Record a 30/60/90-day probation review",
+                  "story": "As a BOD/PMO/HR or EM/TL/PM user, I want to record a 30/60/90-day review with a score and note so that the probation history captures how the person is tracking.",
+                  "acceptance_criteria": [
+                    "Given a not-yet-recorded review, when I record it with a 1–5 score and a note, then it is saved against the case with my name and added to the case history.",
+                    "Given a recorded review, when the detail re-renders, then it shows the score, note and reviewer and is no longer pending.",
+                    "Given I am a Member, then I cannot record a review."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M1.7-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.7.S2-03",
+                  "type": "story",
+                  "title": "Make the confirmation decision (pass / extend / do-not-confirm)",
+                  "story": "As a BOD/PMO/HR or EM/TL/PM user, I want to record the confirmation decision so that probation closes into confirmation, extension, or offboarding.",
+                  "acceptance_criteria": [
+                    "Given a probation case, when I choose Pass & confirm and confirm the prompt, then the case moves to Active as a confirmed employee.",
+                    "Given I choose Extend 30 days, when I confirm, then the confirmation date moves out 30 days and the case health becomes At risk.",
+                    "Given I choose Do-not-confirm, when I confirm, then probation ends as not-passed and an involuntary offboarding case is initiated with a last working day set.",
+                    "Given a decision is already recorded, then the decision panel shows the recorded verdict instead of the action buttons."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M1.7-01",
+                    "EN-M1.8-01"
+                  ],
+                  "notes": "Do-not-confirm hands the case to Offboarding (M1.8) as an involuntary exit (reason: Probation not passed). The decision is the manager recommendation confirmed by HR/PMO.",
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M1.8",
