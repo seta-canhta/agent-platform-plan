@@ -11,6 +11,72 @@
         "updated": "2026-06-26T07:30:00.000Z",
         "agent_note": "Added full form-field list to notes: Overview (Job title, Account, Grade, Type, Interview mode, Due date, Tech stack) + JD Detail (About the role, Responsibilities, Requirements, Nice to have), with required/optional flags."
       }
+    ],
+    "US-M1.2.S2-01": [
+      {
+        "id": "c-ybjl0af3p",
+        "text": "Tạm thời màn detail sẽ ẩn cho member?",
+        "author": "you",
+        "state": "resolved",
+        "created": "2026-06-26T07:32:20.533Z",
+        "updated": "2026-06-26T08:04:05.000Z",
+        "agent_note": "Removed Member from roles + added note: profile detail is temporarily hidden for Members (they browse the list only, US-M1.2.S1-05)."
+      }
+    ],
+    "US-M1.2.S1-05": [
+      {
+        "id": "c-yith22n7y",
+        "text": "All member can access vào màn này",
+        "author": "you",
+        "state": "resolved",
+        "created": "2026-06-26T07:33:17.709Z",
+        "updated": "2026-06-26T08:04:05.000Z",
+        "agent_note": "Rewrote story from 'view own record only' to 'browse the employee directory' so all Members can access the list screen; profile detail stays restricted."
+      }
+    ],
+    "US-M1.2.S1-04": [
+      {
+        "id": "c-qhtgggs68",
+        "text": "Template import sẽ do bên mình tự tạo, mình phải có 1 button để download template",
+        "author": "you",
+        "state": "resolved",
+        "created": "2026-06-26T07:34:10.784Z",
+        "updated": "2026-06-26T08:04:05.000Z",
+        "agent_note": "Feedback is about Import, not the EM/TL directory scope it was attached to. Added a download-template AC + org-provided-template note to the import story US-M1.2.S5-01."
+      }
+    ],
+    "US-M1.2.S4-01": [
+      {
+        "id": "c-q2rqtjv1w",
+        "text": "Luồng add member này chỉ là manually",
+        "author": "you",
+        "state": "resolved",
+        "created": "2026-06-26T07:35:47.828Z",
+        "updated": "2026-06-26T08:04:05.000Z",
+        "agent_note": "Added note clarifying this is the manual add-member flow only — distinct from create-from-candidate (S4-03) and bulk import (S5-01)."
+      }
+    ],
+    "US-M1.2.S4-02": [
+      {
+        "id": "c-h8kr5x26q",
+        "text": "Làm luồng parsing CV đơn giản như con EMS luôn",
+        "author": "you",
+        "state": "resolved",
+        "created": "2026-06-26T07:40:37.010Z",
+        "updated": "2026-06-26T08:04:05.000Z",
+        "agent_note": "Extended S4-02 to parse the CV and pre-fill onboarding fields (simple, EMS-style, HR reviews); added AC + note, re-estimated 2→5."
+      }
+    ],
+    "US-M1.2.S4-03": [
+      {
+        "id": "c-cmrc9np6d",
+        "text": "Sprint 2 sau khi con Hiring nó chỉn chu",
+        "author": "you",
+        "state": "resolved",
+        "created": "2026-06-26T07:42:40.117Z",
+        "updated": "2026-06-26T08:04:05.000Z",
+        "agent_note": "Added note: targeted for Sprint 2, after Hiring (M2) stabilizes. Already depends on M2 via external_deps."
+      }
     ]
   }
 }
