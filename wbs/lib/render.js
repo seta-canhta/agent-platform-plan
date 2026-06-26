@@ -18,9 +18,19 @@
   const isModule = d => d.data.type==='module';
 
   let itemsById = {};   // id → item node, for resolving dependency links
+  let screenIndex = null;   // { byItem, byScreen } from screens/index.json — item id → png
 
-  // Builds the detail HTML for a node's data — shared by the hover tooltip and the click modal.
-  function detailHTML(dd){
+  // Resolve an item's captured screenshot filename (null if none / not captured).
+  function shotFor(dd){
+    if (!screenIndex || !dd) return null;
+    return (screenIndex.byItem && screenIndex.byItem[dd.id])
+        || (screenIndex.byScreen && screenIndex.byScreen[dd.id]) || null;
+  }
+
+  // Builds the detail HTML for a node's data — shared by the hover tooltip and the
+  // click modal. `withShot` adds the related-screen screenshot (modal only; the
+  // hover tooltip stays compact/text-only).
+  function detailHTML(dd, withShot){
     let h='<div class="tt-id">'+dd.id+'</div><div class="tt-name">'+dd.name+'</div>';
     if (isItem({data:dd})){
       const c = dd.type==='enabler'?ENABLER:statusColor(dd.status);
@@ -36,8 +46,20 @@
         });
         h += '<div class="tt-meta" style="color:'+(dd.crossBlocked?C.blocked:C.dim)+'">⛓ blocked by '+parts.join(', ')+(dd.crossDeps&&dd.crossDeps.length?'  · ⤴ cross-module':'')+'</div>';
       }
+      if (dd.blocks && dd.blocks.length){
+        const parts = dd.blocks.map(x => {
+          const cross = dd.crossBlocks&&dd.crossBlocks.indexOf(x)>=0 ? ' ⤴' : '';
+          return (itemsById[x] ? '<a class="dep-link" data-dep="'+x+'">'+x+'</a>' : x)+cross;
+        });
+        h += '<div class="tt-meta" style="color:'+C.dim+'">⛔ blocks '+parts.join(', ')+(dd.crossBlocks&&dd.crossBlocks.length?'  · ⤴ cross-module':'')+'</div>';
+      }
       if (dd.ext && dd.ext.length)
         h += '<div class="tt-meta" style="color:'+C.blocked+'">⚠ external need: '+dd.ext.map(e=>e.needs+(e.likely_module?' ['+e.likely_module+']':'')).join(' · ')+'</div>';
+      const shot = withShot && shotFor(dd);
+      if (shot)
+        h += '<div class="tt-shot-wrap"><b class="tt-shot-h">RELATED SCREEN</b>'
+           + '<a href="screens/'+shot+'" target="_blank" rel="noopener" title="open full screenshot in a new tab">'
+           + '<img class="tt-shot" src="screens/'+shot+'" loading="lazy" alt="Related mockup screen for '+dd.id+'"></a></div>';
     } else {
       if (dd.description) h += '<div class="tt-story">'+dd.description+'</div>';
       if (dd.total_us) h += '<div class="tt-meta">Σ '+dd.total_us+' items · '+dd.total_sp+' pts</div>';
@@ -53,7 +75,7 @@
     const back = document.getElementById('modal-back');
     const body = document.getElementById('modal-body');
     if (!back || !body) return;
-    body.innerHTML = detailHTML(dd);
+    body.innerHTML = detailHTML(dd, true);   // modal includes the related-screen shot
     back.classList.add('visible');
   }
   function hideModalUI(){
@@ -100,7 +122,8 @@
             const node = {
               id:it.id, name:it.title, type:it.type, story:it.story||'', status:it.status||'not-started',
               sp:it.story_points||0, roles:it.roles||[], ac:it.acceptance_criteria||[],
-              deps:it.dependencies||[], ext:(it.external_deps||[]).map(e=> typeof e==='string'?{needs:e}:e), notes:it.notes||'', _mod:mod.id
+              deps:it.dependencies||[], ext:(it.external_deps||[]).map(e=> typeof e==='string'?{needs:e}:e), notes:it.notes||'',
+              mockup: it.mockup_ref || screen.mockup_ref || null, _mod:mod.id
             };
             idMod[it.id] = mod.id; flatItems.push(node); itemsById[it.id] = node;
             return node;
@@ -119,6 +142,14 @@
       it.crossDeps = it.deps.filter(d => idMod[d] && idMod[d] !== it._mod);
       it.blocked = it.deps.length > 0 || it.ext.length > 0;
       it.crossBlocked = it.crossDeps.length > 0 || it.ext.length > 0;
+    }
+    // reverse edges: for each item, which items it blocks (the inverse of `deps`).
+    const blockMap = {};
+    for (const it of flatItems)
+      for (const d of it.deps) (blockMap[d] = blockMap[d] || []).push(it.id);
+    for (const it of flatItems){
+      it.blocks = blockMap[it.id] || [];
+      it.crossBlocks = it.blocks.filter(b => idMod[b] && idMod[b] !== it._mod);
     }
     const oosNode = (o) => ({ id:o.id, name:o.name, description:o.reason||'', status:'out-of-scope', type:'oos',
       children: (o.children && o.children.length) ? o.children.map(oosNode) : undefined });
@@ -290,6 +321,7 @@
   Object.assign(window.WBS, {
     renderWBS(data, stats){ renderHeader(data, stats); render(wbsToHierarchy(data)); syncModalFromHash(); },
     renderHeader,
+    setScreens(idx){ screenIndex = idx || null; },   // { byItem, byScreen } from screens/index.json
     flash,
   });
 })();

@@ -124,7 +124,7 @@ export const STYLE = String.raw`
   }
   .modal-back.visible { opacity: 1; pointer-events: auto; }
   .modal-panel {
-    position: relative; max-width: 720px; width: calc(100% - 64px); max-height: 86vh; overflow-y: auto;
+    position: relative; max-width: 1100px; width: calc(100% - 56px); max-height: 90vh; overflow-y: auto;
     background: var(--card); border: 1px solid var(--line); border-radius: 14px;
     padding: 34px 40px; font-size: 15px; line-height: 1.7; color: var(--ink-dim);
     box-shadow: 0 28px 70px rgba(28,46,82,0.32);
@@ -143,6 +143,18 @@ export const STYLE = String.raw`
     transition: background .14s, color .14s;
   }
   .modal-close:hover { background: rgba(37,99,235,0.08); color: var(--accent); }
+
+  /* ── related-screen screenshot (modal only) ─────────────── */
+  .tt-shot-wrap { margin-top: 16px; }
+  .tt-shot-h { display: block; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1.5px; color: var(--ink-faint); margin-bottom: 7px; }
+  .tt-shot {
+    display: block; width: 100%; height: auto; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--paper-2);
+    box-shadow: 0 8px 24px rgba(28,46,82,0.14); transition: box-shadow .16s, transform .08s;
+  }
+  .tt-shot-wrap a { display: block; }
+  .tt-shot-wrap a:hover .tt-shot { box-shadow: 0 12px 32px rgba(37,99,235,0.26); }
+  .tt-shot-wrap a:active .tt-shot { transform: translateY(1px); }
 
   #flash {
     position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(24px);

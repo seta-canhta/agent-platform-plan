@@ -41,7 +41,7 @@ Module                product area (People / Hiring / Project Monitoring)
               "name": "Org / Workforce Dashboard",
               "description": "...",
               "roles": ["Admin/BOD", "PMO", "AM", "EM/TL"],
-              "mockup_ref": "Seta People.dc.html#org-dashboard",  // link to the design
+              "mockup_ref": { "screen": "people/dashboard" },  // RESOLVABLE handle — must actually open this screen
               "sub_screens": [                                     // UI regions — reference only, NOT work items
                 { "id": "M1.1.S1.1", "name": "KPI Strip", "description": "..." }
               ],
@@ -57,7 +57,8 @@ Module                product area (People / Hiring / Project Monitoring)
                   ],
                   "story_points": 3,                     // Fibonacci only: 1,2,3,5,8,13
                   "roles": ["Admin/BOD"],
-                  "mockup_ref": "Seta People.dc.html#kpi-strip",
+                  // mockup_ref OMITTED — item inherits its screen's ref. Add one ONLY to override
+                  // (e.g. a persona-scoped view or a sub-state): { "screen": "people/dashboard", "persona": "am" }
                   "notes": "AM scope = own accounts only",   // optional — BUSINESS rules only, never how-to
                   "dependencies": ["EN-M1.1-01", "EN-M3.1-01"], // RESOLVED blocker item ids (cross-module allowed)
                   "external_deps": [                          // SUSPECTED needs a fan-out agent can't resolve itself
@@ -81,6 +82,7 @@ Module                product area (People / Hiring / Project Monitoring)
 - **`type`** — `story` for user-facing value (default, ~95%). `enabler` for shared/foundational technical work with no single-story home (design system, RBAC/scoping middleware, data scaffolding, auth, CI). Enablers are still Fibonacci-pointed and tracked.
 - **`story`** — story type: "As a [role], I want [action] so that [benefit]". Enabler: a plain capability statement.
 - **`acceptance_criteria`** — observable behavior, Given/When/Then preferred. Define DONE without prescribing endpoints or components. Include the key edge/empty/permission cases.
+- **`mockup_ref`** — a **resolvable** pointer to the design that actually *opens the screen*, NOT a decorative `#fragment`. Two shapes: a directly-openable URL/anchor string (for mockups with real routes), or — for app-shell SPAs with no addressable routes — an object `{ screen: "<module>/<tab>", persona?, actions? }` where `screen` is the mockup's own navigation key. **Use the navigable handle the Inventory phase recorded for this screen; never invent one.** Lives at the **screen** level; items inherit it and add their own only to override (persona-scoped or sub-state). A ref that opens nothing is a defect — it can't be verified or screenshotted.
 - **`notes`** — optional, **business context only** (rules, permissions, validation limits, data freshness). Never API/component instructions.
 - **`dependencies`** — **resolved** blocker item IDs this item needs first (cross-module allowed, e.g. a People item blocked by a PM enabler). Keep minimal. Maps to Jira "is blocked by". The reconcile phase owns these.
 - **`external_deps`** — optional. What a **fan-out agent flags** when a story needs data/capability owned by a module or screen it cannot see (each agent owns only its sub-module, so it is blind across boundaries). Shape: `{ needs, likely_module?, reason }`. These are **unresolved by design** — reconcile converts each into a real `dependencies` id (or a new enabler, or a flagged gap). An `external_deps` left in the final WBS is a warning: reconcile didn't finish.

@@ -5,11 +5,20 @@
     "updated": "2026-06-26",
     "status": "in-progress",
     "story_format": "As a [role], I want to [action] so that [benefit]",
-    "point_scale": [1, 2, 3, 5, 8, 13],
+    "point_scale": [
+      1,
+      2,
+      3,
+      5,
+      8,
+      13
+    ],
     "notes": [
-      "WBS in progress. Broken down so far: People M1.1 Dashboard, M1.2 Employees, M1.3 Org Chart, M1.4 Resource Allocation; and Project Monitoring M3.1 Portfolio, M3.2 Project Requests, M3.3 Weekly Reports and M3.4 RA Monitoring — decomposed from the mockup (Seta People.dc.html).",
-      "M3 Project Monitoring: M3.1 Portfolio, M3.2 Project Requests (pipeline + charter/approval + staffing/R&R + new-request form), M3.3 Weekly Reports, M3.4 RA Monitoring and M3.8 Project Closure (user-defined) decomposed. M3.5 Risks & Issues, M3.6 KPI Metrics and M3.7 Retro remain stubs pending their own breakdown.",
-      "Reconcile done with M3.4 and M3.3: EN-M3.4-01 is the single allocation source (resolves EN-M1.4-01 and the Portfolio billable-rate/Member-scope deps); EN-M3.3-01 + US-M3.3.S2-01 own the weekly-report data and drawer (resolve all six Portfolio per-week/reported/stale-green/drill deps). Portfolio now has zero unresolved external_deps. New cross-boundary flags from M3.3: backfill → M2 Hiring (US-M3.3.S2-03), Recovery action → M3.5 Risks & Issues (US-M3.3.S3-02).",
+      "WBS in progress. Broken down so far: People M1.1 Dashboard, M1.2 Employees, M1.3 Org Chart, M1.4 Resource Allocation; and Project Monitoring (M3) — all sub-modules M3.1–M3.8 — decomposed from the mockup (Seta People.dc.html). People M1.5 Performance and lifecycle M1.6/M1.7/M1.8 remain stubs; M2 Hiring not started.",
+      "Canonical role taxonomy (locked): BOD = board/executive; PMO = project governance; HR = people operations (employee records, onboarding, sensitive data); AM = account manager; EM/TL/PM = engineering manager / team lead / project manager (the project-level lead); Member = individual contributor. 'Admin' = SYSTEM administrator — a separate platform/access-control role that lives only in out-of-scope M0 (RBAC config, access grants, Directory, Accounts), never attributed to a business story. People's former 'Admin/BOD' label was normalized to 'BOD' and 'EM/TL' to 'EM/TL/PM'; in AC prose 'EM/TL' may still appear as shorthand for the EM/TL/PM role.",
+      "M3 Project Monitoring fully decomposed: M3.1 Portfolio, M3.2 Project Requests, M3.3 Weekly Reports, M3.4 RA Monitoring, M3.5 Risks & Issues, M3.6 KPI Metrics, M3.7 Retro and M3.8 Project Closure (user-defined). Built-but-unwired views flagged for the team: M3.6.S2 (KPI deep-dive sections) and M3.7 Retro (no nav entry). M3.7 promote-to-task closes the Retro→RAID loop into EN-M3.5-01.",
+      "M3.6 KPI Metrics has two screens: S1 is the wired screen (OHS hero, AI summary, configurable KPI Explorer, manual KPI input). S2 (per-KPI drill, trends/benchmark, EQI×TDI matrix, CAPA register) is built in the mockup but NOT wired — the KPI sub-tab nav is never rendered; flagged like Retro/dashAM. Note: the S2 CAPA register (KPI-breach-driven) overlaps with M3.5 RAID Recovery actions (weekly-report-driven) — may need to converge.",
+      "Reconcile done with M3.4 and M3.3: EN-M3.4-01 is the single allocation source (resolves EN-M1.4-01 and the Portfolio billable-rate/Member-scope deps); EN-M3.3-01 + US-M3.3.S2-01 own the weekly-report data and drawer (resolve all six Portfolio per-week/reported/stale-green/drill deps). Portfolio now has zero unresolved external_deps. With M3.5 decomposed, the Recovery-action flag (US-M3.3.S3-02) now resolves to the RAID register EN-M3.5-01. The remaining M3 cross-boundary flag is backfill → M2 Hiring (US-M3.3.S2-03, pending M2).",
       "Full M3 lifecycle inventoried (request → approve → create → staff/R&R → weekly report → RA monitoring → risks/recovery → KPI/CAPA → retro). FLAG: M3.7 Retro (pmRetro) is built but unwired — not a module tab and its only entry trigger (data-gotoretro) is never rendered, so it is currently unreachable in the UI (an orphaned view, like the dashAM dead-code case). Confirm scope before breaking it down.",
       "Reconcile: dashboard skill/tech deps resolve to EN-M1.2-01; dashboard utilization/bench and org-chart project members resolve to EN-M1.4-01 (the allocation model). The one remaining cross-module link is EN-M1.4-01 → M3 (allocations are staffed/edited in the PM module; People reads them) — the canonical 'People utilization fed by PM workload' dependency. Other external_deps await M1.5 Performance, the M1.6/M1.8 lifecycle stubs, M2 Hiring and M0 Admin.",
       "Structure change: the former Journey/Lifecycle module is dissolved — Onboarding/Probation/Offboarding moved into People as M1.6/M1.7/M1.8; the Directory is now a child of Admin (M0.1, deferred); the Journey dashboard is dropped entirely.",
@@ -20,13 +29,33 @@
     ]
   },
   "out_of_scope": [
-    { "id": "M0", "name": "Admin", "reason": "System administration / access-control console — out of scope for this WBS.",
+    {
+      "id": "M0",
+      "name": "Admin",
+      "reason": "System administration / access-control console — out of scope for this WBS.",
       "children": [
-        { "id": "M0.1", "name": "Directory", "reason": "Org-wide people directory — an Admin-owned screen (the former Journey 'Directory' tab). Deferred." },
-        { "id": "M0.2", "name": "Accounts / Clients", "reason": "Account/client master data (id, name, industry, owning AM, projects) referenced across People and PM — employees' account, the account org chart, portfolio account rollups, allocations and requisitions all read it — but with NO create/edit-account screen anywhere in the mockup. Owned by Admin / org-configuration (or an upstream CRM); out of scope." }
-      ] },
-    { "id": "AI", "name": "Super Century AI", "reason": "Standalone AI assistant module — out of scope for this WBS." },
-    { "id": "SHELL", "name": "App shell / platform chrome", "reason": "Cross-cutting shell — global search, notifications bell, 'Ask Seta' agent panel, theme & persona switch, sidebar/top-bar nav. Platform-level, belongs to no single People sub-module; tracked separately." }
+        {
+          "id": "M0.1",
+          "name": "Directory",
+          "reason": "Org-wide people directory — an Admin-owned screen (the former Journey 'Directory' tab). Deferred."
+        },
+        {
+          "id": "M0.2",
+          "name": "Accounts / Clients",
+          "reason": "Account/client master data (id, name, industry, owning AM, projects) referenced across People and PM — employees' account, the account org chart, portfolio account rollups, allocations and requisitions all read it — but with NO create/edit-account screen anywhere in the mockup. Owned by Admin / org-configuration (or an upstream CRM); out of scope."
+        }
+      ]
+    },
+    {
+      "id": "AI",
+      "name": "Super Century AI",
+      "reason": "Standalone AI assistant module — out of scope for this WBS."
+    },
+    {
+      "id": "SHELL",
+      "name": "App shell / platform chrome",
+      "reason": "Cross-cutting shell — global search, notifications bell, 'Ask Seta' agent panel, theme & persona switch, sidebar/top-bar nav. Platform-level, belongs to no single People sub-module; tracked separately."
+    }
   ],
   "modules": [
     {
@@ -44,23 +73,82 @@
             {
               "id": "M1.1.S1",
               "name": "Workforce Overview (Executive Dashboard)",
-              "description": "The 30-second read on the workforce for Admin/BOD/PMO (company-wide), AM (account-scoped) and EM/TL (project-scoped): KPIs, utilization, forecast, distribution, attrition, performance, skills and AI signals.",
-              "roles": ["Admin/BOD", "PMO", "AM", "EM/TL"],
-              "mockup_ref": "Seta People.dc.html#people-dashboard",
+              "description": "The 30-second read on the workforce for BOD/PMO (company-wide), AM (account-scoped) and EM/TL/PM (project-scoped): KPIs, utilization, forecast, distribution, attrition, performance, skills and AI signals.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "people/dashboard"
+              },
               "sub_screens": [
-                { "id": "M1.1.S1.1", "name": "Scoped page header", "description": "Role-aware title + subtitle indicating company-wide vs account/project scope." },
-                { "id": "M1.1.S1.2", "name": "Seta signals (AI insights)", "description": "Ranked workforce signals filterable by severity (Critical/Warning/Opportunity/Positive)." },
-                { "id": "M1.1.S1.3", "name": "Filter bar", "description": "Period / department / account / employment-type filters." },
-                { "id": "M1.1.S1.4", "name": "Executive KPI strip", "description": "Active workforce, Utilization, Attrition, Workforce health — each with sparkline." },
-                { "id": "M1.1.S1.5", "name": "Workforce overview", "description": "Headcount movement (joiners vs leavers) and people by department." },
-                { "id": "M1.1.S1.6", "name": "Utilization & allocation", "description": "Deployment split (billable/internal/idle/leave) overall and per department." },
-                { "id": "M1.1.S1.7", "name": "Forecast & planning", "description": "6-month forecast headcount vs demand with the projected gap." },
-                { "id": "M1.1.S1.8", "name": "Workforce distribution", "description": "Seniority mix, tech-stack coverage, tenure, exit reasons." },
-                { "id": "M1.1.S1.9", "name": "Attrition & retention", "description": "Attrition trend, leavers by tenure, turnover by team/account." },
-                { "id": "M1.1.S1.10", "name": "Performance summary", "description": "Score distribution and review completion/flags across in-scope people." },
-                { "id": "M1.1.S1.11", "name": "Skill gaps & capacity risk", "description": "Skill-gap matrix and critical roles without backup." },
-                { "id": "M1.1.S1.12", "name": "Skill inventory & capacity", "description": "Searchable, category-filterable skill inventory vs open demand." },
-                { "id": "M1.1.S1.13", "name": "Account-access request (AM)", "description": "AM requests a grant to view another account." }
+                {
+                  "id": "M1.1.S1.1",
+                  "name": "Scoped page header",
+                  "description": "Role-aware title + subtitle indicating company-wide vs account/project scope."
+                },
+                {
+                  "id": "M1.1.S1.2",
+                  "name": "Seta signals (AI insights)",
+                  "description": "Ranked workforce signals filterable by severity (Critical/Warning/Opportunity/Positive)."
+                },
+                {
+                  "id": "M1.1.S1.3",
+                  "name": "Filter bar",
+                  "description": "Period / department / account / employment-type filters."
+                },
+                {
+                  "id": "M1.1.S1.4",
+                  "name": "Executive KPI strip",
+                  "description": "Active workforce, Utilization, Attrition, Workforce health — each with sparkline."
+                },
+                {
+                  "id": "M1.1.S1.5",
+                  "name": "Workforce overview",
+                  "description": "Headcount movement (joiners vs leavers) and people by department."
+                },
+                {
+                  "id": "M1.1.S1.6",
+                  "name": "Utilization & allocation",
+                  "description": "Deployment split (billable/internal/idle/leave) overall and per department."
+                },
+                {
+                  "id": "M1.1.S1.7",
+                  "name": "Forecast & planning",
+                  "description": "6-month forecast headcount vs demand with the projected gap."
+                },
+                {
+                  "id": "M1.1.S1.8",
+                  "name": "Workforce distribution",
+                  "description": "Seniority mix, tech-stack coverage, tenure, exit reasons."
+                },
+                {
+                  "id": "M1.1.S1.9",
+                  "name": "Attrition & retention",
+                  "description": "Attrition trend, leavers by tenure, turnover by team/account."
+                },
+                {
+                  "id": "M1.1.S1.10",
+                  "name": "Performance summary",
+                  "description": "Score distribution and review completion/flags across in-scope people."
+                },
+                {
+                  "id": "M1.1.S1.11",
+                  "name": "Skill gaps & capacity risk",
+                  "description": "Skill-gap matrix and critical roles without backup."
+                },
+                {
+                  "id": "M1.1.S1.12",
+                  "name": "Skill inventory & capacity",
+                  "description": "Searchable, category-filterable skill inventory vs open demand."
+                },
+                {
+                  "id": "M1.1.S1.13",
+                  "name": "Account-access request (AM)",
+                  "description": "AM requests a grant to view another account."
+                }
               ],
               "items": [
                 {
@@ -74,24 +162,36 @@
                     "Given a fully scoped view contains no people, when metrics aggregate, then empty states are shown rather than zeros."
                   ],
                   "story_points": 3,
-                  "roles": ["Admin/BOD", "PMO", "AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#people-dashboard",
-                  "notes": "Builds on the canonical RBAC (EN-M1.2-01) rather than re-defining it. Scope tiers: Admin/BOD/PMO = company-wide; AM = assigned + granted accounts; EM/TL = own projects; Member = self.",
-                  "dependencies": ["EN-M1.2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "notes": "Builds on the canonical RBAC (EN-M1.2-01) rather than re-defining it. Scope tiers: BOD/PMO = company-wide; AM = assigned + granted accounts; EM/TL/PM = own projects; Member = self.",
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
                   "id": "EN-M1.1-02",
                   "type": "enabler",
-                  "title": "Shared dashboard visualization components",
+                  "title": "Shared dashboard visualization building blocks",
                   "story": "Provide a reusable set of dashboard visualization building blocks (KPI cards with sparklines, trend lines, stacked/segmented bars, donuts, coverage tables) used consistently across every dashboard section.",
                   "acceptance_criteria": [
                     "Given any dashboard section renders a metric, when displayed, then it uses the shared visual style consistently (colors, legends, tooltips).",
                     "Given a metric has no data, when its chart renders, then a shared empty state is shown instead of a broken or zeroed chart."
                   ],
                   "story_points": 5,
-                  "roles": ["Admin/BOD", "PMO", "AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#people-dashboard",
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
                   "notes": "Shared across all dashboard sections and reusable by other analytical People screens.",
                   "dependencies": [],
                   "status": "not-started"
@@ -102,14 +202,20 @@
                   "title": "View the executive workforce KPI strip",
                   "story": "As an Admin/BOD or PMO, I want a KPI strip showing active workforce, utilization, attrition rate and workforce health with trend sparklines so that I can assess overall workforce health in seconds.",
                   "acceptance_criteria": [
-                    "Given I am Admin/BOD/PMO, when the dashboard loads, then the KPI strip shows active workforce (active/total, % active, MoM delta, on-leave), utilization % (idle count, target, gap to target), attrition rate (vs prior) and workforce health, each with a sparkline.",
+                    "Given I am BOD or PMO, when the dashboard loads, then the KPI strip shows active workforce (active/total, % active, MoM delta, on-leave), utilization % (idle count, target, gap to target), attrition rate (vs prior) and workforce health, each with a sparkline.",
                     "Given a metric has no data for the selected period, when the strip renders, then an empty state is shown instead of a misleading zero.",
                     "Given the view is scoped (AM/EM/TL), when the strip renders, then every KPI reflects only the in-scope people."
                   ],
                   "story_points": 3,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-kpi",
-                  "dependencies": ["EN-M1.1-01", "EN-M1.1-02", "EN-M1.4-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.1-01",
+                    "EN-M1.1-02",
+                    "EN-M1.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -123,11 +229,19 @@
                     "Given no movement data for the period, when the section renders, then an empty state is shown."
                   ],
                   "story_points": 3,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-overview",
-                  "dependencies": ["EN-M1.1-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.1-01"
+                  ],
                   "external_deps": [
-                    { "needs": "joiners / leavers (onboarding & offboarding events)", "likely_module": "M1.6/M1.8", "reason": "headcount movement is sourced from Onboarding (M1.6) and Offboarding (M1.8), now People sub-modules." }
+                    {
+                      "needs": "joiners / leavers (onboarding & offboarding events)",
+                      "likely_module": "M1.6/M1.8",
+                      "reason": "headcount movement is sourced from Onboarding (M1.6) and Offboarding (M1.8), now People sub-modules."
+                    }
                   ],
                   "status": "not-started"
                 },
@@ -142,10 +256,15 @@
                     "Given there are idle (bench) people, when the section renders, then they are highlighted as staffable capacity."
                   ],
                   "story_points": 5,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-utilization",
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
                   "notes": "Utilization = billable share of active staff vs target. Bench = available, not yet staffed.",
-                  "dependencies": ["EN-M1.1-01", "EN-M1.4-01"],
+                  "dependencies": [
+                    "EN-M1.1-01",
+                    "EN-M1.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -159,11 +278,19 @@
                     "Given no forecast data, when the section renders, then an empty state is shown."
                   ],
                   "story_points": 5,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-forecast",
-                  "dependencies": ["EN-M1.1-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.1-01"
+                  ],
                   "external_deps": [
-                    { "needs": "demand / open-role figures driving forecast demand", "likely_module": "M2", "reason": "demand is derived from open requisitions owned by the Hiring module." }
+                    {
+                      "needs": "demand / open-role figures driving forecast demand",
+                      "likely_module": "M2",
+                      "reason": "demand is derived from open requisitions owned by the Hiring module."
+                    }
                   ],
                   "status": "not-started"
                 },
@@ -178,9 +305,14 @@
                     "Given a category has no data, when its chart renders, then an empty state is shown."
                   ],
                   "story_points": 5,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-distribution",
-                  "dependencies": ["EN-M1.1-01", "EN-M1.2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.1-01",
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -194,9 +326,13 @@
                     "Given no attrition in the period, when the section renders, then an empty state is shown."
                   ],
                   "story_points": 5,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-attrition",
-                  "dependencies": ["EN-M1.1-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.1-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -210,12 +346,20 @@
                     "Given a person scores below the bar, when the section renders, then they appear in the needs-attention list."
                   ],
                   "story_points": 3,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-performance",
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
                   "notes": "Below-bar threshold = 3.5 (out of 5).",
-                  "dependencies": ["EN-M1.1-01"],
+                  "dependencies": [
+                    "EN-M1.1-01"
+                  ],
                   "external_deps": [
-                    { "needs": "monthly scorecard / evaluation results", "likely_module": "M1.5", "reason": "review scores are produced by the Performance sub-module; the dashboard only aggregates them." }
+                    {
+                      "needs": "monthly scorecard / evaluation results",
+                      "likely_module": "M1.5",
+                      "reason": "review scores are produced by the Performance sub-module; the dashboard only aggregates them."
+                    }
                   ],
                   "status": "not-started"
                 },
@@ -230,11 +374,20 @@
                     "Given a skill or role is critically under-covered, when the section renders, then it is flagged with an action insight."
                   ],
                   "story_points": 5,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-skillgap",
-                  "dependencies": ["EN-M1.1-01", "EN-M1.2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.1-01",
+                    "EN-M1.2-01"
+                  ],
                   "external_deps": [
-                    { "needs": "skill demand from open roles", "likely_module": "M2", "reason": "demand is derived from open requisitions owned by the Hiring module; skill supply now resolves to the Employees data model (EN-M1.2-01)." }
+                    {
+                      "needs": "skill demand from open roles",
+                      "likely_module": "M2",
+                      "reason": "demand is derived from open requisitions owned by the Hiring module; skill supply now resolves to the Employees data model (EN-M1.2-01)."
+                    }
                   ],
                   "status": "not-started"
                 },
@@ -249,11 +402,20 @@
                     "Given no skill matches the filter/search, when applied, then an empty state is shown."
                   ],
                   "story_points": 5,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-skillinventory",
-                  "dependencies": ["EN-M1.1-01", "EN-M1.2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.1-01",
+                    "EN-M1.2-01"
+                  ],
                   "external_deps": [
-                    { "needs": "open-role demand", "likely_module": "M2", "reason": "demand comes from Hiring (M2); skill holdings now resolve to the Employees data model (EN-M1.2-01)." }
+                    {
+                      "needs": "open-role demand",
+                      "likely_module": "M2",
+                      "reason": "demand comes from Hiring (M2); skill holdings now resolve to the Employees data model (EN-M1.2-01)."
+                    }
                   ],
                   "status": "not-started"
                 },
@@ -268,10 +430,14 @@
                     "Given there are no signals at a severity level, when filtered, then an empty state is shown."
                   ],
                   "story_points": 3,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-signals",
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
                   "notes": "Signals are read-only on the dashboard — no change is committed from here.",
-                  "dependencies": ["EN-M1.1-01"],
+                  "dependencies": [
+                    "EN-M1.1-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -284,9 +450,13 @@
                     "Given a filter combination yields no people, when applied, then sections show empty states rather than zeros."
                   ],
                   "story_points": 3,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-filters",
-                  "dependencies": ["EN-M1.1-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.1-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -299,9 +469,16 @@
                     "Given I have no granted extra accounts, when I open the dashboard, then I see only my own account(s)."
                   ],
                   "story_points": 2,
-                  "roles": ["AM"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-scoped-am",
-                  "dependencies": ["EN-M1.1-01"],
+                  "roles": [
+                    "AM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "people/dashboard",
+                    "persona": "am"
+                  },
+                  "dependencies": [
+                    "EN-M1.1-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -314,9 +491,16 @@
                     "Given I lead no project, when I open the dashboard, then an empty state explains there is no team in scope."
                   ],
                   "story_points": 2,
-                  "roles": ["EM/TL"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-scoped-em",
-                  "dependencies": ["EN-M1.1-01"],
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "people/dashboard",
+                    "persona": "manager"
+                  },
+                  "dependencies": [
+                    "EN-M1.1-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -330,12 +514,23 @@
                     "Given I already have access to all accounts, when the section renders, then the request control is replaced with a 'you have access to all accounts' state."
                   ],
                   "story_points": 3,
-                  "roles": ["AM"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-am-grant",
+                  "roles": [
+                    "AM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "people/dashboard",
+                    "persona": "am"
+                  },
                   "notes": "In production the grant routes to Admin/PMO for approval and is logged; the prototype applies it immediately.",
-                  "dependencies": ["EN-M1.1-01"],
+                  "dependencies": [
+                    "EN-M1.1-01"
+                  ],
                   "external_deps": [
-                    { "needs": "account-access approval workflow and audit log", "likely_module": "M0", "reason": "grant approval and audit are owned by Admin/access-control, which is out of scope for this WBS." }
+                    {
+                      "needs": "account-access approval workflow and audit log",
+                      "likely_module": "M0",
+                      "reason": "grant approval and audit are owned by Admin/access-control, which is out of scope for this WBS."
+                    }
                   ],
                   "status": "not-started"
                 }
@@ -345,13 +540,34 @@
               "id": "M1.1.S2",
               "name": "My Scorecard (Member dashboard)",
               "description": "The dashboard a Member sees: their monthly evaluation at a glance — overall score, pillar breakdown, strengths, focus areas and score trend.",
-              "roles": ["Member"],
-              "mockup_ref": "Seta People.dc.html#dashboard-my-scorecard",
+              "roles": [
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "people/dashboard",
+                "persona": "employee"
+              },
               "sub_screens": [
-                { "id": "M1.1.S2.1", "name": "Scorecard summary", "description": "Overall score, verdict and period selector." },
-                { "id": "M1.1.S2.2", "name": "Pillar breakdown", "description": "Weighted pillars (AI, Technical, Communication, Ownership, Delivery, Growth) with deltas." },
-                { "id": "M1.1.S2.3", "name": "Strengths & focus areas", "description": "Top strengths and lowest-scoring focus areas." },
-                { "id": "M1.1.S2.4", "name": "Score trend", "description": "Overall score across periods." }
+                {
+                  "id": "M1.1.S2.1",
+                  "name": "Scorecard summary",
+                  "description": "Overall score, verdict and period selector."
+                },
+                {
+                  "id": "M1.1.S2.2",
+                  "name": "Pillar breakdown",
+                  "description": "Weighted pillars (AI, Technical, Communication, Ownership, Delivery, Growth) with deltas."
+                },
+                {
+                  "id": "M1.1.S2.3",
+                  "name": "Strengths & focus areas",
+                  "description": "Top strengths and lowest-scoring focus areas."
+                },
+                {
+                  "id": "M1.1.S2.4",
+                  "name": "Score trend",
+                  "description": "Overall score across periods."
+                }
               ],
               "items": [
                 {
@@ -365,12 +581,19 @@
                     "Given no evaluation exists for the selected period, when it loads, then an empty state explains my TL runs the scorecard at period end."
                   ],
                   "story_points": 5,
-                  "roles": ["Member"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-my-scorecard",
+                  "roles": [
+                    "Member"
+                  ],
                   "notes": "Visible to the member, their TL/PM and HR only.",
-                  "dependencies": ["EN-M1.1-01"],
+                  "dependencies": [
+                    "EN-M1.1-01"
+                  ],
                   "external_deps": [
-                    { "needs": "the member's monthly scorecard / evaluation", "likely_module": "M1.5", "reason": "scorecards are produced by the Performance sub-module; the dashboard only displays the member's own." }
+                    {
+                      "needs": "the member's monthly scorecard / evaluation",
+                      "likely_module": "M1.5",
+                      "reason": "scorecards are produced by the Performance sub-module; the dashboard only displays the member's own."
+                    }
                   ],
                   "status": "not-started"
                 },
@@ -385,11 +608,19 @@
                     "Given only one period exists, when the summary renders, then the trend is omitted gracefully."
                   ],
                   "story_points": 3,
-                  "roles": ["Member"],
-                  "mockup_ref": "Seta People.dc.html#dashboard-my-scorecard",
-                  "dependencies": ["EN-M1.1-01", "US-M1.1.S2-01"],
+                  "roles": [
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M1.1-01",
+                    "US-M1.1.S2-01"
+                  ],
                   "external_deps": [
-                    { "needs": "the member's scorecard history across periods", "likely_module": "M1.5", "reason": "historical scores are owned by the Performance sub-module." }
+                    {
+                      "needs": "the member's scorecard history across periods",
+                      "likely_module": "M1.5",
+                      "reason": "historical scores are owned by the Performance sub-module."
+                    }
                   ],
                   "status": "not-started"
                 }
@@ -406,14 +637,39 @@
             {
               "id": "M1.2.S1",
               "name": "Employee Directory",
-              "description": "Role-scoped roster of people as a table or cards, with status/account filters and search. Full roster for Admin/HR/PMO; scoped for AM, EM/TL and Member.",
-              "roles": ["Admin/BOD", "PMO", "HR", "AM", "EM/TL", "Member"],
-              "mockup_ref": "Seta People.dc.html#employees-directory",
+              "description": "Role-scoped roster of people as a table or cards, with status/account filters and search. Full roster for HR/PMO/BOD; scoped for AM, EM/TL/PM and Member.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "HR",
+                "AM",
+                "EM/TL/PM",
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "people/employees"
+              },
               "sub_screens": [
-                { "id": "M1.2.S1.1", "name": "Roster table", "description": "Tabular list: name, account, email, manager, status, onboarding/offboarding dates, phone, gender, techstack." },
-                { "id": "M1.2.S1.2", "name": "Roster cards", "description": "Card layout of the same people." },
-                { "id": "M1.2.S1.3", "name": "Toolbar", "description": "Table/card toggle, status filter, account filter, scoped-view badge, people count." },
-                { "id": "M1.2.S1.4", "name": "Global search", "description": "Search by name, role, account, email or techstack." }
+                {
+                  "id": "M1.2.S1.1",
+                  "name": "Roster table",
+                  "description": "Tabular list: name, account, email, manager, status, onboarding/offboarding dates, phone, gender, techstack."
+                },
+                {
+                  "id": "M1.2.S1.2",
+                  "name": "Roster cards",
+                  "description": "Card layout of the same people."
+                },
+                {
+                  "id": "M1.2.S1.3",
+                  "name": "Toolbar",
+                  "description": "Table/card toggle, status filter, account filter, scoped-view badge, people count."
+                },
+                {
+                  "id": "M1.2.S1.4",
+                  "name": "Global search",
+                  "description": "Search by name, role, account, email or techstack."
+                }
               ],
               "items": [
                 {
@@ -422,17 +678,27 @@
                   "title": "Employee record data model & RBAC scoping",
                   "story": "Provide the employee record (identity, contact, engagement, lifecycle dates, grade, skills, techstack, documents) plus the role-based visibility, sensitive-field masking and field-level edit rights that every People screen relies on.",
                   "acceptance_criteria": [
-                    "Given any employee query, when executed, then it returns only the records the caller's role is permitted to see (Admin/HR/PMO = all; AM = own accounts; EM/TL = own projects + self; Member = self).",
+                    "Given any employee query, when executed, then it returns only the records the caller's role is permitted to see (HR/PMO/BOD = all; AM = own accounts; EM/TL/PM = own projects + self; Member = self).",
                     "Given a record is returned, when serialized, then sensitive fields (salary, bank, tax, dob) are masked unless the caller is HR Admin or the record owner.",
                     "Given a field write, when attempted, then it is permitted only if the field is self-editable by the owner or the caller is an admin (admin-only: manager, account, project, grade, salary, bank, tax)."
                   ],
                   "story_points": 5,
-                  "roles": ["Admin/BOD", "PMO", "HR", "AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#employees-directory",
-                  "notes": "Owns the canonical employee record incl. skills/techstack the dashboard aggregates. Field-level rules per MoM 1.3/1.4; enforced at API level.",
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "notes": "Owns the canonical employee record incl. skills/techstack the dashboard aggregates. Field-level rules per MoM 1.3/1.4; enforced as a data-access rule on every path, not just hidden in the UI.",
                   "dependencies": [],
                   "external_deps": [
-                    { "needs": "account / client master data (id, name, industry, owning AM)", "likely_module": "M0", "reason": "the account each employee belongs to is reference data with no management screen in the mockup; owned by Admin/org-configuration (out of scope)." }
+                    {
+                      "needs": "account / client master data (id, name, industry, owning AM)",
+                      "likely_module": "M0",
+                      "reason": "the account each employee belongs to is reference data with no management screen in the mockup; owned by Admin/org-configuration (out of scope)."
+                    }
                   ],
                   "status": "not-started"
                 },
@@ -446,8 +712,10 @@
                     "Given provisioning is requested, when it is sent, then the outcome is reflected back on the member's record/notifications."
                   ],
                   "story_points": 3,
-                  "roles": ["HR", "Admin/BOD"],
-                  "mockup_ref": "Seta People.dc.html#employee-onboard",
+                  "roles": [
+                    "HR",
+                    "BOD"
+                  ],
                   "notes": "Triggered on onboarding (MoM 2.2). In the prototype the request is simulated; in production it provisions a real Microsoft 365 / Teams account.",
                   "dependencies": [],
                   "status": "not-started"
@@ -464,9 +732,14 @@
                     "Given no employee matches the filters, when applied, then a 'no matching people' empty state is shown."
                   ],
                   "story_points": 3,
-                  "roles": ["Admin/BOD", "PMO", "HR"],
-                  "mockup_ref": "Seta People.dc.html#employees-directory",
-                  "dependencies": ["EN-M1.2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -480,9 +753,14 @@
                     "Given a search is active, when combined with status/account filters, then both narrow the results together."
                   ],
                   "story_points": 2,
-                  "roles": ["Admin/BOD", "PMO", "HR"],
-                  "mockup_ref": "Seta People.dc.html#employees-directory",
-                  "dependencies": ["EN-M1.2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -495,9 +773,12 @@
                     "Given I search or filter, when applied, then results stay within my account scope."
                   ],
                   "story_points": 2,
-                  "roles": ["AM"],
-                  "mockup_ref": "Seta People.dc.html#employees-directory",
-                  "dependencies": ["EN-M1.2-01"],
+                  "roles": [
+                    "AM"
+                  ],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -510,9 +791,12 @@
                     "Given I search or filter, when applied, then results stay within my project scope."
                   ],
                   "story_points": 2,
-                  "roles": ["EM/TL"],
-                  "mockup_ref": "Seta People.dc.html#employees-directory",
-                  "dependencies": ["EN-M1.2-01"],
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -525,9 +809,12 @@
                     "Given I attempt to access another person's record, when requested, then it is not returned."
                   ],
                   "story_points": 2,
-                  "roles": ["Member"],
-                  "mockup_ref": "Seta People.dc.html#employees-directory",
-                  "dependencies": ["EN-M1.2-01"],
+                  "roles": [
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -536,14 +823,43 @@
               "id": "M1.2.S2",
               "name": "Employee Profile",
               "description": "Full employee profile drawer: overview (contact, engagement, lifecycle, compensation), documents vault, skills, scorecard and field-level history.",
-              "roles": ["Admin/BOD", "PMO", "HR", "AM", "EM/TL", "Member"],
-              "mockup_ref": "Seta People.dc.html#employee-profile",
+              "roles": [
+                "BOD",
+                "PMO",
+                "HR",
+                "AM",
+                "EM/TL/PM",
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "people/employees"
+              },
               "sub_screens": [
-                { "id": "M1.2.S2.1", "name": "Overview tab", "description": "Contact, engagement (account/project/manager/type), lifecycle dates, grade." },
-                { "id": "M1.2.S2.2", "name": "Compensation & banking", "description": "Salary, bank account, tax ID — masked unless HR Admin or the record owner." },
-                { "id": "M1.2.S2.3", "name": "Documents tab", "description": "Access-controlled document vault with expiry warnings." },
-                { "id": "M1.2.S2.4", "name": "Skills tab", "description": "Skills with proficiency level and endorsement counts." },
-                { "id": "M1.2.S2.5", "name": "History tab", "description": "Immutable field-level audit timeline with before/after." }
+                {
+                  "id": "M1.2.S2.1",
+                  "name": "Overview tab",
+                  "description": "Contact, engagement (account/project/manager/type), lifecycle dates, grade."
+                },
+                {
+                  "id": "M1.2.S2.2",
+                  "name": "Compensation & banking",
+                  "description": "Salary, bank account, tax ID — masked unless HR Admin or the record owner."
+                },
+                {
+                  "id": "M1.2.S2.3",
+                  "name": "Documents tab",
+                  "description": "Access-controlled document vault with expiry warnings."
+                },
+                {
+                  "id": "M1.2.S2.4",
+                  "name": "Skills tab",
+                  "description": "Skills with proficiency level and endorsement counts."
+                },
+                {
+                  "id": "M1.2.S2.5",
+                  "name": "History tab",
+                  "description": "Immutable field-level audit timeline with before/after."
+                }
               ],
               "items": [
                 {
@@ -557,12 +873,24 @@
                     "Given I close the profile, when dismissed, then I return to the directory unchanged."
                   ],
                   "story_points": 3,
-                  "roles": ["Admin/BOD", "PMO", "HR", "AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#employee-profile",
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
                   "notes": "Date of birth is masked unless viewer is HR Admin or the record owner.",
-                  "dependencies": ["EN-M1.2-01"],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
                   "external_deps": [
-                    { "needs": "the employee's monthly scorecards", "likely_module": "M1.5", "reason": "the profile's scorecard tab surfaces evaluations owned by the Performance sub-module." }
+                    {
+                      "needs": "the employee's monthly scorecards",
+                      "likely_module": "M1.5",
+                      "reason": "the profile's scorecard tab surfaces evaluations owned by the Performance sub-module."
+                    }
                   ],
                   "status": "not-started"
                 },
@@ -577,10 +905,14 @@
                     "Given an unauthorized role accesses the record by any path, when the data is returned, then sensitive values are never exposed — masking is a data-access rule, not only a display choice."
                   ],
                   "story_points": 2,
-                  "roles": ["Admin/BOD", "HR"],
-                  "mockup_ref": "Seta People.dc.html#employee-profile",
-                  "notes": "Sensitive fields: salary, bank, tax. Visible only to HR Admin or the record owner; enforced at API level.",
-                  "dependencies": ["EN-M1.2-01"],
+                  "roles": [
+                    "BOD",
+                    "HR"
+                  ],
+                  "notes": "Sensitive fields: salary, bank, tax. Visible only to HR Admin or the record owner; enforced as a data-access rule on every path, not just hidden in the UI.",
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -594,10 +926,15 @@
                     "Given a profile has no documents, when I open the tab, then an empty state is shown."
                   ],
                   "story_points": 3,
-                  "roles": ["Admin/BOD", "PMO", "HR"],
-                  "mockup_ref": "Seta People.dc.html#employee-profile",
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
                   "notes": "Uploading a new version archives the previous one; nothing is permanently deleted until the retention policy applies.",
-                  "dependencies": ["EN-M1.2-01"],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -610,9 +947,17 @@
                     "Given a profile has no skills recorded, when I open the tab, then an empty state is shown."
                   ],
                   "story_points": 2,
-                  "roles": ["Admin/BOD", "PMO", "HR", "AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#employee-profile",
-                  "dependencies": ["EN-M1.2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -626,9 +971,14 @@
                     "Given any field write occurs, when it is saved, then a new immutable history entry is recorded (no edits or deletes)."
                   ],
                   "story_points": 3,
-                  "roles": ["Admin/BOD", "PMO", "HR"],
-                  "mockup_ref": "Seta People.dc.html#employee-profile",
-                  "dependencies": ["EN-M1.2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -637,11 +987,26 @@
               "id": "M1.2.S3",
               "name": "Edit Profile",
               "description": "Edit an employee record: members self-edit personal details; admins edit engagement/grade fields. Engagement changes trigger Org Chart and MS365 sync; every write is audited.",
-              "roles": ["Admin/BOD", "PMO", "HR", "Member"],
-              "mockup_ref": "Seta People.dc.html#employee-edit",
+              "roles": [
+                "BOD",
+                "PMO",
+                "HR",
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "people/employees"
+              },
               "sub_screens": [
-                { "id": "M1.2.S3.1", "name": "Personal details (self-editable)", "description": "Work email, phone, location, date of birth." },
-                { "id": "M1.2.S3.2", "name": "Engagement & grade (admin-only)", "description": "Direct manager, account, project, job grade — locked to Admin." }
+                {
+                  "id": "M1.2.S3.1",
+                  "name": "Personal details (self-editable)",
+                  "description": "Work email, phone, location, date of birth."
+                },
+                {
+                  "id": "M1.2.S3.2",
+                  "name": "Engagement & grade (admin-only)",
+                  "description": "Direct manager, account, project, job grade — locked to Admin."
+                }
               ],
               "items": [
                 {
@@ -655,10 +1020,13 @@
                     "Given I make no changes, when I save, then I am told there is nothing to save."
                   ],
                   "story_points": 3,
-                  "roles": ["Member"],
-                  "mockup_ref": "Seta People.dc.html#employee-edit",
+                  "roles": [
+                    "Member"
+                  ],
                   "notes": "Self-editable fields: email, phone, location, date of birth (MoM 1.3).",
-                  "dependencies": ["EN-M1.2-01"],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -672,10 +1040,16 @@
                     "Given I am not an admin, when I open the edit form, then these fields are locked and cannot be saved."
                   ],
                   "story_points": 5,
-                  "roles": ["Admin/BOD", "PMO", "HR"],
-                  "mockup_ref": "Seta People.dc.html#employee-edit",
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
                   "notes": "Admin-only fields (MoM 1.4): manager, account, project, grade, salary, bank, tax.",
-                  "dependencies": ["EN-M1.2-01", "EN-M1.2-02"],
+                  "dependencies": [
+                    "EN-M1.2-01",
+                    "EN-M1.2-02"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -684,11 +1058,25 @@
               "id": "M1.2.S4",
               "name": "Onboard New Member",
               "description": "HR creates a new member account with essentials and a CV, provisions MS365/Teams, sends an invite, and (once a manager is set) updates the Org Chart.",
-              "roles": ["Admin/BOD", "PMO", "HR"],
-              "mockup_ref": "Seta People.dc.html#employee-onboard",
+              "roles": [
+                "BOD",
+                "PMO",
+                "HR"
+              ],
+              "mockup_ref": {
+                "screen": "people/employees"
+              },
               "sub_screens": [
-                { "id": "M1.2.S4.1", "name": "Onboarding form", "description": "Name, email, role, department, grade, employment type; admin-only account/project/manager." },
-                { "id": "M1.2.S4.2", "name": "CV upload", "description": "Upload CV (PDF/DOCX) to the document vault." }
+                {
+                  "id": "M1.2.S4.1",
+                  "name": "Onboarding form",
+                  "description": "Name, email, role, department, grade, employment type; admin-only account/project/manager."
+                },
+                {
+                  "id": "M1.2.S4.2",
+                  "name": "CV upload",
+                  "description": "Upload CV (PDF/DOCX) to the document vault."
+                }
               ],
               "items": [
                 {
@@ -703,10 +1091,16 @@
                     "Given the new account is created, when saved, then the action is written to the audit log."
                   ],
                   "story_points": 5,
-                  "roles": ["HR", "Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#employee-onboard",
+                  "roles": [
+                    "HR",
+                    "BOD",
+                    "PMO"
+                  ],
                   "notes": "Member self-completes remaining personal details on first login (MoM 1.3). Account/project/manager are admin-only.",
-                  "dependencies": ["EN-M1.2-01", "EN-M1.2-02"],
+                  "dependencies": [
+                    "EN-M1.2-01",
+                    "EN-M1.2-02"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -719,9 +1113,12 @@
                     "Given I save without a CV, when the account is created, then onboarding still succeeds and the CV can be added later."
                   ],
                   "story_points": 2,
-                  "roles": ["HR"],
-                  "mockup_ref": "Seta People.dc.html#employee-onboard",
-                  "dependencies": ["US-M1.2.S4-01"],
+                  "roles": [
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "US-M1.2.S4-01"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -730,10 +1127,20 @@
               "id": "M1.2.S5",
               "name": "Import Employees",
               "description": "Bulk-load existing/pre-go-live staff from the standard Excel template, with required-column validation and a preview before import.",
-              "roles": ["Admin/BOD", "PMO", "HR"],
-              "mockup_ref": "Seta People.dc.html#employee-import",
+              "roles": [
+                "BOD",
+                "PMO",
+                "HR"
+              ],
+              "mockup_ref": {
+                "screen": "people/employees"
+              },
               "sub_screens": [
-                { "id": "M1.2.S5.1", "name": "Import dialog", "description": "Required-column list, file upload, validation preview and import action." }
+                {
+                  "id": "M1.2.S5.1",
+                  "name": "Import dialog",
+                  "description": "Required-column list, file upload, validation preview and import action."
+                }
               ],
               "items": [
                 {
@@ -748,10 +1155,15 @@
                     "Given imported rows have account/project/manager, when imported, then those remain admin-controlled and editable only by admins afterward."
                   ],
                   "story_points": 5,
-                  "roles": ["HR", "Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#employee-import",
+                  "roles": [
+                    "HR",
+                    "BOD",
+                    "PMO"
+                  ],
                   "notes": "Required columns: Employee ID, Full name, Email, Role, Department, Grade, Account, Project, Direct manager, Join date (MoM 1.2).",
-                  "dependencies": ["EN-M1.2-01"],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -768,11 +1180,27 @@
               "id": "M1.3.S1",
               "name": "Company Org Chart",
               "description": "Top-level structure: Board/CEO down the spine to Operation (internal functions) and Delivery (AMs → accounts), with PMO branching off as governance.",
-              "roles": ["Admin/BOD", "PMO", "AM", "EM/TL", "Member"],
-              "mockup_ref": "Seta People.dc.html#org-company",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM",
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "people/org"
+              },
               "sub_screens": [
-                { "id": "M1.3.S1.1", "name": "Company tree", "description": "CEO → Operation functions + Delivery accounts; PMO governance aside." },
-                { "id": "M1.3.S1.2", "name": "Chart viewport", "description": "Zoom in/out/fit and drag-to-pan controls shared by all three levels." }
+                {
+                  "id": "M1.3.S1.1",
+                  "name": "Company tree",
+                  "description": "CEO → Operation functions + Delivery accounts; PMO governance aside."
+                },
+                {
+                  "id": "M1.3.S1.2",
+                  "name": "Chart viewport",
+                  "description": "Zoom in/out/fit and drag-to-pan controls shared by all three levels."
+                }
               ],
               "items": [
                 {
@@ -786,9 +1214,13 @@
                     "Given a branch has no people, when the chart renders, then that node is still shown with an empty/zero indicator rather than breaking the layout."
                   ],
                   "story_points": 5,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#org-company",
-                  "dependencies": ["EN-M1.2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -802,8 +1234,13 @@
                     "Given I switch levels or re-render, when the view reloads, then my position does not jump unexpectedly."
                   ],
                   "story_points": 2,
-                  "roles": ["Admin/BOD", "PMO", "AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#org-company",
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
                   "dependencies": [],
                   "status": "not-started"
                 },
@@ -818,9 +1255,14 @@
                     "Given nothing is in my scope, when the chart renders, then an empty state explains there is nothing to show."
                   ],
                   "story_points": 2,
-                  "roles": ["AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#org-company",
-                  "dependencies": ["EN-M1.2-01"],
+                  "roles": [
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -829,11 +1271,25 @@
               "id": "M1.3.S2",
               "name": "Account Org Chart",
               "description": "Account-level view: the chosen account's AM → projects → allocated members, with an account picker and drill-down.",
-              "roles": ["Admin/BOD", "PMO", "AM"],
-              "mockup_ref": "Seta People.dc.html#org-account",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM"
+              ],
+              "mockup_ref": {
+                "screen": "people/org"
+              },
               "sub_screens": [
-                { "id": "M1.3.S2.1", "name": "Account picker", "description": "Select which account to chart." },
-                { "id": "M1.3.S2.2", "name": "Account tree", "description": "AM → projects → members for the selected account." }
+                {
+                  "id": "M1.3.S2.1",
+                  "name": "Account picker",
+                  "description": "Select which account to chart."
+                },
+                {
+                  "id": "M1.3.S2.2",
+                  "name": "Account tree",
+                  "description": "AM → projects → members for the selected account."
+                }
               ],
               "items": [
                 {
@@ -847,9 +1303,15 @@
                     "Given no account is in my scope, when I open the level, then an empty state is shown."
                   ],
                   "story_points": 3,
-                  "roles": ["Admin/BOD", "PMO", "AM"],
-                  "mockup_ref": "Seta People.dc.html#org-account",
-                  "dependencies": ["EN-M1.2-01", "EN-M1.4-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM"
+                  ],
+                  "dependencies": [
+                    "EN-M1.2-01",
+                    "EN-M1.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -863,9 +1325,17 @@
                     "Given I drilled in, when I switch the level control or pick another item, then the chart updates to the new selection."
                   ],
                   "story_points": 2,
-                  "roles": ["Admin/BOD", "PMO", "AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#org-account",
-                  "dependencies": ["US-M1.3.S1-01", "US-M1.3.S2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "US-M1.3.S1-01",
+                    "US-M1.3.S2-01"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -874,11 +1344,26 @@
               "id": "M1.3.S3",
               "name": "Project Org Chart",
               "description": "Project-level view: the chosen project and its allocated members, with a project picker. Members link to their employee profile.",
-              "roles": ["Admin/BOD", "PMO", "AM", "EM/TL"],
-              "mockup_ref": "Seta People.dc.html#org-project",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "people/org"
+              },
               "sub_screens": [
-                { "id": "M1.3.S3.1", "name": "Project picker", "description": "Select which project to chart." },
-                { "id": "M1.3.S3.2", "name": "Project tree", "description": "Project box with allocated members beneath it." }
+                {
+                  "id": "M1.3.S3.1",
+                  "name": "Project picker",
+                  "description": "Select which project to chart."
+                },
+                {
+                  "id": "M1.3.S3.2",
+                  "name": "Project tree",
+                  "description": "Project box with allocated members beneath it."
+                }
               ],
               "items": [
                 {
@@ -892,9 +1377,16 @@
                     "Given no project is in my scope, when I open the level, then an empty state is shown."
                   ],
                   "story_points": 3,
-                  "roles": ["Admin/BOD", "PMO", "AM", "EM/TL"],
-                  "mockup_ref": "Seta People.dc.html#org-project",
-                  "dependencies": ["EN-M1.2-01", "EN-M1.4-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M1.2-01",
+                    "EN-M1.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -907,9 +1399,15 @@
                     "Given a node is a placeholder (not a linked employee), when I click it, then nothing opens and no error occurs."
                   ],
                   "story_points": 1,
-                  "roles": ["Admin/BOD", "PMO", "AM", "EM/TL"],
-                  "mockup_ref": "Seta People.dc.html#org-project",
-                  "dependencies": ["US-M1.2.S2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "US-M1.2.S2-01"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -926,13 +1424,37 @@
               "id": "M1.4.S1",
               "name": "Resource Allocation",
               "description": "Portfolio staffing report: effort-by-account summary, allocation KPIs, the 12-month allocation grid, and per-person utilization — role-scoped and exportable.",
-              "roles": ["Admin/BOD", "PMO", "AM", "EM/TL", "Member"],
-              "mockup_ref": "Seta People.dc.html#resource-allocation",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM",
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "people/allocation"
+              },
               "sub_screens": [
-                { "id": "M1.4.S1.1", "name": "Effort by account", "description": "Man-month split across accounts (donut + legend)." },
-                { "id": "M1.4.S1.2", "name": "Allocation KPIs", "description": "Average utilization (target ≥85%), total over-allocated, total members/projects." },
-                { "id": "M1.4.S1.3", "name": "Monthly allocation grid", "description": "Per-person 12-month planned-% matrix, colour-coded, over-100% flagged, with YTD/FY/Total MM." },
-                { "id": "M1.4.S1.4", "name": "Utilization by person", "description": "Per-person project-split bars, total %, planned-vs-actual variance, idle." }
+                {
+                  "id": "M1.4.S1.1",
+                  "name": "Effort by account",
+                  "description": "Man-month split across accounts (donut + legend)."
+                },
+                {
+                  "id": "M1.4.S1.2",
+                  "name": "Allocation KPIs",
+                  "description": "Average utilization (target ≥85%), total over-allocated, total members/projects."
+                },
+                {
+                  "id": "M1.4.S1.3",
+                  "name": "Monthly allocation grid",
+                  "description": "Per-person 12-month planned-% matrix, colour-coded, over-100% flagged, with YTD/FY/Total MM."
+                },
+                {
+                  "id": "M1.4.S1.4",
+                  "name": "Utilization by person",
+                  "description": "Per-person project-split bars, total %, planned-vs-actual variance, idle."
+                }
               ],
               "items": [
                 {
@@ -942,14 +1464,22 @@
                   "story": "Provide the People-side read over the allocation data owned by PM RA Monitoring (EN-M3.4-01): surface per-person utilization, over-allocation and bench, and per-project membership, to the People allocation report, dashboard utilization KPIs and org chart — scoped to People RBAC. People does not create, edit or recompute allocations; it consumes them.",
                   "acceptance_criteria": [
                     "Given the allocation source (EN-M3.4-01), when People reads it, then per-person monthly load, utilization, over-allocation flag and bench are surfaced without being recomputed in People.",
-                    "Given a People viewer's RBAC scope, when allocation data is read, then only in-scope people/projects are returned (Admin/HR/PMO all; AM own accounts; EM/TL own projects; Member self).",
+                    "Given a People viewer's RBAC scope, when allocation data is read, then only in-scope people/projects are returned (HR/PMO/BOD all; AM own accounts; EM/TL/PM own projects; Member self).",
                     "Given allocations for a project, when read, then the members allocated (and their %) are available to the org chart."
                   ],
                   "story_points": 3,
-                  "roles": ["Admin/BOD", "PMO", "AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#resource-allocation",
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
                   "notes": "Single source of allocation data is PM RA Monitoring (EN-M3.4-01); People is read-only. The definitions (over-allocation = >100% in any month, utilization target ≥85%, bench = no allocation) are owned there, not redefined here.",
-                  "dependencies": ["EN-M1.2-01", "EN-M3.4-01"],
+                  "dependencies": [
+                    "EN-M1.2-01",
+                    "EN-M3.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -964,9 +1494,13 @@
                     "Given I click a row, when selected, then that person's profile opens."
                   ],
                   "story_points": 5,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#resource-allocation",
-                  "dependencies": ["EN-M1.4-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -980,9 +1514,13 @@
                     "Given I search by name or ID, when applied, then the list filters and paginates, with a project colour legend shown."
                   ],
                   "story_points": 5,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#resource-allocation",
-                  "dependencies": ["EN-M1.4-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -996,9 +1534,13 @@
                     "Given a metric has no data in scope, when it renders, then an empty state is shown."
                   ],
                   "story_points": 3,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#resource-allocation",
-                  "dependencies": ["EN-M1.4-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1011,9 +1553,13 @@
                     "Given a scoped view is active, when I export, then the export contains only the in-scope people."
                   ],
                   "story_points": 2,
-                  "roles": ["Admin/BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#resource-allocation",
-                  "dependencies": ["EN-M1.4-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1026,9 +1572,12 @@
                     "Given I search or filter, when applied, then results stay within my account scope."
                   ],
                   "story_points": 2,
-                  "roles": ["AM"],
-                  "mockup_ref": "Seta People.dc.html#resource-allocation",
-                  "dependencies": ["EN-M1.4-01"],
+                  "roles": [
+                    "AM"
+                  ],
+                  "dependencies": [
+                    "EN-M1.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1041,9 +1590,12 @@
                     "Given a member of mine is over-allocated, when the report renders, then they are flagged so I can act."
                   ],
                   "story_points": 2,
-                  "roles": ["EM/TL"],
-                  "mockup_ref": "Seta People.dc.html#resource-allocation",
-                  "dependencies": ["EN-M1.4-01"],
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M1.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1056,9 +1608,12 @@
                     "Given I am over-allocated in a month, when it renders, then it is clearly indicated."
                   ],
                   "story_points": 2,
-                  "roles": ["Member"],
-                  "mockup_ref": "Seta People.dc.html#resource-allocation",
-                  "dependencies": ["EN-M1.4-01"],
+                  "roles": [
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M1.4-01"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -1111,13 +1666,37 @@
               "id": "M3.1.S1",
               "name": "Portfolio Overview",
               "description": "The default portfolio view for BOD/PMO (full) and AM/EM/TL/Member (scoped): a scoped header with week picker, the portfolio KPI strip, the insights & exceptions summary, and the Account Health rollup table.",
-              "roles": ["BOD", "PMO", "AM", "EM/TL", "Member"],
-              "mockup_ref": "Seta People.dc.html#pm-portfolio",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM",
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "project/portfolio"
+              },
               "sub_screens": [
-                { "id": "M3.1.S1.1", "name": "Scoped header & week picker", "description": "Role-aware title/subtitle (full vs scoped persona) and a reporting-week selector." },
-                { "id": "M3.1.S1.2", "name": "Portfolio KPI strip", "description": "Account health counts (healthy/watch/critical), billable rate (≥80% target), predictability, report compliance." },
-                { "id": "M3.1.S1.3", "name": "Insights & exceptions summary", "description": "Critical/watch/not-reported/stale-green counts and a paginated list of non-green projects, with 'View all'." },
-                { "id": "M3.1.S1.4", "name": "Account Health table", "description": "Per-account rollup (health, QCDP, team, BMM, CSS, owner) expandable to project rows; expand/collapse-all." }
+                {
+                  "id": "M3.1.S1.1",
+                  "name": "Scoped header & week picker",
+                  "description": "Role-aware title/subtitle (full vs scoped persona) and a reporting-week selector."
+                },
+                {
+                  "id": "M3.1.S1.2",
+                  "name": "Portfolio KPI strip",
+                  "description": "Account health counts (healthy/watch/critical), billable rate (≥80% target), predictability, report compliance."
+                },
+                {
+                  "id": "M3.1.S1.3",
+                  "name": "Insights & exceptions summary",
+                  "description": "Critical/watch/not-reported/stale-green counts and a paginated list of non-green projects, with 'View all'."
+                },
+                {
+                  "id": "M3.1.S1.4",
+                  "name": "Account Health table",
+                  "description": "Per-account rollup (health, QCDP, team, BMM, CSS, owner) expandable to project rows; expand/collapse-all."
+                }
               ],
               "items": [
                 {
@@ -1132,12 +1711,21 @@
                     "Given a project's status, when active health, billability and report-compliance are aggregated, then only active and on-hold projects are counted and closed projects are excluded (surfaced separately as closed)."
                   ],
                   "story_points": 5,
-                  "roles": ["BOD", "PMO", "AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#pm-portfolio",
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
                   "notes": "Health rollup: Red if any project Red, else Yellow if any Yellow, else Green. QCDP pillars = Quality, Cost, Delivery, Process (each RAG); account QCDP = worst pillar across its projects. Owns the project record the People allocation/org views and the rest of M3 read. Status lifecycle: active → on-hold → closed (default active on creation); closed projects leave the active portfolio and closure releases their allocations (M3.8).",
                   "dependencies": [],
                   "external_deps": [
-                    { "needs": "account / client master data (and account→AM ownership)", "likely_module": "M0", "reason": "projects and the portfolio are keyed by account; the account master record has no management screen here and is owned by Admin/org-configuration (out of scope)." }
+                    {
+                      "needs": "account / client master data (and account→AM ownership)",
+                      "likely_module": "M0",
+                      "reason": "projects and the portfolio are keyed by account; the account master record has no management screen here and is owned by Admin/org-configuration (out of scope)."
+                    }
                   ],
                   "status": "not-started"
                 },
@@ -1152,10 +1740,17 @@
                     "Given an EM/TL or Member, when the portfolio loads, then only the projects they lead / are staffed on are visible, and an empty state is shown when nothing is in scope."
                   ],
                   "story_points": 3,
-                  "roles": ["BOD", "PMO", "AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#pm-portfolio",
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
                   "notes": "Scope tiers: BOD/PMO = whole portfolio; AM = own + granted accounts; EM/TL = projects they run; Member = projects they are allocated to.",
-                  "dependencies": ["EN-M3.1-01"],
+                  "dependencies": [
+                    "EN-M3.1-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1169,9 +1764,15 @@
                     "Given a metric has no data in scope, when rendered, then an empty state is shown instead of a zero."
                   ],
                   "story_points": 3,
-                  "roles": ["BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#pm-portfolio-kpis",
-                  "dependencies": ["EN-M3.1-01", "EN-M3.4-01", "EN-M3.3-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M3.1-01",
+                    "EN-M3.4-01",
+                    "EN-M3.3-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1185,9 +1786,14 @@
                     "Given all in-scope projects are green this week, when rendered, then an all-green empty state is shown."
                   ],
                   "story_points": 3,
-                  "roles": ["BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#pm-portfolio-exceptions",
-                  "dependencies": ["EN-M3.1-01", "EN-M3.3-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M3.1-01",
+                    "EN-M3.3-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1201,10 +1807,15 @@
                     "Given no accounts are in scope, when rendered, then an empty state is shown."
                   ],
                   "story_points": 5,
-                  "roles": ["BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#pm-portfolio-accounthealth",
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
                   "notes": "Owner = AM on account rows. BMM = billable man-months. CSS = customer satisfaction /5. Account QCDP = worst pillar across its projects.",
-                  "dependencies": ["EN-M3.1-01", "EN-M3.4-01"],
+                  "dependencies": [
+                    "EN-M3.1-01",
+                    "EN-M3.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1218,9 +1829,14 @@
                     "Given an account has a single project, when expanded, then that one project row is shown."
                   ],
                   "story_points": 2,
-                  "roles": ["BOD", "PMO", "AM"],
-                  "mockup_ref": "Seta People.dc.html#pm-portfolio-accounthealth",
-                  "dependencies": ["US-M3.1.S1-03"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM"
+                  ],
+                  "dependencies": [
+                    "US-M3.1.S1-03"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1233,9 +1849,17 @@
                     "Given a project has no report for the selected week, when rendered, then its RAG is carried over and it is counted as not-reported."
                   ],
                   "story_points": 2,
-                  "roles": ["BOD", "PMO", "AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#pm-portfolio",
-                  "dependencies": ["EN-M3.1-01", "EN-M3.3-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M3.1-01",
+                    "EN-M3.3-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1248,9 +1872,17 @@
                     "Given the row is an account (not a project), when I click it, then it expands/collapses instead of opening a report."
                   ],
                   "story_points": 2,
-                  "roles": ["BOD", "PMO", "AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#pm-portfolio",
-                  "dependencies": ["EN-M3.1-01", "US-M3.3.S2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M3.1-01",
+                    "US-M3.3.S2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1263,9 +1895,16 @@
                     "Given I have no projects in scope, when rendered, then an empty state is shown."
                   ],
                   "story_points": 2,
-                  "roles": ["AM"],
-                  "mockup_ref": "Seta People.dc.html#pm-portfolio-scoped-am",
-                  "dependencies": ["EN-M3.1-02"],
+                  "roles": [
+                    "AM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "project/portfolio",
+                    "persona": "am"
+                  },
+                  "dependencies": [
+                    "EN-M3.1-02"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1278,9 +1917,16 @@
                     "Given I lead no project, when rendered, then an empty state explains there is nothing in scope."
                   ],
                   "story_points": 2,
-                  "roles": ["EM/TL"],
-                  "mockup_ref": "Seta People.dc.html#pm-portfolio-scoped-em",
-                  "dependencies": ["EN-M3.1-02"],
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "project/portfolio",
+                    "persona": "manager"
+                  },
+                  "dependencies": [
+                    "EN-M3.1-02"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1293,9 +1939,17 @@
                     "Given I am on no project, when rendered, then an empty state is shown."
                   ],
                   "story_points": 2,
-                  "roles": ["Member"],
-                  "mockup_ref": "Seta People.dc.html#pm-portfolio-scoped-member",
-                  "dependencies": ["EN-M3.1-02", "EN-M3.4-01"],
+                  "roles": [
+                    "Member"
+                  ],
+                  "mockup_ref": {
+                    "screen": "project/portfolio",
+                    "persona": "employee"
+                  },
+                  "dependencies": [
+                    "EN-M3.1-02",
+                    "EN-M3.4-01"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -1304,12 +1958,29 @@
               "id": "M3.1.S2",
               "name": "Insights & Exceptions (detail)",
               "description": "The 'View all' detail reached from the summary: a full table of every non-green project this week with health, QCDP, open risk, reporting status and PM, plus the not-reported and stale-green compliance flags. Rows drill into the weekly report.",
-              "roles": ["BOD", "PMO"],
-              "mockup_ref": "Seta People.dc.html#pm-portfolio-exceptions-detail",
+              "roles": [
+                "BOD",
+                "PMO"
+              ],
+              "mockup_ref": {
+                "screen": "project/portfolio"
+              },
               "sub_screens": [
-                { "id": "M3.1.S2.1", "name": "Exceptions KPIs", "description": "Critical, watch, not-reported and stale-green counts for the selected week." },
-                { "id": "M3.1.S2.2", "name": "Non-green projects table", "description": "Every non-green project with health, QCDP, open risk/issue, reported status and PM; critical first." },
-                { "id": "M3.1.S2.3", "name": "Reporting flags", "description": "Not-reported and stale-green project lists." }
+                {
+                  "id": "M3.1.S2.1",
+                  "name": "Exceptions KPIs",
+                  "description": "Critical, watch, not-reported and stale-green counts for the selected week."
+                },
+                {
+                  "id": "M3.1.S2.2",
+                  "name": "Non-green projects table",
+                  "description": "Every non-green project with health, QCDP, open risk/issue, reported status and PM; critical first."
+                },
+                {
+                  "id": "M3.1.S2.3",
+                  "name": "Reporting flags",
+                  "description": "Not-reported and stale-green project lists."
+                }
               ],
               "items": [
                 {
@@ -1323,9 +1994,16 @@
                     "Given all in-scope projects are green, when rendered, then a no-exceptions empty state is shown."
                   ],
                   "story_points": 3,
-                  "roles": ["BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#pm-portfolio-exceptions-detail",
-                  "dependencies": ["EN-M3.1-01", "US-M3.1.S1-02", "EN-M3.3-01", "US-M3.3.S2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M3.1-01",
+                    "US-M3.1.S1-02",
+                    "EN-M3.3-01",
+                    "US-M3.3.S2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1339,10 +2017,15 @@
                     "Given neither applies, when rendered, then the flags are omitted."
                   ],
                   "story_points": 2,
-                  "roles": ["BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#pm-portfolio-exceptions-detail",
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
                   "notes": "Stale green = Green for ≥3 consecutive weeks with no metric movement. Not-reported = no weekly report submitted for the selected week.",
-                  "dependencies": ["EN-M3.1-01", "EN-M3.3-01"],
+                  "dependencies": [
+                    "EN-M3.1-01",
+                    "EN-M3.3-01"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -1359,11 +2042,25 @@
               "id": "M3.2.S1",
               "name": "Project Requests list",
               "description": "The request pipeline: counts by stage (total, awaiting PMO, awaiting BoD, approved & created, rejected) and a card per request with its stage badge and stepper. Entry point for a new request.",
-              "roles": ["BOD", "PMO", "EM/TL"],
-              "mockup_ref": "Seta People.dc.html#pm-requests",
+              "roles": [
+                "BOD",
+                "PMO",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "project/requests"
+              },
               "sub_screens": [
-                { "id": "M3.2.S1.1", "name": "Pipeline KPIs", "description": "Total, awaiting PMO, awaiting BoD, approved & created, rejected." },
-                { "id": "M3.2.S1.2", "name": "Request cards", "description": "Per-request card: id, name, account, PM, BMM, team, stage badge and stepper; rejection reason if rejected." }
+                {
+                  "id": "M3.2.S1.1",
+                  "name": "Pipeline KPIs",
+                  "description": "Total, awaiting PMO, awaiting BoD, approved & created, rejected."
+                },
+                {
+                  "id": "M3.2.S1.2",
+                  "name": "Request cards",
+                  "description": "Per-request card: id, name, account, PM, BMM, team, stage badge and stepper; rejection reason if rejected."
+                }
               ],
               "items": [
                 {
@@ -1377,8 +2074,11 @@
                     "Given a request advances or is rejected, when the change is made, then it is recorded with an audit entry."
                   ],
                   "story_points": 5,
-                  "roles": ["BOD", "PMO", "EM/TL"],
-                  "mockup_ref": "Seta People.dc.html#pm-requests",
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "EM/TL/PM"
+                  ],
                   "notes": "Stages: Submitted → PMO sign-off → BoD approval → Project created (live in Portfolio). PM = the requesting manager (EM/TL).",
                   "dependencies": [],
                   "status": "not-started"
@@ -1394,9 +2094,14 @@
                     "Given there are no requests, when the list renders, then an empty state is shown."
                   ],
                   "story_points": 3,
-                  "roles": ["BOD", "PMO", "EM/TL"],
-                  "mockup_ref": "Seta People.dc.html#pm-requests",
-                  "dependencies": ["EN-M3.2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M3.2-01"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -1405,11 +2110,25 @@
               "id": "M3.2.S2",
               "name": "Request charter & approval",
               "description": "The charter modal: full charter, stage stepper and rejection reason, with the stage-gated actions — PMO sign-off, BoD approval (creates the project), and reject with a reason.",
-              "roles": ["BOD", "PMO", "EM/TL"],
-              "mockup_ref": "Seta People.dc.html#pm-request-charter",
+              "roles": [
+                "BOD",
+                "PMO",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "project/requests"
+              },
               "sub_screens": [
-                { "id": "M3.2.S2.1", "name": "Charter detail", "description": "Account, PM, BMM, team, methodology, pricing, timeline, submitted, objective, scope, stepper." },
-                { "id": "M3.2.S2.2", "name": "Approval actions", "description": "Stage-gated PMO sign-off, BoD approve & create, and reject." }
+                {
+                  "id": "M3.2.S2.1",
+                  "name": "Charter detail",
+                  "description": "Account, PM, BMM, team, methodology, pricing, timeline, submitted, objective, scope, stepper."
+                },
+                {
+                  "id": "M3.2.S2.2",
+                  "name": "Approval actions",
+                  "description": "Stage-gated PMO sign-off, BoD approve & create, and reject."
+                }
               ],
               "items": [
                 {
@@ -1423,9 +2142,14 @@
                     "Given the request has been created into a project, when opened, then the linked project and its staffing are shown."
                   ],
                   "story_points": 3,
-                  "roles": ["BOD", "PMO", "EM/TL"],
-                  "mockup_ref": "Seta People.dc.html#pm-request-charter",
-                  "dependencies": ["EN-M3.2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M3.2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1438,9 +2162,13 @@
                     "Given a request is not at PMO review, when I open it, then the PMO sign-off action is not available."
                   ],
                   "story_points": 3,
-                  "roles": ["PMO", "BOD"],
-                  "mockup_ref": "Seta People.dc.html#pm-request-charter",
-                  "dependencies": ["US-M3.2.S2-01"],
+                  "roles": [
+                    "PMO",
+                    "BOD"
+                  ],
+                  "dependencies": [
+                    "US-M3.2.S2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1454,9 +2182,13 @@
                     "Given a request is not at BoD review, when I open it, then the BoD approval action is not available."
                   ],
                   "story_points": 5,
-                  "roles": ["BOD"],
-                  "mockup_ref": "Seta People.dc.html#pm-request-charter",
-                  "dependencies": ["US-M3.2.S2-01", "EN-M3.1-01"],
+                  "roles": [
+                    "BOD"
+                  ],
+                  "dependencies": [
+                    "US-M3.2.S2-01",
+                    "EN-M3.1-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1469,9 +2201,13 @@
                     "Given I cancel the rejection, when dismissed, then the request is unchanged."
                   ],
                   "story_points": 2,
-                  "roles": ["PMO", "BOD"],
-                  "mockup_ref": "Seta People.dc.html#pm-request-charter",
-                  "dependencies": ["US-M3.2.S2-01"],
+                  "roles": [
+                    "PMO",
+                    "BOD"
+                  ],
+                  "dependencies": [
+                    "US-M3.2.S2-01"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -1480,11 +2216,25 @@
               "id": "M3.2.S3",
               "name": "Staffing & Access (R&R)",
               "description": "After a project is created: staff people onto it with a role and allocation %, and grant each their workspace access (Owner/Edit/View).",
-              "roles": ["BOD", "PMO", "EM/TL"],
-              "mockup_ref": "Seta People.dc.html#pm-request-staffing",
+              "roles": [
+                "BOD",
+                "PMO",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "project/requests"
+              },
               "sub_screens": [
-                { "id": "M3.2.S3.1", "name": "Staffing list", "description": "People on the project with role, RA % and access level." },
-                { "id": "M3.2.S3.2", "name": "Add person", "description": "Add a person with role, RA % and access." }
+                {
+                  "id": "M3.2.S3.1",
+                  "name": "Staffing list",
+                  "description": "People on the project with role, RA % and access level."
+                },
+                {
+                  "id": "M3.2.S3.2",
+                  "name": "Add person",
+                  "description": "Add a person with role, RA % and access."
+                }
               ],
               "items": [
                 {
@@ -1498,12 +2248,22 @@
                     "Given the project is not yet created, when I open the request, then the staffing section is unavailable."
                   ],
                   "story_points": 5,
-                  "roles": ["PMO", "EM/TL", "BOD"],
-                  "mockup_ref": "Seta People.dc.html#pm-request-staffing",
+                  "roles": [
+                    "PMO",
+                    "EM/TL/PM",
+                    "BOD"
+                  ],
                   "notes": "Initial staffing creates allocations (the RA source, EN-M3.4-01); the Owner/Edit/View workspace-access grant is an access-control concern owned by Admin (M0).",
-                  "dependencies": ["US-M3.2.S2-03", "EN-M3.4-01"],
+                  "dependencies": [
+                    "US-M3.2.S2-03",
+                    "EN-M3.4-01"
+                  ],
                   "external_deps": [
-                    { "needs": "grant/revoke workspace access (Owner/Edit/View) and audit it", "likely_module": "M0", "reason": "per-person access control is owned by Admin/access-control, which is out of scope for this WBS." }
+                    {
+                      "needs": "grant/revoke workspace access (Owner/Edit/View) and audit it",
+                      "likely_module": "M0",
+                      "reason": "per-person access control is owned by Admin/access-control, which is out of scope for this WBS."
+                    }
                   ],
                   "status": "not-started"
                 }
@@ -1513,10 +2273,20 @@
               "id": "M3.2.S4",
               "name": "New Project Request",
               "description": "The charter submission form: name (required), account, PM, budget BMM, team size, methodology, pricing, timeline, objective and scope.",
-              "roles": ["BOD", "PMO", "EM/TL"],
-              "mockup_ref": "Seta People.dc.html#pm-request-new",
+              "roles": [
+                "BOD",
+                "PMO",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "project/requests"
+              },
               "sub_screens": [
-                { "id": "M3.2.S4.1", "name": "Charter form", "description": "Charter fields with name required; submit enters the pipeline awaiting PMO." }
+                {
+                  "id": "M3.2.S4.1",
+                  "name": "Charter form",
+                  "description": "Charter fields with name required; submit enters the pipeline awaiting PMO."
+                }
               ],
               "items": [
                 {
@@ -1530,9 +2300,14 @@
                     "Given the request is created, when I return to the list, then it appears at the top awaiting PMO review."
                   ],
                   "story_points": 3,
-                  "roles": ["EM/TL", "PMO", "BOD"],
-                  "mockup_ref": "Seta People.dc.html#pm-request-new",
-                  "dependencies": ["EN-M3.2-01"],
+                  "roles": [
+                    "EM/TL/PM",
+                    "PMO",
+                    "BOD"
+                  ],
+                  "dependencies": [
+                    "EN-M3.2-01"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -1549,11 +2324,27 @@
               "id": "M3.3.S1",
               "name": "Weekly Reports list",
               "description": "Role-scoped list of projects and their weekly-report status for a chosen week: cards with RAG, QCDP, latest summary, reporter (PM/PMO) and report count, with week/account/project filters and pagination.",
-              "roles": ["BOD", "PMO", "AM", "EM/TL", "Member"],
-              "mockup_ref": "Seta People.dc.html#pm-weekly",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM",
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "project/weekly"
+              },
               "sub_screens": [
-                { "id": "M3.3.S1.1", "name": "Filter toolbar", "description": "Week, account and project selectors with project count." },
-                { "id": "M3.3.S1.2", "name": "Report cards", "description": "Per-project card: RAG, QCDP, latest summary, reporter tag(s), report count for the week." }
+                {
+                  "id": "M3.3.S1.1",
+                  "name": "Filter toolbar",
+                  "description": "Week, account and project selectors with project count."
+                },
+                {
+                  "id": "M3.3.S1.2",
+                  "name": "Report cards",
+                  "description": "Per-project card: RAG, QCDP, latest summary, reporter tag(s), report count for the week."
+                }
               ],
               "items": [
                 {
@@ -1567,10 +2358,15 @@
                     "Given a reporter already submitted for the same project and week, when they submit again, then their report is replaced rather than duplicated (one report per reporter per project per week)."
                   ],
                   "story_points": 5,
-                  "roles": ["BOD", "PMO", "EM/TL"],
-                  "mockup_ref": "Seta People.dc.html#pm-weekly",
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "EM/TL/PM"
+                  ],
                   "notes": "Reporter = PMO for full-access submitters, otherwise PM. The reported flag and reset green-streak feed Portfolio report-compliance and stale-green via the project record (EN-M3.1-01).",
-                  "dependencies": ["EN-M3.1-01"],
+                  "dependencies": [
+                    "EN-M3.1-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1584,9 +2380,14 @@
                     "Given a project has no report for the selected week, when its card renders, then it shows a 'no report' indicator."
                   ],
                   "story_points": 3,
-                  "roles": ["BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#pm-weekly",
-                  "dependencies": ["EN-M3.3-01", "EN-M3.1-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M3.3-01",
+                    "EN-M3.1-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1599,9 +2400,14 @@
                     "Given nothing is in my scope, when the list renders, then an empty state is shown."
                   ],
                   "story_points": 2,
-                  "roles": ["AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#pm-weekly",
-                  "dependencies": ["EN-M3.1-02"],
+                  "roles": [
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M3.1-02"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -1610,13 +2416,37 @@
               "id": "M3.3.S2",
               "name": "Weekly Report (detail)",
               "description": "The report drawer Portfolio and the list drill into: project header and health, QCDP and trend, staffing/utilization/predictability/CSS, each report's summary/risk/road-to-green, a comment thread, and a backfill action when understaffed.",
-              "roles": ["BOD", "PMO", "AM", "EM/TL", "Member"],
-              "mockup_ref": "Seta People.dc.html#pm-weekly-report",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM",
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "project/weekly"
+              },
               "sub_screens": [
-                { "id": "M3.3.S2.1", "name": "Report header & health", "description": "Account/PM/PMO/phase, RAG + QCDP, health trend, staffing/util/predictability/CSS, not-reported badge." },
-                { "id": "M3.3.S2.2", "name": "Report narrative", "description": "Per-report summary, risk/issue and road-to-green (action/owner/due)." },
-                { "id": "M3.3.S2.3", "name": "Comments", "description": "Per-report comment thread." },
-                { "id": "M3.3.S2.4", "name": "Backfill action", "description": "Raise a backfill requisition when staffed below plan." }
+                {
+                  "id": "M3.3.S2.1",
+                  "name": "Report header & health",
+                  "description": "Account/PM/PMO/phase, RAG + QCDP, health trend, staffing/util/predictability/CSS, not-reported badge."
+                },
+                {
+                  "id": "M3.3.S2.2",
+                  "name": "Report narrative",
+                  "description": "Per-report summary, risk/issue and road-to-green (action/owner/due)."
+                },
+                {
+                  "id": "M3.3.S2.3",
+                  "name": "Comments",
+                  "description": "Per-report comment thread."
+                },
+                {
+                  "id": "M3.3.S2.4",
+                  "name": "Backfill action",
+                  "description": "Raise a backfill requisition when staffed below plan."
+                }
               ],
               "items": [
                 {
@@ -1630,9 +2460,17 @@
                     "Given a report has a road-to-green, when shown, then its action, owner and due are displayed."
                   ],
                   "story_points": 5,
-                  "roles": ["BOD", "PMO", "AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#pm-weekly-report",
-                  "dependencies": ["EN-M3.3-01", "EN-M3.1-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M3.3-01",
+                    "EN-M3.1-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1645,9 +2483,16 @@
                     "Given a report has comments, when the drawer renders, then they are listed in order with author and role."
                   ],
                   "story_points": 2,
-                  "roles": ["BOD", "PMO", "AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#pm-weekly-report",
-                  "dependencies": ["US-M3.3.S2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "US-M3.3.S2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1661,11 +2506,20 @@
                     "Given the project is fully staffed, when I view the report, then no backfill action is shown."
                   ],
                   "story_points": 3,
-                  "roles": ["BOD", "PMO", "EM/TL"],
-                  "mockup_ref": "Seta People.dc.html#pm-weekly-report",
-                  "dependencies": ["US-M3.3.S2-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "US-M3.3.S2-01"
+                  ],
                   "external_deps": [
-                    { "needs": "create a backfill requisition in recruitment", "likely_module": "M2", "reason": "the backfill creates a requisition owned by the Hiring/Recruitment module (M2)." }
+                    {
+                      "needs": "create a backfill requisition in recruitment",
+                      "likely_module": "M2",
+                      "reason": "the backfill creates a requisition owned by the Hiring/Recruitment module (M2)."
+                    }
                   ],
                   "status": "not-started"
                 }
@@ -1675,12 +2529,30 @@
               "id": "M3.3.S3",
               "name": "Submit Weekly Report",
               "description": "The submit form: pick a project, set QCDP per pillar (overall = worst, auto), executive summary and risk, with a mandatory road-to-green when non-Green that becomes a tracked Recovery action.",
-              "roles": ["BOD", "PMO", "EM/TL"],
-              "mockup_ref": "Seta People.dc.html#pm-weekly-submit",
+              "roles": [
+                "BOD",
+                "PMO",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "project/weekly"
+              },
               "sub_screens": [
-                { "id": "M3.3.S3.1", "name": "QCDP & overall", "description": "Quality/Cost/Delivery/Process selectors with auto overall = worst." },
-                { "id": "M3.3.S3.2", "name": "Summary & risk", "description": "Executive summary and risk/issue." },
-                { "id": "M3.3.S3.3", "name": "Road-to-green", "description": "Mandatory action/owner/due when non-Green." }
+                {
+                  "id": "M3.3.S3.1",
+                  "name": "QCDP & overall",
+                  "description": "Quality/Cost/Delivery/Process selectors with auto overall = worst."
+                },
+                {
+                  "id": "M3.3.S3.2",
+                  "name": "Summary & risk",
+                  "description": "Executive summary and risk/issue."
+                },
+                {
+                  "id": "M3.3.S3.3",
+                  "name": "Road-to-green",
+                  "description": "Mandatory action/owner/due when non-Green."
+                }
               ],
               "items": [
                 {
@@ -1694,10 +2566,15 @@
                     "Given I am a PM, when I submit, then it is recorded as a PM report (PMO when submitted by full-access), and a second submission for the same project/week replaces my earlier one."
                   ],
                   "story_points": 5,
-                  "roles": ["EM/TL", "PMO", "BOD"],
-                  "mockup_ref": "Seta People.dc.html#pm-weekly-submit",
+                  "roles": [
+                    "EM/TL/PM",
+                    "PMO",
+                    "BOD"
+                  ],
                   "notes": "PM submits their own projects; PMO/BOD any project. Overall status = worst of the four QCDP pillars.",
-                  "dependencies": ["EN-M3.3-01"],
+                  "dependencies": [
+                    "EN-M3.3-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1711,11 +2588,14 @@
                     "Given the status is Green, when I submit, then no road-to-green is required."
                   ],
                   "story_points": 3,
-                  "roles": ["EM/TL", "PMO", "BOD"],
-                  "mockup_ref": "Seta People.dc.html#pm-weekly-submit",
-                  "dependencies": ["US-M3.3.S3-01"],
-                  "external_deps": [
-                    { "needs": "create a tracked Recovery action in the risk register", "likely_module": "M3.5", "reason": "the road-to-green becomes a Recovery item owned by Risks & Issues (M3.5)." }
+                  "roles": [
+                    "EM/TL/PM",
+                    "PMO",
+                    "BOD"
+                  ],
+                  "dependencies": [
+                    "US-M3.3.S3-01",
+                    "EN-M3.5-01"
                   ],
                   "status": "not-started"
                 }
@@ -1733,13 +2613,36 @@
               "id": "M3.4.S1",
               "name": "RA Monitoring",
               "description": "Role-scoped resource-allocation grid: allocation KPIs, the per-person planned-effort table (with computed calendar effort), inline add/edit/remove and assign dialog, and account/project filters. BOD/PMO edit all; EM/TL edit their own projects; AM read-only.",
-              "roles": ["BOD", "PMO", "AM", "EM/TL"],
-              "mockup_ref": "Seta People.dc.html#pm-resourcing",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "project/resourcing"
+              },
               "sub_screens": [
-                { "id": "M3.4.S1.1", "name": "Allocation KPIs", "description": "Total calendar effort (MM), billable effort (MM and % of total), people allocated (and editable count), active scope." },
-                { "id": "M3.4.S1.2", "name": "Allocation table", "description": "Per-person rows: name, seniority, planned effort, start/end dates, computed calendar effort, note." },
-                { "id": "M3.4.S1.3", "name": "Add / assign allocation", "description": "Inline quick-add row and the 'Assign person to project' dialog (person, project, role, level, effort)." },
-                { "id": "M3.4.S1.4", "name": "Filters", "description": "Account and project filters scoping the grid and KPIs." }
+                {
+                  "id": "M3.4.S1.1",
+                  "name": "Allocation KPIs",
+                  "description": "Total calendar effort (MM), billable effort (MM and % of total), people allocated (and editable count), active scope."
+                },
+                {
+                  "id": "M3.4.S1.2",
+                  "name": "Allocation table",
+                  "description": "Per-person rows: name, seniority, planned effort, start/end dates, computed calendar effort, note."
+                },
+                {
+                  "id": "M3.4.S1.3",
+                  "name": "Add / assign allocation",
+                  "description": "Inline quick-add row and the 'Assign person to project' dialog (person, project, role, level, effort)."
+                },
+                {
+                  "id": "M3.4.S1.4",
+                  "name": "Filters",
+                  "description": "Account and project filters scoping the grid and KPIs."
+                }
               ],
               "items": [
                 {
@@ -1754,10 +2657,18 @@
                     "Given allocations exist, when queried per person or per project, then per-person utilization (and bench when unallocated in a period) and per-project membership are returned for the People module and org chart to read."
                   ],
                   "story_points": 5,
-                  "roles": ["BOD", "PMO", "AM", "EM/TL", "Member"],
-                  "mockup_ref": "Seta People.dc.html#pm-resourcing",
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
                   "notes": "The single allocation source of truth; People M1.4 (EN-M1.4-01) and the org chart read it. Billable rate = billable effort ÷ total effort. Bench = no allocation in a period.",
-                  "dependencies": ["EN-M3.1-01", "EN-M1.2-01"],
+                  "dependencies": [
+                    "EN-M3.1-01",
+                    "EN-M1.2-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1771,9 +2682,13 @@
                     "Given no allocations are in scope, when rendered, then an empty state is shown instead of zeros."
                   ],
                   "story_points": 3,
-                  "roles": ["BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#pm-resourcing",
-                  "dependencies": ["EN-M3.4-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M3.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1787,9 +2702,13 @@
                     "Given there are no allocations in scope, when rendered, then an empty-table state is shown."
                   ],
                   "story_points": 3,
-                  "roles": ["BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#pm-resourcing",
-                  "dependencies": ["EN-M3.4-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M3.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1803,10 +2722,15 @@
                     "Given the allocation is created, when the table refreshes, then the new row and the recomputed KPIs include it."
                   ],
                   "story_points": 3,
-                  "roles": ["BOD", "PMO", "EM/TL"],
-                  "mockup_ref": "Seta People.dc.html#pm-resourcing",
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "EM/TL/PM"
+                  ],
                   "notes": "Two entry points: the inline top-row quick-add and the 'Assign person to project' dialog.",
-                  "dependencies": ["EN-M3.4-01"],
+                  "dependencies": [
+                    "EN-M3.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1820,9 +2744,13 @@
                     "Given I make no change, when I leave the field, then nothing is saved."
                   ],
                   "story_points": 3,
-                  "roles": ["BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#pm-resourcing",
-                  "dependencies": ["EN-M3.4-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M3.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1835,9 +2763,13 @@
                     "Given I cancel the confirmation, when dismissed, then nothing is removed."
                   ],
                   "story_points": 2,
-                  "roles": ["BOD", "PMO"],
-                  "mockup_ref": "Seta People.dc.html#pm-resourcing",
-                  "dependencies": ["EN-M3.4-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M3.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1851,9 +2783,15 @@
                     "Given a filter yields nothing, when applied, then an empty state is shown."
                   ],
                   "story_points": 2,
-                  "roles": ["BOD", "PMO", "AM", "EM/TL"],
-                  "mockup_ref": "Seta People.dc.html#pm-resourcing",
-                  "dependencies": ["EN-M3.4-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M3.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1866,9 +2804,12 @@
                     "Given I add a person, when I have not selected one of my own projects, then I cannot allocate them to a project I don't run."
                   ],
                   "story_points": 2,
-                  "roles": ["EM/TL"],
-                  "mockup_ref": "Seta People.dc.html#pm-resourcing",
-                  "dependencies": ["EN-M3.4-01"],
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M3.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1881,9 +2822,12 @@
                     "Given nothing is in my scope, when rendered, then an empty state is shown."
                   ],
                   "story_points": 2,
-                  "roles": ["AM"],
-                  "mockup_ref": "Seta People.dc.html#pm-resourcing",
-                  "dependencies": ["EN-M3.4-01"],
+                  "roles": [
+                    "AM"
+                  ],
+                  "dependencies": [
+                    "EN-M3.4-01"
+                  ],
                   "status": "not-started"
                 }
               ]
@@ -1893,23 +2837,563 @@
         {
           "id": "M3.5",
           "name": "Risks & Issues",
-          "description": "Consolidated RAID log across the portfolio — risks/issues with type, severity, priority, status, owner and due. Includes Recovery actions auto-created by non-green weekly reports (M3.3) and Action items promoted from Retro (M3.7).",
-          "status": "not-started",
-          "screens": []
+          "description": "Consolidated RAID log across the portfolio — risks/issues with type, severity, priority, status, owner and due — with headline counts and a type filter. Read-only in the mockup: items originate from manual seed, Recovery actions auto-created by non-Green weekly reports (M3.3) and Action items promoted from Retro (M3.7).",
+          "status": "in-progress",
+          "screens": [
+            {
+              "id": "M3.5.S1",
+              "name": "Risk & Issue log",
+              "description": "Role-scoped RAID log: KPIs (total, open, recovery, critical/P0), a type filter and the consolidated risk/issue table.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM",
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "project/risks"
+              },
+              "sub_screens": [
+                {
+                  "id": "M3.5.S1.1",
+                  "name": "RAID KPIs",
+                  "description": "Total logged, open, Recovery actions (from road-to-green), Critical/P0."
+                },
+                {
+                  "id": "M3.5.S1.2",
+                  "name": "Type filter",
+                  "description": "Filter by item type (Customer, Bug, Resource, Stability, Recovery, Action…)."
+                },
+                {
+                  "id": "M3.5.S1.3",
+                  "name": "RAID table",
+                  "description": "ID, project, title/action, type, severity, priority, status, owner, due."
+                }
+              ],
+              "items": [
+                {
+                  "id": "EN-M3.5-01",
+                  "type": "enabler",
+                  "title": "RAID register model",
+                  "story": "Provide the consolidated risk/issue (RAID) register — each item with project, title, type, severity, priority, status, owner, due and action — aggregating manually-noted risks/issues, Recovery actions auto-created by non-Green weekly reports (M3.3) and Action items promoted from Retro (M3.7) into one log.",
+                  "acceptance_criteria": [
+                    "Given risk/issue items exist, when the register is read, then each carries project, title, type, severity (Critical/High/Important), priority (P0–P2), status (Open/In Progress/Monitoring/Resolved), owner, due and action.",
+                    "Given a non-Green weekly report with a road-to-green, when submitted, then a Recovery item is added to the register linked to that project.",
+                    "Given a Retro Try item is promoted, when actioned, then an Action item is added to the register."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "notes": "Read-only log in the mockup: items originate from manual seed, weekly-report Recovery (M3.3) and Retro Action (M3.7). There is no manual create/edit/resolve screen — manual risk logging and status updates are a likely future requirement, not in the current mockup.",
+                  "dependencies": [
+                    "EN-M3.1-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.5.S1-01",
+                  "type": "story",
+                  "title": "View the consolidated RAID log",
+                  "story": "As a BOD or PMO, I want the consolidated RAID log with headline counts so that I can see every open risk and issue across the portfolio.",
+                  "acceptance_criteria": [
+                    "Given I open Risks & Issues, when it renders, then KPIs show total logged, open, Recovery actions (from road-to-green) and Critical/P0, above a table of all in-scope items with project, title/action, type, severity, priority, status, owner and due.",
+                    "Given an item is a Recovery action, when listed, then it is visually distinguished from ordinary risks/issues.",
+                    "Given there are no items in scope, when it renders, then an empty state is shown."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M3.5-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.5.S1-02",
+                  "type": "story",
+                  "title": "Filter the RAID log by type",
+                  "story": "As a BOD or PMO, I want to filter the log by type so that I can focus on a category (e.g. Resource, Bug, Recovery).",
+                  "acceptance_criteria": [
+                    "Given I select a type, when applied, then only items of that type are shown.",
+                    "Given I reset to All, when applied, then all in-scope items are shown again."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "US-M3.5.S1-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.5.S1-03",
+                  "type": "story",
+                  "title": "View the RAID log scoped to my access",
+                  "story": "As an AM, EM/TL or Member, I want the RAID log scoped to my access so that I only see risks/issues for my accounts/projects.",
+                  "acceptance_criteria": [
+                    "Given I am an AM, when I open Risks & Issues, then only items on my accounts' projects are shown; given an EM/TL or Member, then only items on my projects.",
+                    "Given nothing is in my scope, when it renders, then an empty state is shown."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M3.1-02"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M3.6",
           "name": "KPI Metrics",
-          "description": "Operational Health Score (OHS), QCDP pillar KPIs with defined formulas, per-project metric drill-downs (historical + benchmark comparison), and corrective-action (CAPA) tracking.",
-          "status": "not-started",
-          "screens": []
+          "description": "Operational Health Score (OHS) and QCDP pillar KPIs across the portfolio. S1 is the wired screen (OHS hero, AI summary, configurable KPI Explorer, manual KPI input). S2 captures the KPI deep-dive sections that exist in the mockup code (per-KPI drill, trends/benchmark, EQI×TDI matrix, CAPA register) but are NOT currently wired — the KPI sub-tab navigation that would surface them is never rendered (flagged, like Retro).",
+          "status": "in-progress",
+          "screens": [
+            {
+              "id": "M3.6.S1",
+              "name": "KPI Metrics (Performance)",
+              "description": "The reachable KPI screen: OHS gauge + pillar scores, an AI performance summary, the configurable per-project KPI Explorer table (rows drill to the weekly report), and manual KPI input. Role-scoped.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM",
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "project/metrics"
+              },
+              "sub_screens": [
+                {
+                  "id": "M3.6.S1.1",
+                  "name": "OHS hero",
+                  "description": "OHS gauge (0–100) with RAG verdict and the four pillar scores."
+                },
+                {
+                  "id": "M3.6.S1.2",
+                  "name": "AI summary",
+                  "description": "OHS, weakest pillar and projects needing attention."
+                },
+                {
+                  "id": "M3.6.S1.3",
+                  "name": "KPI Explorer",
+                  "description": "Per-project metric table with configurable columns; rows open the weekly report."
+                },
+                {
+                  "id": "M3.6.S1.4",
+                  "name": "Manual KPI input",
+                  "description": "Enter a project's weekly KPIs → live QCDP/RAG; current-week writes back project health."
+                }
+              ],
+              "items": [
+                {
+                  "id": "EN-M3.6-01",
+                  "type": "enabler",
+                  "title": "KPI scoring & OHS model",
+                  "story": "Provide the KPI scoring model: the catalog of 16 KPIs across Quality/Cost/Delivery/Process (each with unit, direction, green/amber thresholds and a defined formula), the per-KPI RAG status rule, the pillar scores (average of a pillar's KPI status scores) and the Operational Health Score (OHS = Quality×0.3 + Delivery×0.3 + Cost×0.2 + Process×0.2) with its RAG bands.",
+                  "acceptance_criteria": [
+                    "Given a project and a KPI, when its value is computed, then it is rated Green/Amber/Red against that KPI's threshold and direction (higher-is-better, lower-is-better, or in-band).",
+                    "Given a set of projects, when a pillar is scored, then it is the average of its KPIs' status scores, and the OHS is the weighted roll-up (Quality 0.3, Delivery 0.3, Cost 0.2, Process 0.2) with bands Green ≥80 / Amber ≥62 / Red below.",
+                    "Given a KPI is requested, when surfaced, then its formula and threshold are available."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "notes": "16 KPIs — Quality: Defect Leakage, Reopened Rate, DRE, Defect Density; Cost: Gross Margin, Billable Rate, Utilization, Effort Consumption; Delivery: On-time, Forecast Accuracy, Release Predictability, SPI; Process: Process Compliance, Retro Closure, Audit Compliance, CAPA Closure. Values derive from project QCDP/metrics owned by EN-M3.1-01.",
+                  "dependencies": [
+                    "EN-M3.1-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.6.S1-01",
+                  "type": "story",
+                  "title": "View the OHS hero and pillar scores",
+                  "story": "As a BOD or PMO, I want the Operational Health Score with its pillar breakdown so that I can read overall delivery health at a glance.",
+                  "acceptance_criteria": [
+                    "Given KPI Metrics loads, when the hero renders, then an OHS gauge (0–100) with its RAG verdict and the four pillar scores (Quality/Cost/Delivery/Process) are shown.",
+                    "Given projects are in scope, when the hero renders, then the project count, critical-project count and reported count are shown.",
+                    "Given no projects are in scope, when it renders, then an empty state is shown."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M3.6-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.6.S1-02",
+                  "type": "story",
+                  "title": "Read the AI performance summary",
+                  "story": "As a BOD or PMO, I want an AI summary of performance so that I know the weakest pillar and which projects need attention.",
+                  "acceptance_criteria": [
+                    "Given the hero is shown, when the summary renders, then it states the OHS, the weakest pillar and the projects needing attention (or that none are critical).",
+                    "Given scope changes via the account/project filter, when applied, then the summary recomputes."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M3.6-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.6.S1-03",
+                  "type": "story",
+                  "title": "Explore per-project KPIs in the KPI Explorer",
+                  "story": "As a BOD or PMO, I want a per-project KPI table so that I can compare projects across the key delivery metrics.",
+                  "acceptance_criteria": [
+                    "Given the explorer renders, when shown, then each project row lists its health and the selected metrics (on-time, leakage, defect, predictability, utilization, CSAT), colour-coded by threshold and sorted with the weakest predictability first.",
+                    "Given I click a project row, when selected, then its weekly report opens.",
+                    "Given there are no projects in scope, when it renders, then an empty state is shown."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M3.6-01",
+                    "US-M3.3.S2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.6.S1-04",
+                  "type": "story",
+                  "title": "Configure the KPI Explorer columns",
+                  "story": "As a BOD, PMO or EM/TL, I want to choose which KPI columns appear in the Explorer so that I can focus on the metrics I care about.",
+                  "acceptance_criteria": [
+                    "Given the configure dialog, when I toggle a metric, then the Explorer adds or removes that column.",
+                    "Given I try to turn off the last remaining metric, when attempted, then it is kept and I am told at least one must stay on."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "US-M3.6.S1-03"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.6.S1-05",
+                  "type": "story",
+                  "title": "Manually input a project's weekly KPIs",
+                  "story": "As a PM (EM/TL) or PMO, I want to manually input a project's KPIs for a week so that its QCDP and RAG are recorded when not auto-derived.",
+                  "acceptance_criteria": [
+                    "Given I open Manual KPI input and pick a project and week, when I enter on-time, leakage/defect, cost and velocity, then the QCDP pillars and overall RAG compute live from the inputs.",
+                    "Given I save for the current week, when confirmed, then the project's QCDP/RAG are updated, it is marked reported, and the record is stored for that week (editing an existing record if present).",
+                    "Given a non-current week, when I save, then the record is stored without overwriting the project's live health."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "EM/TL/PM",
+                    "PMO",
+                    "BOD"
+                  ],
+                  "notes": "Current-week input writes back project health & the reported flag (same effect as a weekly report, EN-M3.3-01); past weeks store a record only. Only full-access and EM/TL on their own projects can input.",
+                  "dependencies": [
+                    "EN-M3.6-01",
+                    "EN-M3.3-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.6.S1-06",
+                  "type": "story",
+                  "title": "View KPI Metrics scoped to my access",
+                  "story": "As an AM, EM/TL or Member, I want KPI Metrics scoped to my access so that I only see my accounts'/projects' performance.",
+                  "acceptance_criteria": [
+                    "Given I am an AM, when KPI Metrics loads, then the OHS, pillars and explorer reflect only my accounts' projects; given an EM/TL or Member, only my projects.",
+                    "Given nothing is in scope, when it renders, then an empty state is shown."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M3.1-02"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M3.6.S2",
+              "name": "KPI deep-dive sections (built, not wired)",
+              "description": "FLAGGED: these sections exist in the mockup code (kpiDrill, kpiTrends, kpiMatrix, kpiCapa) but are not reachable — the KPI sub-tab navigation that would render them is never invoked (kpiSub is declared but unused). Decomposed because they are clearly intended PM capabilities; confirm wiring/scope with the team before build.",
+              "roles": [
+                "BOD",
+                "PMO"
+              ],
+              "mockup_ref": {
+                "screen": "project/metrics"
+              },
+              "sub_screens": [
+                {
+                  "id": "M3.6.S2.1",
+                  "name": "Per-KPI drill",
+                  "description": "Single-KPI value, formula, threshold, trend, root cause, action history."
+                },
+                {
+                  "id": "M3.6.S2.2",
+                  "name": "Trends & benchmark",
+                  "description": "OHS history vs portfolio; pillars vs portfolio & industry target."
+                },
+                {
+                  "id": "M3.6.S2.3",
+                  "name": "Engineering Health Matrix",
+                  "description": "EQI × TDI quadrant (Healthy / Hidden Risk / Legacy Burden / System Failure)."
+                },
+                {
+                  "id": "M3.6.S2.4",
+                  "name": "Corrective action register",
+                  "description": "CAPA / Risk / Improvement from KPI breaches; filter and advance status."
+                }
+              ],
+              "items": [
+                {
+                  "id": "US-M3.6.S2-01",
+                  "type": "story",
+                  "title": "Drill into a single KPI",
+                  "story": "As a BOD or PMO, I want to drill into a single KPI so that I can see its formula, trend and root cause.",
+                  "acceptance_criteria": [
+                    "Given I open a KPI, when the drill renders, then it shows the current value and status, its formula, its threshold, a historical trend and a root-cause note.",
+                    "Given the KPI has corrective history, when shown, then an action timeline (e.g. threshold breached → CAPA opened → recovered/in-progress) is displayed."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "notes": "Built in the mockup (kpiDrill) but not currently reachable — surfaced only from the unwired KPI Explorer cards.",
+                  "dependencies": [
+                    "EN-M3.6-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.6.S2-02",
+                  "type": "story",
+                  "title": "Compare OHS and pillars against benchmarks",
+                  "story": "As a BOD or PMO, I want OHS trend and pillar benchmarks so that I can compare against the portfolio and industry.",
+                  "acceptance_criteria": [
+                    "Given the trends section renders, when shown, then the OHS history is plotted against the portfolio average.",
+                    "Given the benchmark section renders, when shown, then each pillar is shown versus the portfolio average and an industry target."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "notes": "Built in the mockup (kpiTrends) but not currently wired.",
+                  "dependencies": [
+                    "EN-M3.6-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.6.S2-03",
+                  "type": "story",
+                  "title": "View the Engineering Health Matrix",
+                  "story": "As a BOD or PMO, I want an EQI×TDI matrix so that I can see which projects are healthy versus in system failure.",
+                  "acceptance_criteria": [
+                    "Given the matrix renders, when shown, then each project is plotted by Engineering Quality Index (EQI) and Technical Debt Index (TDI) into one of four quadrants (Healthy / Hidden Risk / Legacy Burden / System Failure).",
+                    "Given projects fall in System Failure, when shown, then they are called out for refactoring / quality recovery."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "notes": "Built in the mockup (kpiMatrix) but not currently wired. EQI = quality+process composite; TDI = technical-debt index.",
+                  "dependencies": [
+                    "EN-M3.6-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.6.S2-04",
+                  "type": "story",
+                  "title": "Track corrective actions (CAPA register)",
+                  "story": "As a BOD or PMO, I want a corrective-action register so that I can track CAPA, risks and improvements raised from KPI breaches.",
+                  "acceptance_criteria": [
+                    "Given KPIs breach their thresholds, when the register builds, then a corrective action (CAPA / Risk / Improvement) is generated per breach with severity, owner, due, progress and status.",
+                    "Given I filter by type, when applied, then only that type is shown, with open / CAPA / risk / improvement counts.",
+                    "Given an action is not done, when I advance it, then its status moves Open → In progress → Done and progress updates."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "notes": "Built in the mockup (kpiCapa/pmBuildCapa) but not currently wired. CAPA here is KPI-breach-driven, distinct from the weekly-report Recovery actions in M3.5 (RAID) — the two registers may need to converge; flag for the team.",
+                  "dependencies": [
+                    "EN-M3.6-01"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M3.7",
           "name": "Retro",
-          "description": "Account-level retrospective (Keep / Problem / Try) seeded from the week's reports, risks and metrics; a Try item can be promoted into a tracked task in M3.5. FLAGGED: built in the mockup (pmRetro) but not wired to a module tab and its only entry button (data-gotoretro) is never rendered — an orphaned/unreachable view. In scope is a team decision before breakdown.",
-          "status": "not-started",
-          "screens": []
+          "description": "Account-level retrospective (Keep / Problem / Try) seeded from the week's reports and open risks; a Try item can be promoted into a tracked Action in Risks & Issues (M3.5). FLAGGED: built in the mockup (pmRetro) but not wired to a module tab — its only entry trigger (data-gotoretro) is never rendered, so it is currently unreachable. Decomposed (it's a genuine continuous-improvement capability); confirm wiring/scope with the team before build.",
+          "status": "in-progress",
+          "screens": [
+            {
+              "id": "M3.7.S1",
+              "name": "Retro board",
+              "description": "Account-level Keep / Problem / Try board seeded from the account's project health and open risks, with an account selector, free-add (with @owner) and promote-Try-to-task. Built in the mockup but not currently reachable.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "EM/TL/PM"
+              ],
+              "sub_screens": [
+                {
+                  "id": "M3.7.S1.1",
+                  "name": "Account selector",
+                  "description": "Pick which account to retrospect."
+                },
+                {
+                  "id": "M3.7.S1.2",
+                  "name": "Keep / Problem / Try columns",
+                  "description": "Seeded retro items with owners across three columns."
+                },
+                {
+                  "id": "M3.7.S1.3",
+                  "name": "Add & promote",
+                  "description": "Add an item with @owner; promote a Try item into a tracked task."
+                }
+              ],
+              "items": [
+                {
+                  "id": "EN-M3.7-01",
+                  "type": "enabler",
+                  "title": "Account retro seed model",
+                  "story": "Provide the account-level retrospective seed: from an account's projects derive Keep (stable/green projects, reliable estimates), Problem (non-Green project risks plus the account's open RAID items) and Try (the next corrective actions on non-Green projects) — each item carrying an owner.",
+                  "acceptance_criteria": [
+                    "Given an account, when the retro is seeded, then Keep lists its green/stable and reliable-estimate projects, Problem lists its non-Green project risks and open RAID items, and Try lists the next actions on its non-Green projects.",
+                    "Given an account has no green projects, when seeded, then a default Keep item (reporting discipline maintained) is shown.",
+                    "Given each seeded item, when shown, then it carries an owner."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "EM/TL/PM"
+                  ],
+                  "notes": "Built in the mockup (pmRetroSeed) but the Retro view is not currently wired. Seed draws on project health (EN-M3.1-01) and open RAID items (EN-M3.5-01).",
+                  "dependencies": [
+                    "EN-M3.1-01",
+                    "EN-M3.5-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.7.S1-01",
+                  "type": "story",
+                  "title": "View the account retrospective board",
+                  "story": "As a BOD, PMO or PM, I want an account-level retrospective board (Keep / Problem / Try) so that I can run continuous improvement from the week's signals.",
+                  "acceptance_criteria": [
+                    "Given I open Retro and pick an account, when it renders, then three columns — Keep, Problem, Try — show the seeded items with their owners.",
+                    "Given I change the account, when applied, then the board reseeds for that account.",
+                    "Given an account has nothing to surface in a column, when it renders, then that column shows an empty/default state."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "EM/TL/PM"
+                  ],
+                  "notes": "Built in the mockup (pmRetro) but not currently reachable (no nav entry).",
+                  "dependencies": [
+                    "EN-M3.7-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.7.S1-02",
+                  "type": "story",
+                  "title": "Add a retro item with an owner",
+                  "story": "As a BOD, PMO or PM, I want to add a retro item with an owner to any column so that I can capture points the seed missed.",
+                  "acceptance_criteria": [
+                    "Given a column, when I add text with an @owner mention, then a new item is added to that column with the parsed owner.",
+                    "Given I add without an @owner, when saved, then the item is created with me as owner."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "EM/TL/PM"
+                  ],
+                  "notes": "Built in the mockup but not currently wired.",
+                  "dependencies": [
+                    "US-M3.7.S1-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.7.S1-03",
+                  "type": "story",
+                  "title": "Promote a Try item into a tracked task",
+                  "story": "As a BOD, PMO or PM, I want to promote a Try item into a tracked task so that improvement actions are followed up in Risks & Issues.",
+                  "acceptance_criteria": [
+                    "Given a Try item, when I promote it, then an Action item is created in the Risks & Issues register (M3.5) with its owner, and the action is audit-logged.",
+                    "Given the item is promoted, when I open Risks & Issues, then it appears as a tracked Action."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "EM/TL/PM"
+                  ],
+                  "notes": "Built in the mockup but not currently wired. Closes the Retro→RAID loop: the Action item lands in EN-M3.5-01.",
+                  "dependencies": [
+                    "US-M3.7.S1-01",
+                    "EN-M3.5-01"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M3.8",
@@ -1921,11 +3405,21 @@
               "id": "M3.8.S1",
               "name": "Project status & closure",
               "description": "Governance control to change a project's status and shut it down; on closure the project's allocations are released and it leaves the active portfolio. User-defined; not in the current mockup.",
-              "roles": ["BOD", "PMO"],
-              "mockup_ref": "(none — user-defined; not in the current mockup. Candidate host: Portfolio / project detail.)",
+              "roles": [
+                "BOD",
+                "PMO"
+              ],
               "sub_screens": [
-                { "id": "M3.8.S1.1", "name": "Status control", "description": "Set project status: active / on-hold / closed." },
-                { "id": "M3.8.S1.2", "name": "Closure confirmation", "description": "Confirm shutdown and the resulting allocation release." }
+                {
+                  "id": "M3.8.S1.1",
+                  "name": "Status control",
+                  "description": "Set project status: active / on-hold / closed."
+                },
+                {
+                  "id": "M3.8.S1.2",
+                  "name": "Closure confirmation",
+                  "description": "Confirm shutdown and the resulting allocation release."
+                }
               ],
               "items": [
                 {
@@ -1939,10 +3433,14 @@
                     "Given a status change, when applied, then it is reversible (e.g. on-hold back to active), except that closure has already released allocations."
                   ],
                   "story_points": 3,
-                  "roles": ["BOD", "PMO"],
-                  "mockup_ref": "(none — user-defined; not in the current mockup.)",
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
                   "notes": "Status lifecycle: active → on-hold → closed; default active on creation (M3.2). On-hold pauses reporting expectations but keeps staffing; closed triggers allocation release (US-M3.8.S1-02).",
-                  "dependencies": ["EN-M3.1-01"],
+                  "dependencies": [
+                    "EN-M3.1-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1956,10 +3454,15 @@
                     "Given a person was staffed only on the closed project, when it closes, then they are shown as idle/bench rather than mis-counted."
                   ],
                   "story_points": 3,
-                  "roles": ["BOD", "PMO"],
-                  "mockup_ref": "(none — user-defined; not in the current mockup.)",
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
                   "notes": "Closure cascade: ending the project's allocations is a write to the allocation source (EN-M3.4-01); the freed capacity flows to People utilization via EN-M1.4-01.",
-                  "dependencies": ["US-M3.8.S1-01", "EN-M3.4-01"],
+                  "dependencies": [
+                    "US-M3.8.S1-01",
+                    "EN-M3.4-01"
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1973,9 +3476,14 @@
                     "Given a closed project is reopened to active, when applied, then it re-enters the active portfolio."
                   ],
                   "story_points": 2,
-                  "roles": ["BOD", "PMO"],
-                  "mockup_ref": "(none — user-defined; not in the current mockup.)",
-                  "dependencies": ["EN-M3.1-01", "US-M3.8.S1-01"],
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M3.1-01",
+                    "US-M3.8.S1-01"
+                  ],
                   "status": "not-started"
                 }
               ]

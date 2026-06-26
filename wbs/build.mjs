@@ -26,11 +26,16 @@ const renderJs = CLIENT_SCRIPTS.map((s) => readFileSync(join(here, 'lib', s.slic
 const snapshotLabel = `
 const live = document.getElementById('live');
 live.textContent = 'snapshot'; live.className = ''; live.style.color = 'var(--ink-faint)';`;
+// Inline the captured-screenshot index if present (graceful if capture hasn't run).
+let screens = null;
+try { screens = JSON.parse(readFileSync(join(here, 'screens', 'index.json'), 'utf8')); } catch { /* no shots yet */ }
+
 const dataDecl = `
 const data = ${JSON.stringify(data)};
-const stats = ${JSON.stringify(s)};`;
+const stats = ${JSON.stringify(s)};
+const screens = ${JSON.stringify(screens)};`;
 
-const mapBoot = `${dataDecl}\nWBS.renderWBS(data, stats);${snapshotLabel}`;
+const mapBoot = `${dataDecl}\nWBS.setScreens(screens);\nWBS.renderWBS(data, stats);${snapshotLabel}`;
 const tableBoot = `${dataDecl}\nWBS.renderHeader(data, stats); WBS.renderTable(data); WBS.setData(data); WBS.bindExport();${snapshotLabel}`;
 
 const nav = { mapHref: 'index.html', tableHref: 'table.html' };

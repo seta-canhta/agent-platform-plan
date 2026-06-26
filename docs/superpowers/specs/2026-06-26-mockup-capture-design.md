@@ -1,7 +1,13 @@
 # Mockup Capture → Ticket Detail Screenshots (Phase 1)
 
 **Date:** 2026-06-26
-**Status:** Approved design, ready for implementation
+**Status:** Implemented & verified end-to-end.
+
+> **As built (refinements discovered during implementation):**
+> - **Zero-dependency capture** — drives system headless Chrome over the DevTools Protocol via a tiny `lib/cdp.mjs` (Node 26 built-in `WebSocket`); **no Playwright**, no npm dependency, keeping the whole repo dependency-free.
+> - **DOM-driven navigation** — `seta-engine.js` loads as a module, so `showModule`/`showTab` are **not** on `window`. The tool navigates like a user: clicking `#sideNav [data-mod][data-tab]`, setting `#persona`, clicking `actions` selectors. The screen list is auto-discovered from the live `#sideNav`.
+> - **Screenshots are a fixed 1920×1080 desktop viewport, cropped to the content pane** (sidebar/topbar chrome removed → 1672×1024). No full-page/scroll capture (it triggered Chrome blank-region bugs). A settle-until-stable + min-floor wait + a forced-final-paint stylesheet handle delayed/animated content.
+> - **Discovery walkthrough** (`capture.mjs --walk`) emits `screens/inventory.json` to author the rewrite cheaply.
 **Scope:** Phase 1 — make `mockup_ref` navigable (skill fix + data rewrite), capture screens headlessly, show them in the item detail modal. Jira push is a separate follow-up (Phase 2) depending on the PNGs this phase produces.
 
 ## Problem

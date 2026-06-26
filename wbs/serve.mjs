@@ -8,7 +8,7 @@
 import { createServer } from 'node:http';
 import { readFileSync, statSync, watch } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, extname, normalize } from 'node:path';
 import { spawn } from 'node:child_process';
 import { validate, stats } from './lib/schema.mjs';
 import { CLIENT_SCRIPTS } from './lib/page.mjs';
@@ -37,7 +37,9 @@ function loadData() {
   try { data = JSON.parse(raw); }
   catch (e) { return { parseError: `JSON parse error: ${e.message}` }; }
   const { errors, warnings } = validate(data);
-  return { data, stats: stats(data), errors, warnings };
+  let screens = null;
+  try { screens = JSON.parse(readFileSync(join(here, 'screens', 'index.json'), 'utf8')); } catch { /* no shots yet */ }
+  return { data, stats: stats(data), screens, errors, warnings };
 }
 
 // One boot per page. `renderExpr` renders the page's view from `payload`;
@@ -63,7 +65,7 @@ es.addEventListener('reload', () => location.reload());
 `;
 
 const SERVE_NAV = { mapHref: '/', tableHref: '/table' };
-const MAP_BOOT = makeBoot('WBS.renderWBS(payload.data, payload.stats)');
+const MAP_BOOT = makeBoot('WBS.setScreens(payload.screens); WBS.renderWBS(payload.data, payload.stats)');
 const TABLE_BOOT = makeBoot(
   'WBS.renderHeader(payload.data, payload.stats); WBS.setData(payload.data); WBS.renderTable(payload.data)',
   'WBS.bindExport();');
@@ -86,6 +88,15 @@ const server = createServer(async (req, res) => {
   } else if (CLIENT_SCRIPTS.includes(url)) {
     res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-store' });
     res.end(readFileSync(join(here, 'lib', url.slice(1)), 'utf8'));
+  } else if (url.startsWith('/screens/')) {
+    // Serve captured screenshots (+ index.json). Confined to the screens/ dir.
+    const rel = normalize(decodeURIComponent(url.slice('/screens/'.length))).replace(/^(\.\.(\/|\\|$))+/, '');
+    const file = join(here, 'screens', rel);
+    try {
+      const TYPES = { '.png': 'image/png', '.json': 'application/json', '.jpg': 'image/jpeg', '.webp': 'image/webp' };
+      res.writeHead(200, { 'Content-Type': TYPES[extname(file).toLowerCase()] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
+      res.end(readFileSync(file));
+    } catch { res.writeHead(404); res.end('not found'); }
   } else if (url === '/data') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
     res.end(JSON.stringify(loadData()));
