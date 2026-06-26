@@ -1,0 +1,178 @@
+{
+  "_meta": {
+    "project": "Agent Platform",
+    "version": "1.0",
+    "updated": "2026-06-26",
+    "status": "in-progress",
+    "story_format": "As a [role], I want to [action] so that [benefit]",
+    "point_scale": [
+      1,
+      2,
+      3,
+      5,
+      8,
+      13
+    ],
+    "notes": [
+      "SEED file — replaced once the wbs-breakdown skill runs on module M1.",
+      "Demonstrates the v1.0 schema, incl. a cross-module blocker (People utilization ← PM workload) and an open external_dep flag."
+    ]
+  },
+  "out_of_scope": [
+    {
+      "id": "M0",
+      "name": "Admin",
+      "reason": "Out of scope for this WBS"
+    },
+    {
+      "id": "AI",
+      "name": "Super Century AI",
+      "reason": "Skipped — not in scope"
+    }
+  ],
+  "modules": [
+    {
+      "id": "M1",
+      "name": "People",
+      "description": "Workforce management — headcount, org, allocation, performance, lifecycle",
+      "status": "in-progress",
+      "sub_modules": [
+        {
+          "id": "M1.1",
+          "name": "Dashboard",
+          "description": "Workforce overview — headcount, utilization, attrition, skill gap, forecast",
+          "status": "not-started",
+          "screens": [
+            {
+              "id": "M1.1.S1",
+              "name": "Org / Workforce Dashboard",
+              "description": "Full workforce metrics view for leadership and management roles",
+              "roles": [
+                "Admin/BOD",
+                "PMO",
+                "AM",
+                "EM/TL"
+              ],
+              "mockup_ref": "Seta People.dc.html#org-dashboard",
+              "sub_screens": [
+                {
+                  "id": "M1.1.S1.1",
+                  "name": "KPI Strip",
+                  "description": "Headcount, utilization %, bench, attrition with sparklines"
+                }
+              ],
+              "items": [
+                {
+                  "id": "US-M1.1.S1-01",
+                  "type": "story",
+                  "title": "View company-wide workforce KPI strip",
+                  "story": "As an Admin/BOD, I want to see a real-time KPI strip showing total headcount, utilization %, bench count, and attrition rate with sparkline trends so that I can instantly assess overall workforce health.",
+                  "acceptance_criteria": [
+                    "Given I am an Admin/BOD, when the dashboard loads, then the KPI strip shows headcount, utilization %, bench count, and attrition rate, each with a sparkline trend.",
+                    "Given a metric has no data for the period, when the strip renders, then an empty state is shown instead of a misleading zero."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "Admin/BOD"
+                  ],
+                  "mockup_ref": "Seta People.dc.html#kpi-strip",
+                  "notes": "AM sees this scoped to their own accounts only.",
+                  "dependencies": [
+                    "EN-M1.1-01",
+                    "EN-M3.1-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "EN-M1.1-01",
+                  "type": "enabler",
+                  "title": "Role-based data scoping for workforce metrics",
+                  "story": "Provide a shared role/account scoping layer so every workforce view returns only the data the current role is permitted to see.",
+                  "acceptance_criteria": [
+                    "Given any workforce query, when executed, then results are filtered to the caller's permitted accounts/projects.",
+                    "Given an AM with no extra grants, when they load metrics, then only their assigned accounts are returned."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "Admin/BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL"
+                  ],
+                  "mockup_ref": "Seta People.dc.html#org-dashboard",
+                  "notes": "Underpins every scoped view across the People module.",
+                  "dependencies": [],
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "M3",
+      "name": "Project Monitoring",
+      "description": "PM module — project allocation, workload, delivery health. Owns the workload data People consumes.",
+      "status": "not-started",
+      "sub_modules": [
+        {
+          "id": "M3.1",
+          "name": "Workload",
+          "description": "Per-person allocation across projects — the source of utilization and bench data",
+          "status": "not-started",
+          "screens": [
+            {
+              "id": "M3.1.S1",
+              "name": "Allocation Board",
+              "description": "Project managers assign and balance people across projects",
+              "roles": ["PMO", "AM", "EM/TL"],
+              "mockup_ref": "Seta People.dc.html#allocation",
+              "sub_screens": [],
+              "items": [
+                {
+                  "id": "EN-M3.1-01",
+                  "type": "enabler",
+                  "title": "Workload aggregation service",
+                  "story": "Provide an aggregation service that computes each employee's allocation/utilization across all their project assignments.",
+                  "acceptance_criteria": [
+                    "Given a set of project allocations, when queried for an employee, then total allocated % and remaining capacity are returned.",
+                    "Given an employee on no project, when queried, then they are reported as benched."
+                  ],
+                  "story_points": 5,
+                  "roles": ["PMO", "EM/TL"],
+                  "mockup_ref": "Seta People.dc.html#allocation",
+                  "notes": "Owned by PM module; the People dashboard's utilization KPI depends on this.",
+                  "dependencies": [],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.1.S1-01",
+                  "type": "story",
+                  "title": "See available bench when staffing a project",
+                  "story": "As a PMO, I want to see who is currently on the bench when I staff a project so that I can allocate idle people first.",
+                  "acceptance_criteria": [
+                    "Given I open the allocation board, when I add a role, then a list of benched, skill-matching employees is suggested.",
+                    "Given no benched employee matches, when I add a role, then an empty state explains why."
+                  ],
+                  "story_points": 5,
+                  "roles": ["PMO"],
+                  "mockup_ref": "Seta People.dc.html#allocation",
+                  "dependencies": [],
+                  "external_deps": [
+                    {
+                      "needs": "bench / availability list of employees",
+                      "likely_module": "M1",
+                      "reason": "bench status is derived in the People module; reconcile must resolve this to the concrete People item once it exists."
+                    }
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

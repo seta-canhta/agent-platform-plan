@@ -1,0 +1,12 @@
+{
+  "name": "seta-wbs",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Seta People & PM — Work Breakdown Structure (v1.0 schema) + Node renderer",
+  "scripts": {
+    "serve": "node serve.mjs --open",
+    "build": "node build.mjs",
+    "validate": "node build.mjs"
+  }
+}

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agent Platform — WBS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<style>
+  :root {
+    --paper:   #eef2f8;
+    --paper-2: #f6f8fc;
+    --ink:     #1c2738;
+    --ink-dim: #5a6b82;
+    --ink-faint:#94a3b8;
+    --line:    rgba(40,72,116,0.14);
+    --line-bright: rgba(37,99,235,0.45);
+    --card:    #ffffff;
+    --accent:  #2563eb;
+    --done:    #16a34a;
+    --prog:    #d97706;
+    --block:   #dc2626;
+    --idle:    #64748b;
+    --enabler: #7c3aed;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Archivo', system-ui, sans-serif;
+    color: var(--ink);
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(40,80,140,0.10) 1px, transparent 0),
+      radial-gradient(circle at 1px 1px, rgba(40,80,140,0.05) 1px, transparent 0);
+    background-size: 28px 28px, 140px 140px;
+    overflow: hidden;
+    position: relative;
+  }
+  /* soft paper lighting */
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(75% 60% at 15% -5%, rgba(255,255,255,0.85), transparent 60%),
+      radial-gradient(60% 60% at 100% 105%, rgba(219,232,250,0.55), transparent 55%);
+  }
+
+  /* ── instrument bar ─────────────────────────────────────── */
+  #header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 60px; padding: 0 22px;
+    display: flex; align-items: center; gap: 22px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(246,248,252,0.74));
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(10px) saturate(120%);
+  }
+  #header h1 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 26px; font-weight: 400; font-style: italic;
+    letter-spacing: 0.2px; color: var(--ink); white-space: nowrap;
+  }
+  #header h1 .v { font-family: 'JetBrains Mono', monospace; font-style: normal; font-size: 11px; color: var(--accent); vertical-align: super; margin-left: 5px; }
+  .rule { width: 1px; height: 30px; background: var(--line); }
+  .readout { display: flex; flex-direction: column; gap: 2px; }
+  .readout .k { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-faint); }
+  .readout .val { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: var(--ink); }
+  .readout .val small { font-size: 10px; color: var(--ink-dim); font-weight: 400; margin-left: 5px; }
+  .hist { display: flex; gap: 5px; align-items: flex-end; height: 30px; padding-bottom: 11px; }
+  .hist .bar { width: 13px; background: linear-gradient(180deg, var(--accent), rgba(37,99,235,0.35)); border-radius: 2px 2px 0 0; position: relative; min-height: 2px; }
+  .hist .bar span { position: absolute; bottom: -12px; left: 0; right: 0; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--ink-faint); }
+
+  #live { margin-left: auto; display: flex; align-items: center; gap: 7px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; padding: 5px 11px; border-radius: 20px; border: 1px solid var(--line); background: var(--card); }
+  #live::before { content: ''; width: 7px; height: 7px; border-radius: 50%; }
+  #live.on  { color: var(--done); border-color: rgba(22,163,74,0.35); }
+  #live.on::before  { background: var(--done); box-shadow: 0 0 0 0 rgba(22,163,74,0.5); animation: pulse 2s infinite; }
+  #live.off { color: var(--block); border-color: rgba(220,38,38,0.3); }
+  #live.off::before { background: var(--block); }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(22,163,74,0.45); } 70% { box-shadow: 0 0 0 7px rgba(22,163,74,0); } 100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); } }
+
+  .legend { display: flex; gap: 13px; font-size: 10.5px; color: var(--ink-dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.3px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+  #hint { font-size: 10px; color: var(--ink-faint); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.3px; }
+
+  #svg-container { position: fixed; inset: 60px 0 0 0; z-index: 1; }
+  svg { width: 100%; height: 100%; cursor: grab; display: block; }
+  svg:active { cursor: grabbing; }
+
+  /* ── mindmap nodes & links ──────────────────────────────── */
+  .link { fill: none; stroke: var(--line-bright); stroke-width: 1.3px; opacity: 0.4; }
+  .node { cursor: pointer; }
+  .node text { pointer-events: none; }
+  .node-bg { transition: stroke .16s ease, filter .16s ease; }
+  .node:hover .node-bg { stroke: var(--accent); filter: drop-shadow(0 6px 18px rgba(37,99,235,0.22)); }
+  .node .node-id    { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; fill: var(--accent); opacity: 0.9; letter-spacing: 0.3px; }
+  .node .node-name  { font-family: 'Archivo', sans-serif; font-weight: 600; font-size: 12px; fill: var(--ink); }
+  .node .node-name.is-module { font-weight: 800; font-size: 13px; letter-spacing: 0.2px; }
+  .node .node-sp    { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; }
+  .node .node-meta  { font-family: 'JetBrains Mono', monospace; font-size: 9px; fill: var(--ink-faint); letter-spacing: 0.5px; }
+  .node .node-expand{ font-family: 'JetBrains Mono', monospace; font-size: 10px; fill: var(--ink-dim); }
+
+  /* ── tooltip ────────────────────────────────────────────── */
+  .tooltip {
+    position: fixed; z-index: 200; max-width: 380px; pointer-events: none;
+    opacity: 0; transform: translateY(4px); transition: opacity .16s, transform .16s;
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 13px 16px; font-size: 12.5px; line-height: 1.6; color: var(--ink-dim);
+    box-shadow: 0 18px 44px rgba(28,46,82,0.18);
+  }
+  .tooltip.visible { opacity: 1; transform: translateY(0); }
+  .tt-id { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1px; color: var(--accent); }
+  .tt-name { font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 14px; color: var(--ink); margin: 2px 0 8px; line-height: 1.3; }
+  .tt-badge { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; padding: 2px 9px; border-radius: 5px; margin-bottom: 9px; border: 1px solid currentColor; }
+  .tt-story { color: var(--ink); }
+  .tt-ac { margin-top: 9px; }
+  .tt-ac b { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-faint); }
+  .tt-ac ul { list-style: none; margin-top: 4px; }
+  .tt-ac li { position: relative; padding-left: 16px; margin: 4px 0; color: var(--ink-dim); }
+  .tt-ac li::before { content: '▸'; position: absolute; left: 2px; color: var(--accent); }
+  .tt-meta { margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-faint); }
+
+  #flash {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(24px);
+    z-index: 300; pointer-events: none; opacity: 0; transition: all .3s cubic-bezier(.2,.9,.3,1);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+    color: #fff; background: var(--accent); padding: 9px 20px; border-radius: 22px;
+    box-shadow: 0 8px 24px rgba(37,99,235,0.35);
+  }
+  #flash.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #err {
+    position: fixed; top: 60px; left: 0; right: 0; z-index: 90; display: none;
+    background: #fef2f2; border-bottom: 1px solid var(--block);
+    color: #b91c1c; font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+    padding: 10px 22px; white-space: pre-wrap;
+  }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1 id="title"></h1>
+  <div class="rule"></div>
+  <div class="readout"><span class="k">Items</span><span class="val" id="s-items"></span></div>
+  <div class="readout"><span class="k">Points</span><span class="val" id="s-points"></span></div>
+  <div class="readout"><span class="k">Blockers</span><span class="val" id="s-blockers"></span></div>
+  <div class="readout"><span class="k">Distribution</span><div class="hist" id="hist"></div></div>
+  <span id="live" class="off">offline</span>
+  <div class="rule"></div>
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:var(--done)"></span>done</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--prog)"></span>active</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--block)"></span>blocked</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--idle)"></span>queued</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--enabler)"></span>enabler</span>
+  </div>
+</div>
+<div id="err"></div>
+<div id="svg-container"><svg id="tree-svg"></svg></div>
+<div class="tooltip" id="tooltip"></div>
+<div id="hint" style="position:fixed; bottom:14px; left:22px; z-index:80;">drag · scroll-zoom · click node to expand</div>
+
+<script>/* Browser-side WBS renderer — cyanotype blueprint edition. Plain script
+   (no modules). Exposes window.WBS.renderWBS(data, stats). D3 v7 required. */
+(function () {
+  const C = {
+    ink:'#1c2738', dim:'#5a6b82', faint:'#94a3b8',
+    line:'rgba(40,72,116,0.16)', glass:'#ffffff', cyan:'#2563eb',
+    done:'#16a34a', 'in-progress':'#d97706', blocked:'#dc2626',
+    'not-started':'#64748b', 'out-of-scope':'#7c3aed', enabler:'#7c3aed',
+  };
+  const ENABLER = C.enabler;
+  const RECT_W=232, RECT_H_P=64, RECT_H_US=52, RECT_RX=10, H_GAP=64, V_GAP=12, STRIP_W=4, PAD_L=15;
+
+  const statusColor = s => C[s] || C['not-started'];
+  const nodeColor = d => d.data.type==='enabler' ? ENABLER : statusColor(d.data.status);
+  const trunc = (s,n) => s && s.length>n ? s.slice(0,n-1)+'…' : (s||'');
+  const isItem = d => d.data.type==='story' || d.data.type==='enabler';
+  const cardH = d => isItem(d) ? RECT_H_US : RECT_H_P;
+  const isModule = d => d.data.type==='module';
+
+  function wbsToHierarchy(data){
+    const root = { id:'root', name:data._meta.project, status:data._meta.status||'in-progress', type:'root', children:[] };
+    const idMod = {}, flatItems = [];
+    for (const mod of data.modules||[]){
+      const modNode = { id:mod.id, name:mod.name, description:mod.description||'', status:mod.status||'not-started', type:'module', children:[] };
+      for (const sub of (mod.sub_modules||[])){
+        const subNode = { id:sub.id, name:sub.name, description:sub.description||'', status:sub.status||'not-started', type:'submodule', children:[] };
+        for (const screen of (sub.screens||[])){
+          const items = (screen.items||[]).map(it => {
+            const node = {
+              id:it.id, name:it.title, type:it.type, story:it.story||'', status:it.status||'not-started',
+              sp:it.story_points||0, roles:it.roles||[], ac:it.acceptance_criteria||[],
+              deps:it.dependencies||[], ext:(it.external_deps||[]).map(e=> typeof e==='string'?{needs:e}:e), notes:it.notes||'', _mod:mod.id
+            };
+            idMod[it.id] = mod.id; flatItems.push(node);
+            return node;
+          });
+          subNode.children.push({ id:screen.id, name:screen.name, description:screen.description||'', status:screen.status||'not-started',
+            type:'screen', roles:screen.roles||[], children: items.length?items:undefined });
+        }
+        if (!subNode.children.length) delete subNode.children;
+        modNode.children.push(subNode);
+      }
+      if (!modNode.children.length) delete modNode.children;
+      root.children.push(modNode);
+    }
+    // classify blockers: cross-module if a resolved dep lives in another module, or any external flag exists
+    for (const it of flatItems){
+      it.crossDeps = it.deps.filter(d => idMod[d] && idMod[d] !== it._mod);
+      it.blocked = it.deps.length > 0 || it.ext.length > 0;
+      it.crossBlocked = it.crossDeps.length > 0 || it.ext.length > 0;
+    }
+    for (const oos of (data.out_of_scope||[]))
+      root.children.push({ id:oos.id, name:oos.name, description:oos.reason||'', status:'out-of-scope', type:'oos' });
+    (function annotate(n){
+      if (isItem({data:n})){ n.total_sp=n.sp; n.total_us=1; n.done_us=n.status==='done'?1:0; return; }
+      if (!n.children){ n.total_sp=0; n.total_us=0; n.done_us=0; return; }
+      n.children.forEach(annotate);
+      n.total_sp=n.children.reduce((a,c)=>a+(c.total_sp||0),0);
+      n.total_us=n.children.reduce((a,c)=>a+(c.total_us||0),0);
+      n.done_us =n.children.reduce((a,c)=>a+(c.done_us||0),0);
+    })(root);
+    return root;
+  }
+
+  function renderHeader(data, S){
+    const $ = id => document.getElementById(id);
+    $('title').innerHTML = data._meta.project + '<span class="v">v' + (data._meta.version||'') + '</span>';
+    $('s-items').innerHTML = S.items + '<small>' + S.stories + ' story · ' + S.enablers + ' enabler</small>';
+    $('s-points').textContent = S.points;
+    const blk = $('s-blockers');
+    if (blk){ const x = S.crossModuleDeps||0, f = S.externalFlags||0;
+      blk.innerHTML = (x+f) + '<small>' + x + ' x-mod · ' + f + ' open</small>';
+      blk.style.color = (x+f) ? 'var(--block)' : 'var(--ink)';
+    }
+    const maxH = Math.max(1, ...Object.values(S.histogram));
+    $('hist').innerHTML = Object.entries(S.histogram)
+      .map(([p,n]) => '<div class="bar" style="height:'+Math.round(3+18*n/maxH)+'px" title="'+p+' pt × '+n+'"><span>'+p+'</span></div>').join('');
+  }
+
+  const collapsed = new Set(), expanded = new Set();
+  let lastTransform = null, firstRender = true;
+
+  function render(hierarchyData){
+    const container = document.getElementById('svg-container');
+    const H = container.clientHeight;
+    const svg = d3.select('#tree-svg'); svg.selectAll('*').remove();
+
+    const defs = svg.append('defs');
+    const grad = defs.append('linearGradient').attr('id','linkgrad').attr('gradientUnits','userSpaceOnUse');
+    grad.append('stop').attr('offset','0%').attr('stop-color', C.cyan).attr('stop-opacity', 0.05);
+    grad.append('stop').attr('offset','100%').attr('stop-color', C.cyan).attr('stop-opacity', 0.45);
+
+    const g = svg.append('g');
+    const zoom = d3.zoom().scaleExtent([0.04,3]).on('zoom', e => { g.attr('transform', e.transform); lastTransform = e.transform; });
+    svg.call(zoom);
+    const root = d3.hierarchy(hierarchyData);
+    root.each(d => {
+      const id = d.data.id, defaultCollapsed = d.depth >= 3;
+      const shouldCollapse = expanded.has(id) ? false : (collapsed.has(id) || defaultCollapsed);
+      if (shouldCollapse && d.children){ d._children = d.children; d.children = null; }
+    });
+    const treeLayout = d3.tree().nodeSize([Math.max(RECT_H_P,RECT_H_US)+V_GAP, RECT_W+H_GAP]);
+    const tooltip = document.getElementById('tooltip');
+    const linkPath = d => { const sx=d.source.y+RECT_W/2, sy=d.source.x, tx=d.target.y-RECT_W/2, ty=d.target.x, mx=(sx+tx)/2;
+      return 'M'+sx+','+sy+' C'+mx+','+sy+' '+mx+','+ty+' '+tx+','+ty; };
+
+    let initial = firstRender;
+    function update(source){
+      treeLayout(root);
+      const nodes=root.descendants(), links=root.links();
+
+      const link = g.selectAll('.link').data(links, d=>d.target.data.id);
+      link.exit().remove();
+      const le = link.enter().append('path').attr('class','link').attr('d', linkPath).style('opacity',0);
+      le.merge(link).transition().duration(initial?600:280).delay(d=> initial ? d.target.depth*55 : 0)
+        .attr('d', linkPath).style('opacity',0.5);
+
+      const node = g.selectAll('.node').data(nodes, d=>d.data.id);
+      node.exit().transition().duration(220).style('opacity',0).remove();
+
+      const ne = node.enter().append('g').attr('class','node')
+        .attr('transform', d=>'translate('+d.y+','+d.x+')').style('opacity', 0)
+        .on('click',(ev,d)=>{ ev.stopPropagation();
+          const id=d.data.id;
+          if (d._children){ d.children=d._children; d._children=null; expanded.add(id); collapsed.delete(id); }
+          else if (d.children){ d._children=d.children; d.children=null; collapsed.add(id); expanded.delete(id); }
+          update(d); })
+        .on('mousemove',(ev,d)=>{
+          const dd=d.data; let h='<div class="tt-id">'+dd.id+'</div><div class="tt-name">'+dd.name+'</div>';
+          if (isItem({data:dd})){
+            const c = dd.type==='enabler'?ENABLER:statusColor(dd.status);
+            h += '<div class="tt-badge" style="color:'+c+'">'+dd.type.toUpperCase()+' · SP '+dd.sp+' · '+(dd.status||'')+'</div>';
+            if (dd.story) h += '<div class="tt-story">'+dd.story+'</div>';
+            if (dd.ac && dd.ac.length) h += '<div class="tt-ac"><b>Acceptance</b><ul>'+dd.ac.map(a=>'<li>'+a+'</li>').join('')+'</ul></div>';
+            if (dd.notes) h += '<div class="tt-meta">📌 '+dd.notes+'</div>';
+            if (dd.roles && dd.roles.length) h += '<div class="tt-meta">◢ '+dd.roles.join(' · ')+'</div>';
+            if (dd.deps && dd.deps.length){
+              const parts = dd.deps.map(x => (dd.crossDeps&&dd.crossDeps.indexOf(x)>=0) ? x+' ⤴' : x);
+              h += '<div class="tt-meta" style="color:'+(dd.crossBlocked?C.blocked:C.dim)+'">⛓ blocked by '+parts.join(', ')+(dd.crossDeps&&dd.crossDeps.length?'  · ⤴ cross-module':'')+'</div>';
+            }
+            if (dd.ext && dd.ext.length)
+              h += '<div class="tt-meta" style="color:'+C.blocked+'">⚠ external need: '+dd.ext.map(e=>e.needs+(e.likely_module?' ['+e.likely_module+']':'')).join(' · ')+'</div>';
+          } else {
+            if (dd.description) h += '<div class="tt-story">'+dd.description+'</div>';
+            if (dd.total_us) h += '<div class="tt-meta">Σ '+dd.total_us+' items · '+dd.total_sp+' pts</div>';
+            if (dd.roles && dd.roles.length) h += '<div class="tt-meta">◢ '+dd.roles.join(' · ')+'</div>';
+          }
+          tooltip.innerHTML=h; tooltip.classList.add('visible');
+          tooltip.style.left=Math.min(ev.clientX+16, innerWidth-396)+'px';
+          tooltip.style.top=Math.max(66, ev.clientY-10)+'px';
+        })
+        .on('mouseleave',()=>tooltip.classList.remove('visible'));
+
+      const col = d => nodeColor(d);
+      // card
+      ne.append('rect').attr('class','node-bg').attr('x',-RECT_W/2).attr('y',d=>-cardH(d)/2)
+        .attr('width',RECT_W).attr('height',d=>cardH(d)).attr('rx',RECT_RX).attr('fill',C.glass)
+        .attr('stroke',d=>d.data.type==='enabler'?ENABLER:C.line).attr('stroke-width',1)
+        .attr('stroke-dasharray',d=>d.data.type==='enabler'?'5 4':null)
+        .attr('filter','drop-shadow(0 4px 12px rgba(28,46,82,0.12))');
+      // status strip (rounded pill)
+      ne.append('rect').attr('class','node-strip').attr('x',-RECT_W/2+6).attr('y',d=>-cardH(d)/2+8)
+        .attr('width',STRIP_W).attr('height',d=>cardH(d)-16).attr('rx',2).attr('fill',col).attr('pointer-events','none');
+      // module/submodule accent node
+      ne.append('circle').attr('class','node-pip').attr('cx',RECT_W/2-13).attr('cy',d=>-cardH(d)/2+13).attr('r',3)
+        .attr('fill',col).style('display',d=>(d.data.type==='module'||d.data.type==='submodule')?null:'none');
+
+      const tx0 = -RECT_W/2 + STRIP_W + PAD_L;
+      // item fields
+      ne.append('text').attr('class','node-id i-id').attr('x',tx0).attr('dominant-baseline','middle').style('display',d=>isItem(d)?null:'none');
+      ne.append('rect').attr('class','sp-pill').attr('rx',5).attr('height',16).style('display',d=>isItem(d)?null:'none').attr('pointer-events','none');
+      ne.append('text').attr('class','node-sp i-sp').attr('text-anchor','middle').attr('dominant-baseline','middle').style('display',d=>isItem(d)?null:'none');
+      ne.append('text').attr('class','node-name i-name').attr('x',tx0).attr('dominant-baseline','middle').style('display',d=>isItem(d)?null:'none');
+      // parent fields
+      ne.append('text').attr('class','node-id p-id').attr('x',tx0).attr('dominant-baseline','middle').style('display',d=>isItem(d)?'none':null);
+      ne.append('text').attr('class','node-name p-name').attr('x',tx0).attr('dominant-baseline','middle').style('display',d=>isItem(d)?'none':null);
+      const barW = RECT_W-STRIP_W-PAD_L-16;
+      ne.append('rect').attr('class','progress-track').attr('x',tx0).attr('width',barW).attr('height',3).attr('rx',1.5).attr('fill','rgba(150,195,235,0.14)').style('display',d=>isItem(d)?'none':null);
+      ne.append('rect').attr('class','progress-fill').attr('x',tx0).attr('rx',1.5).attr('height',3).attr('fill',col).style('display',d=>isItem(d)?'none':null);
+      ne.append('text').attr('class','node-meta p-pct').attr('x',RECT_W/2-13).attr('text-anchor','end').attr('dominant-baseline','middle').style('display',d=>isItem(d)?'none':null);
+      ne.append('text').attr('class','node-expand').attr('x',RECT_W/2-12).attr('text-anchor','end').attr('y',0).attr('dominant-baseline','middle');
+      ne.append('text').attr('class','node-blk').attr('text-anchor','end').attr('dominant-baseline','middle').attr('font-size',11).style('display',d=>isItem(d)&&d.data.blocked?null:'none');
+
+      const nu = ne.merge(node);
+      nu.transition().duration(initial?600:280).delay(d=> initial ? d.depth*55 + (d.parent?d.parent.children.indexOf(d):0)*18 : 0)
+        .attr('transform',d=>'translate('+d.y+','+d.x+')').style('opacity',1);
+
+      nu.select('.node-bg').attr('y',d=>-cardH(d)/2).attr('height',d=>cardH(d))
+        .attr('stroke',d=>d.data.type==='enabler'?ENABLER:C.line).attr('stroke-dasharray',d=>d.data.type==='enabler'?'5 4':null);
+      nu.select('.node-strip').attr('y',d=>-cardH(d)/2+8).attr('height',d=>cardH(d)-16).attr('fill',col);
+      nu.select('.node-pip').attr('cy',d=>-cardH(d)/2+13).attr('fill',col);
+
+      // item
+      nu.select('.i-id').attr('y',d=>-cardH(d)/2+16).text(d=>d.data.id);
+      nu.select('.i-name').attr('y',d=>-cardH(d)/2+35).text(d=>trunc(d.data.name,30));
+      nu.select('.sp-pill')
+        .attr('x',RECT_W/2-46).attr('y',d=>-cardH(d)/2+8)
+        .attr('width',40).attr('fill',d=>isItem(d)? hexA(col(d),0.16):'none').attr('stroke',d=>isItem(d)?col(d):'none').attr('stroke-width',1).attr('stroke-opacity',0.5);
+      nu.select('.i-sp').attr('x',RECT_W/2-26).attr('y',d=>-cardH(d)/2+16).attr('fill',col).text(d=>isItem(d)?'SP '+d.data.sp:'');
+      // parent
+      nu.select('.p-id').attr('y',d=>-cardH(d)/2+16).text(d=>d.data.id + (d.data.total_sp>0?'   ·   Σ '+d.data.total_sp+' pt':''));
+      nu.select('.p-name').classed('is-module',d=>isModule(d)).attr('y',d=>-cardH(d)/2+ (37)).text(d=>trunc(d.data.name,26));
+      nu.select('.progress-track').attr('y',d=>cardH(d)/2-14).attr('width',barW);
+      nu.select('.progress-fill').attr('y',d=>cardH(d)/2-14).attr('fill',col)
+        .attr('width',d=>isItem(d)||!d.data.total_us?0:Math.max(2,barW*d.data.done_us/d.data.total_us));
+      nu.select('.p-pct').attr('y',d=>cardH(d)/2-12).text(d=>isItem(d)||!d.data.total_us?'':d.data.done_us+'/'+d.data.total_us);
+      nu.select('.node-expand').text(d=>d._children?('＋'+(d._children.length)):'');
+      nu.select('.node-blk').attr('x',RECT_W/2-12).attr('y',d=>cardH(d)/2-11)
+        .attr('fill',d=>d.data.crossBlocked?C.blocked:C['in-progress'])
+        .text(d=> isItem(d)&&d.data.blocked ? '⛓' : '');
+
+      initial = false;
+    }
+    update(root);
+    if (lastTransform && !firstRender) svg.call(zoom.transform, lastTransform);
+    else { const t = d3.zoomIdentity.translate(RECT_W/2+40, H/2); svg.call(zoom.transform, t); lastTransform = t; }
+    firstRender = false;
+  }
+
+  // hex (#rrggbb) → rgba string with alpha
+  function hexA(hex, a){
+    if (!hex || hex[0] !== '#') return hex;
+    const n = parseInt(hex.slice(1),16);
+    return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';
+  }
+
+  function flash(msg){
+    let el = document.getElementById('flash');
+    if (!el){ el = document.createElement('div'); el.id='flash'; document.body.appendChild(el); }
+    el.textContent = msg; el.className = 'show';
+    clearTimeout(flash._t); flash._t = setTimeout(()=>el.className='', 1400);
+  }
+
+  window.WBS = {
+    renderWBS(data, stats){ renderHeader(data, stats); render(wbsToHierarchy(data)); },
+    flash,
+  };
+})();
+</script>
+<script>
+const data = {"_meta":{"project":"Agent Platform","version":"1.0","updated":"2026-06-26","status":"in-progress","story_format":"As a [role], I want to [action] so that [benefit]","point_scale":[1,2,3,5,8,13],"notes":["SEED file — replaced once the wbs-breakdown skill runs on module M1.","Demonstrates the v1.0 schema, incl. a cross-module blocker (People utilization ← PM workload) and an open external_dep flag."]},"out_of_scope":[{"id":"M0","name":"Admin","reason":"Out of scope for this WBS"},{"id":"AI","name":"Super Century AI","reason":"Skipped — not in scope"}],"modules":[{"id":"M1","name":"People","description":"Workforce management — headcount, org, allocation, performance, lifecycle","status":"in-progress","sub_modules":[{"id":"M1.1","name":"Dashboard","description":"Workforce overview — headcount, utilization, attrition, skill gap, forecast","status":"not-started","screens":[{"id":"M1.1.S1","name":"Org / Workforce Dashboard","description":"Full workforce metrics view for leadership and management roles","roles":["Admin/BOD","PMO","AM","EM/TL"],"mockup_ref":"Seta People.dc.html#org-dashboard","sub_screens":[{"id":"M1.1.S1.1","name":"KPI Strip","description":"Headcount, utilization %, bench, attrition with sparklines"}],"items":[{"id":"US-M1.1.S1-01","type":"story","title":"View company-wide workforce KPI strip","story":"As an Admin/BOD, I want to see a real-time KPI strip showing total headcount, utilization %, bench count, and attrition rate with sparkline trends so that I can instantly assess overall workforce health.","acceptance_criteria":["Given I am an Admin/BOD, when the dashboard loads, then the KPI strip shows headcount, utilization %, bench count, and attrition rate, each with a sparkline trend.","Given a metric has no data for the period, when the strip renders, then an empty state is shown instead of a misleading zero."],"story_points":3,"roles":["Admin/BOD"],"mockup_ref":"Seta People.dc.html#kpi-strip","notes":"AM sees this scoped to their own accounts only.","dependencies":["EN-M1.1-01","EN-M3.1-01"],"status":"not-started"},{"id":"EN-M1.1-01","type":"enabler","title":"Role-based data scoping for workforce metrics","story":"Provide a shared role/account scoping layer so every workforce view returns only the data the current role is permitted to see.","acceptance_criteria":["Given any workforce query, when executed, then results are filtered to the caller's permitted accounts/projects.","Given an AM with no extra grants, when they load metrics, then only their assigned accounts are returned."],"story_points":5,"roles":["Admin/BOD","PMO","AM","EM/TL"],"mockup_ref":"Seta People.dc.html#org-dashboard","notes":"Underpins every scoped view across the People module.","dependencies":[],"status":"not-started"}]}]}]},{"id":"M3","name":"Project Monitoring","description":"PM module — project allocation, workload, delivery health. Owns the workload data People consumes.","status":"not-started","sub_modules":[{"id":"M3.1","name":"Workload","description":"Per-person allocation across projects — the source of utilization and bench data","status":"not-started","screens":[{"id":"M3.1.S1","name":"Allocation Board","description":"Project managers assign and balance people across projects","roles":["PMO","AM","EM/TL"],"mockup_ref":"Seta People.dc.html#allocation","sub_screens":[],"items":[{"id":"EN-M3.1-01","type":"enabler","title":"Workload aggregation service","story":"Provide an aggregation service that computes each employee's allocation/utilization across all their project assignments.","acceptance_criteria":["Given a set of project allocations, when queried for an employee, then total allocated % and remaining capacity are returned.","Given an employee on no project, when queried, then they are reported as benched."],"story_points":5,"roles":["PMO","EM/TL"],"mockup_ref":"Seta People.dc.html#allocation","notes":"Owned by PM module; the People dashboard's utilization KPI depends on this.","dependencies":[],"status":"not-started"},{"id":"US-M3.1.S1-01","type":"story","title":"See available bench when staffing a project","story":"As a PMO, I want to see who is currently on the bench when I staff a project so that I can allocate idle people first.","acceptance_criteria":["Given I open the allocation board, when I add a role, then a list of benched, skill-matching employees is suggested.","Given no benched employee matches, when I add a role, then an empty state explains why."],"story_points":5,"roles":["PMO"],"mockup_ref":"Seta People.dc.html#allocation","dependencies":[],"external_deps":[{"needs":"bench / availability list of employees","likely_module":"M1","reason":"bench status is derived in the People module; reconcile must resolve this to the concrete People item once it exists."}],"status":"not-started"}]}]}]}]};
+const stats = {"points":18,"stories":2,"enablers":2,"items":4,"blocked":2,"histogram":{"1":0,"2":0,"3":1,"5":3,"8":0,"13":0},"byModule":{"M1":{"name":"People","points":8,"items":2},"M3":{"name":"Project Monitoring","points":10,"items":2}},"crossModuleDeps":1,"externalFlags":1,"cycles":0};
+WBS.renderWBS(data, stats);
+const live = document.getElementById('live');
+live.textContent = 'snapshot'; live.className = ''; live.style.color = 'var(--ink-faint)';
+</script>
+</body>
+</html>
