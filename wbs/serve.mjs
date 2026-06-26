@@ -128,7 +128,7 @@ function loadData() {
 // One boot per page. `renderExpr` renders the page's view from `payload`;
 // `initExpr` runs once before the first load (e.g. wiring the Excel button).
 const makeBoot = (renderExpr, initExpr = '') => String.raw`
-const live = document.getElementById('live'), errEl = document.getElementById('err');
+const live = document.getElementById('live'), errEl = document.getElementById('err');   // live: removed from header → null-safe below
 async function load(){
   let payload;
   try { payload = await (await fetch('/data?t='+Date.now())).json(); }
@@ -141,8 +141,8 @@ async function load(){
 ${initExpr}
 load();
 const es = new EventSource('/events');
-es.onopen  = () => { live.className='on';  live.textContent='live'; };
-es.onerror = () => { live.className='off'; live.textContent='offline'; };
+es.onopen  = () => { if (live){ live.className='on';  live.textContent='live'; } };
+es.onerror = () => { if (live){ live.className='off'; live.textContent='offline'; } };
 es.addEventListener('data',   () => { load(); WBS.flash('updated'); });
 es.addEventListener('reload', () => location.reload());
 `;

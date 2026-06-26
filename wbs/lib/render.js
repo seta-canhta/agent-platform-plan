@@ -369,6 +369,9 @@
   function wbsToHierarchy(data){
     const root = { id:'root', name:data._meta.project, status:data._meta.status||'in-progress', type:'root', children:[] };
     const idMod = {}, flatItems = [];
+    // When the global filter is active, prune item/screen/epic/module nodes that
+    // have nothing matching — so the map shows only what passes the filter.
+    const filtering = !!(window.WBS.filter && window.WBS.filter.active());
     itemsById = {};
     for (const mod of data.modules||[]){
       const modNode = { id:mod.id, name:mod.name, description:mod.description||'', status:mod.status||'not-started', type:'module', children:[] };
@@ -385,13 +388,17 @@
             idMod[it.id] = mod.id; flatItems.push(node); itemsById[it.id] = node;
             return node;
           });
+          // idMod/flatItems/itemsById are populated above for ALL items (so dependency
+          // classification + modal lookups stay complete); only the shown subset is rendered.
+          const shown = filtering ? items.filter(n => window.WBS.filter.itemMatches(n, mod.id)) : items;
+          if (filtering && !shown.length) continue;
           subNode.children.push({ id:screen.id, name:screen.name, description:screen.description||'', status:screen.status||'not-started',
-            type:'screen', roles:screen.roles||[], children: items.length?items:undefined });
+            type:'screen', roles:screen.roles||[], children: shown.length?shown:undefined });
         }
-        if (!subNode.children.length) delete subNode.children;
+        if (!subNode.children.length){ if (filtering) continue; delete subNode.children; }
         modNode.children.push(subNode);
       }
-      if (!modNode.children.length) delete modNode.children;
+      if (!modNode.children.length){ if (filtering) continue; delete modNode.children; }
       root.children.push(modNode);
     }
     // classify blockers: cross-module if a resolved dep lives in another module, or any external flag exists
@@ -433,9 +440,7 @@
       blk.innerHTML = (x+f) + '<small>' + x + ' x-mod · ' + f + ' open</small>';
       blk.style.color = (x+f) ? 'var(--block)' : 'var(--ink)';
     }
-    const maxH = Math.max(1, ...Object.values(S.histogram));
-    $('hist').innerHTML = Object.entries(S.histogram)
-      .map(([p,n]) => '<div class="bar" style="height:'+Math.round(3+18*n/maxH)+'px" title="'+p+' pt × '+n+'"><span>'+p+'</span></div>').join('');
+    if (window.WBS.filter) window.WBS.filter.mount(data);   // builds the dropdown bar + filtered counts
   }
 
   const collapsed = new Set(), expanded = new Set();
@@ -589,7 +594,8 @@
 
   window.WBS = window.WBS || {};
   Object.assign(window.WBS, {
-    renderWBS(data, stats){ _data = data; renderHeader(data, stats); render(wbsToHierarchy(data)); renderDrawer(); syncModalFromHash(); },
+    renderWBS(data, stats){ _data = data; renderHeader(data, stats); render(wbsToHierarchy(data)); renderDrawer(); syncModalFromHash();
+      if (window.WBS.filter) window.WBS.filter.onChange(() => render(wbsToHierarchy(_data))); },
     // Build itemsById (and stash _data) WITHOUT rendering the map — lets the table
     // and backlog pages open the same detail modal via #item=<id> deeplinks.
     indexItems(data){ _data = data; wbsToHierarchy(data); syncModalFromHash(); },

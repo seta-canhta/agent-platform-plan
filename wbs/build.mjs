@@ -24,9 +24,7 @@ if (errors.length) { console.error('\nBuild aborted — fix schema errors above.
 
 // Inline every client script (in load order) into one <script> for the snapshot.
 const renderJs = CLIENT_SCRIPTS.map((s) => readFileSync(join(here, 'lib', s.slice(1)), 'utf8')).join('\n;\n');
-const snapshotLabel = `
-const live = document.getElementById('live');
-live.textContent = 'snapshot'; live.className = ''; live.style.color = 'var(--ink-faint)';`;
+const snapshotLabel = '';   // (the live/offline indicator was removed from the header)
 // Inline the captured-screenshot index if present (graceful if capture hasn't run).
 let screens = null;
 try { screens = JSON.parse(readFileSync(join(here, 'screens', 'index.json'), 'utf8')); } catch { /* no shots yet */ }

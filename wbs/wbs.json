@@ -311,6 +311,7 @@
                   "story": "As an Admin/BOD or PMO, I want attrition trend, leavers-by-tenure and turnover by team/account so that I can target retention where it matters.",
                   "acceptance_criteria": [
                     "Given the dashboard loads, when the attrition section renders, then a voluntary-vs-involuntary attrition trend, a leavers-by-tenure breakdown and turnover-by-team/account (vs company average) are shown.",
+                    "Given the dashboard loads, when the attrition section renders, then a forward-looking attrition/turnover projection for the coming periods is shown alongside the historical trend, so leaders see expected (not just past) churn.",
                     "Given a team's turnover exceeds the company average by the alert threshold, when the section renders, then it is visually flagged with a retention insight.",
                     "Given no attrition in the period, when the section renders, then an empty state is shown."
                   ],
@@ -374,8 +375,8 @@
                   "title": "Browse the skill inventory by category",
                   "story": "As an Admin/BOD or PMO, I want a searchable, category-filterable skill inventory with capacity-by-category and supply-vs-demand status so that I can see who holds which skills against open demand.",
                   "acceptance_criteria": [
-                    "Given the dashboard loads, when the skill-inventory section renders, then a table lists skills with holders by level, open demand and a supply-vs-demand status, plus capacity-by-category bars.",
-                    "Given I filter by category or type a search term, when applied, then the table updates to matching skills only.",
+                    "Given the dashboard loads, when the skill-inventory section renders, then a table lists skills with holders broken down by seniority band (Fresher / Junior / Middle / Senior), open demand and a supply-vs-demand status, plus capacity-by-category bars.",
+                    "Given I filter by category or type a search term, when applied, then the table updates to matching skills only, paged when the result set is long.",
                     "Given no skill matches the filter/search, when applied, then an empty state is shown."
                   ],
                   "story_points": 5,
@@ -492,15 +493,15 @@
                     "screen": "people/dashboard",
                     "persona": "am"
                   },
-                  "notes": "In production the grant routes to Admin/PMO for approval and is logged; the prototype applies it immediately.",
+                  "notes": "The grant is suite-wide (F-SEC-4): once approved it widens the AM's visibility to that account across People, Hiring and Project Management, and may be time-boxed. It is granted/revoked only by a PMO or Strategic user (never self-granted), and both granting and revoking are audited. In production the request routes to PMO/Strategic for approval; the prototype applies it immediately.",
                   "dependencies": [
                     "EN-M1.1-01"
                   ],
                   "external_deps": [
                     {
-                      "needs": "account-access approval workflow and audit log",
+                      "needs": "suite-wide account-access grant workflow (PMO/Strategic approve & revoke, optional time-box) and audit log",
                       "likely_module": "M0",
-                      "reason": "grant approval and audit are owned by Admin/access-control, which is out of scope for this WBS."
+                      "reason": "the cross-account grant is suite-wide (F-SEC-4) and owned by Admin/access-control — it widens visibility across People, Hiring and PM at once — which is out of scope for this WBS."
                     }
                   ],
                   "status": "not-started"
@@ -680,6 +681,28 @@
                   "status": "not-started"
                 },
                 {
+                  "id": "EN-M1.2-03",
+                  "type": "enabler",
+                  "title": "Effective-dated employee history model (pay, capacity, assignment)",
+                  "story": "Provide an effective-dated history model so that every change to a person's pay, capacity (full-time/part-time) and assignment (position, org unit, grade, reporting line) is stored as an append-only dated record with a reason and an effective date, never a silent overwrite.",
+                  "acceptance_criteria": [
+                    "Given any pay, capacity or assignment change, when it is saved, then a new dated record is appended with its reason and effective date, and the prior record is preserved (no overwrite).",
+                    "Given a person's record, when queried as of any past date, then the pay, capacity, grade and position in effect on that date are returned.",
+                    "Given a change is future-dated, when saved, then it shows as a scheduled future state and takes effect on its effective date, applied exactly once."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "HR",
+                    "BOD",
+                    "PMO"
+                  ],
+                  "notes": "Backbone for F-WORK-4 (pay), F-WORK-8 (capacity) and F-WORK-11 (effective-dated assignment). Distinct from the field-level audit log (US-M1.2.S2-05): the audit log records who-changed-what; this records the value in effect over time. The Movement workflow (M1.9, to be added) applies an approved move by writing to this model.",
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
                   "id": "US-M1.2.S1-01",
                   "type": "story",
                   "title": "Browse the full employee roster",
@@ -699,7 +722,8 @@
                   "dependencies": [
                     "EN-M1.2-01"
                   ],
-                  "status": "not-started"
+                  "status": "not-started",
+                  "assignee": "Hieu Nguyen"
                 },
                 {
                   "id": "US-M1.2.S1-02",
@@ -933,6 +957,52 @@
                     "EN-M1.2-01"
                   ],
                   "status": "not-started"
+                },
+                {
+                  "id": "US-M1.2.S2-06",
+                  "type": "story",
+                  "title": "Manage an employee's skills from the catalog",
+                  "story": "As HR/Admin (and the person for their own profile), I want to add and update an employee's skills from the predefined catalog so that the skills picture stays accurate and trustworthy.",
+                  "acceptance_criteria": [
+                    "Given I edit the Skills tab, when I add a skill, then I can only pick from the predefined skills catalog (skills are never free-typed) and set a proficiency level from 0 to 5 with optional years of experience.",
+                    "Given a skill is backed by a certification with an expiry, when that certification lapses, then the skill is flagged so the skills picture stays trustworthy.",
+                    "Given the person's position carries a required-skills baseline (role × level), when the Skills tab renders, then their skills are measured against that baseline and any gap is shown.",
+                    "Given a skill not in the catalog is requested, when adding, then it cannot be added."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "HR",
+                    "BOD",
+                    "Member"
+                  ],
+                  "notes": "F-WORK-6. Whether a level is self-declared or manager-confirmed is OQ-8. The required-skills baseline is defined on the position (US-M1.3.S4-03); certifications live in the document vault (US-M1.2.S2-07). Proficiency 0-5 is the canonical scale; the view tab's Beginner→Expert labels map onto it.",
+                  "dependencies": [
+                    "EN-M1.2-01",
+                    "US-M1.3.S4-03"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.2.S2-07",
+                  "type": "story",
+                  "title": "Manage required documents and expiry",
+                  "story": "As HR/Admin (and the person for their own documents), I want to upload, replace and track required documents so that every employee's document set stays complete and current.",
+                  "acceptance_criteria": [
+                    "Given I open the Documents tab, when I upload or replace a document, then the latest version is kept with its previous versions retained in history (nothing is hard-deleted before the retention policy).",
+                    "Given the system knows which document types are required (overall and by employment type), when an employee is missing a required document, then they are flagged as missing.",
+                    "Given a document (or a skill's backing certification) is nearing its expiry, when the warning window is reached, then a reminder is raised to HR and the document's owner."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "HR",
+                    "BOD",
+                    "Member"
+                  ],
+                  "notes": "F-DOC-1 (vault, versioned) and F-DOC-2 (required types, missing flag, expiry reminders). Extends the view-only US-M1.2.S2-03; certification expiry ties to skills (US-M1.2.S2-06).",
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
+                  "status": "not-started"
                 }
               ]
             },
@@ -1004,6 +1074,29 @@
                     "EN-M1.2-02"
                   ],
                   "status": "not-started"
+                },
+                {
+                  "id": "US-M1.2.S3-03",
+                  "type": "story",
+                  "title": "Record a pay or capacity change as dated history",
+                  "story": "As HR/Strategic, I want to change an employee's pay or capacity (full-time/part-time) so that the change is stored as a new dated record rather than overwriting the previous value.",
+                  "acceptance_criteria": [
+                    "Given I am a Strategic user, when I change pay or capacity and save, then a new dated record is added with its effective date and the prior value is preserved; a past period still reads at the value in effect then.",
+                    "Given I set a future effective date, when saved, then the change is scheduled and takes effect on that date.",
+                    "Given I am not a Strategic user, when I open the form, then pay and capacity are not editable."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "HR",
+                    "BOD",
+                    "PMO"
+                  ],
+                  "notes": "F-WORK-4 (pay) and F-WORK-8 (capacity); a straight pay/capacity edit. Promotions and transfers run through the Movement workflow (M1.9). Writes to the dated-history model EN-M1.2-03.",
+                  "dependencies": [
+                    "EN-M1.2-01",
+                    "EN-M1.2-03"
+                  ],
+                  "status": "not-started"
                 }
               ]
             },
@@ -1039,6 +1132,7 @@
                   "story": "As HR, I want to create a new member account with their essentials and engagement so that they can be invited and start onboarding.",
                   "acceptance_criteria": [
                     "Given I open the onboarding form, when I enter at least a full name and save, then a new employee is created with status 'onboarding', a generated id and an invite is sent.",
+                    "Given I do not supply a work email, when I save, then a work email is generated for the new member, and any work email must be unique across the organization.",
                     "Given I omit the full name, when I save, then I am warned it is required and nothing is created.",
                     "Given I set account, project and direct manager (admin-only fields), when I save, then they are stored on the new record and MS365/Teams provisioning is requested.",
                     "Given the new account is created, when saved, then the action is written to the audit log."
@@ -1071,6 +1165,60 @@
                   ],
                   "dependencies": [
                     "US-M1.2.S4-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.2.S4-03",
+                  "type": "story",
+                  "title": "Create an employee from a hired candidate",
+                  "story": "As HR, I want a hired candidate to become an employee record without re-typing what Hiring already captured so that the hire-to-employee handoff is clean.",
+                  "acceptance_criteria": [
+                    "Given Hiring marks a candidate as hired, when the handoff runs, then a new employee record is created from the candidate's captured details (name, contact, role) and linked to the open position the hire was made against, starting at Preboarding/Onboarding.",
+                    "Given the new record is created, when HR opens it, then HR can review and complete it before the person starts.",
+                    "Given a candidate was not actually hired, when Hiring closes them, then no employee record is created."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "HR"
+                  ],
+                  "notes": "F-WORK-9. The same human is one identity seen three ways (candidate/employee/resource) — linked by id, never copied.",
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
+                  "external_deps": [
+                    {
+                      "needs": "a hired-candidate handoff (the candidate's captured details and the open position the hire was made against)",
+                      "likely_module": "M2",
+                      "reason": "the candidate, interview and hire decision are owned by Hiring (M2); People receives the hired candidate and turns them into an employee."
+                    }
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.2.S4-04",
+                  "type": "story",
+                  "title": "Re-hire a former employee as a new employment period",
+                  "story": "As HR, I want to re-hire an alumnus as a new employment period on their existing person so that their prior history is preserved and no duplicate record is created.",
+                  "acceptance_criteria": [
+                    "Given a returning person is matched to an existing record (by identity, work email, or name + date of birth), when confirmed at hire, then a new employment period is added to the same person and prior history is kept intact.",
+                    "Given the re-hire is applied, when the record is created, then the original hire date is preserved and a new start date is set.",
+                    "Given a returning candidate is genuinely a new person, when no match is confirmed, then a new record is created instead."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "HR"
+                  ],
+                  "notes": "F-WORK-10. Whether prior service bridges toward seniority/tenure is a policy choice (OQ-12); the original hire date is always preserved, the seniority date defaults to the new start unless bridged.",
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
+                  "external_deps": [
+                    {
+                      "needs": "a returning candidate routed through Hiring with the match to an existing person confirmed at hire",
+                      "likely_module": "M2",
+                      "reason": "a re-hire comes back through Hiring's selection as a candidate; People resolves it to the same existing person."
+                    }
                   ],
                   "status": "not-started"
                 }
@@ -1163,7 +1311,7 @@
                   "story": "As an Admin/BOD or PMO, I want to see the whole-company structure in one chart so that I understand how governance, operations and delivery are organized.",
                   "acceptance_criteria": [
                     "Given I open the Org Chart at Company level, when it renders, then the Board/CEO sits at the top with Operation (internal functions) and Delivery (Account Managers and their accounts) below, and PMO shown as a governance branch off the spine.",
-                    "Given the hierarchy derives from employee records, when a person's department or reporting line changes, then the chart reflects it without manual editing.",
+                    "Given the hierarchy and reporting line derive from positions (not a hand-typed manager field), when a person's seat, department or reporting line changes, then the chart reflects it without manual editing.",
                     "Given a branch has no people, when the chart renders, then that node is still shown with an empty/zero indicator rather than breaking the layout."
                   ],
                   "story_points": 5,
@@ -1172,7 +1320,8 @@
                     "PMO"
                   ],
                   "dependencies": [
-                    "EN-M1.2-01"
+                    "EN-M1.2-01",
+                    "EN-M1.3-01"
                   ],
                   "status": "not-started"
                 },
@@ -1360,6 +1509,123 @@
                   ],
                   "dependencies": [
                     "US-M1.2.S2-01"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M1.3.S4",
+              "name": "Org Structure & Positions",
+              "description": "Manage the structure behind the chart: build nested org units, define positions (a seat = role + grade, open or filled, one holder), assign/vacate seats, and set each position's required-skills baseline. Beyond the current mockup (the mockup ships the chart view only).",
+              "roles": [
+                "BOD",
+                "PMO",
+                "HR"
+              ],
+              "sub_screens": [
+                {
+                  "id": "M1.3.S4.1",
+                  "name": "Org unit tree editor",
+                  "description": "Create and nest org units (teams/departments) into the company hierarchy."
+                },
+                {
+                  "id": "M1.3.S4.2",
+                  "name": "Position editor",
+                  "description": "Define a position (role + grade) in a unit; open or filled; held by at most one person."
+                },
+                {
+                  "id": "M1.3.S4.3",
+                  "name": "Required-skills baseline",
+                  "description": "Set the role × level skills a position requires, to measure a holder against the seat."
+                }
+              ],
+              "items": [
+                {
+                  "id": "EN-M1.3-01",
+                  "type": "enabler",
+                  "title": "Org-unit & position model (seats: role + grade, open/filled, one holder)",
+                  "story": "Provide the org-unit and position model so that the organization is built as nested units containing positions — each a seat bound to a role and grade, open or filled, held by at most one person — and the reporting line is derived from positions, not a hand-typed manager field.",
+                  "acceptance_criteria": [
+                    "Given the org model, when a position is defined, then it is bound to a role and grade inside an org unit and is either open or filled.",
+                    "Given a position, when a holder is assigned, then it can hold at most one person at a time; a second holder cannot be assigned while it is filled.",
+                    "Given positions and their org units, when the reporting line is computed, then it is derived from positions (not a typed manager field), so moving a person re-binds a seat rather than rewriting their identity."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "notes": "F-ORG-1 + F-ORG-3 (reporting derivation). An open or vacated budgeted position is the unit of demand that feeds Project Management's backfill pipeline (one demand pipeline, F-HEAD-1) — to be wired when Headcount planning is added. Underpins the org chart (M1.3.S1-S3) and Headcount planning.",
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.3.S4-01",
+                  "type": "story",
+                  "title": "Build and edit org units and positions",
+                  "story": "As a Strategic user, I want to build the organization as nested units and define positions within them so that the structure and its seats are the source of truth the chart and headcount read.",
+                  "acceptance_criteria": [
+                    "Given I am a Strategic user, when I create or edit org units, then I can nest them into the company hierarchy (teams within departments).",
+                    "Given an org unit, when I define a position in it, then I set its role and grade and it starts open.",
+                    "Given I am not a Strategic user, when I open org-structure management, then I can view but not create or edit units or positions."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "notes": "F-ORG-1.",
+                  "dependencies": [
+                    "EN-M1.3-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.3.S4-02",
+                  "type": "story",
+                  "title": "Assign or vacate a position",
+                  "story": "As a Strategic user, I want to place a person into a position or vacate it so that seats stay accurate as people are hired, moved or leave.",
+                  "acceptance_criteria": [
+                    "Given an open position, when I assign a person to it, then it is marked filled and the person's reporting line follows from the seat.",
+                    "Given a filled position, when I vacate it (on a move or exit), then it is marked open again and available to fill.",
+                    "Given a filled position, when I try to assign a second person, then it is refused — a position holds at most one person."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "notes": "F-ORG-2. Vacating a budgeted seat reopens it as demand for the PM backfill pipeline.",
+                  "dependencies": [
+                    "EN-M1.3-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.3.S4-03",
+                  "type": "story",
+                  "title": "Set a position's required-skills baseline",
+                  "story": "As a Strategic user, I want to set a position's required skills (role × level) so that a holder's skills can be measured against what the seat needs.",
+                  "acceptance_criteria": [
+                    "Given a position, when I set its required-skills baseline, then I pick skills from the predefined catalog each with a required level.",
+                    "Given a position has a baseline and a holder, when their profile is viewed, then their skills are measured against the baseline and any gap is shown (feeding the skills picture and the requisition a gap raises).",
+                    "Given a position has no baseline, when a holder's skills are viewed, then no gap is computed and an empty baseline state is shown."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "notes": "F-WORK-6 (position required-skills baseline). Consumed by US-M1.2.S2-06 (measure a person's skills vs the seat) and feeds F-ANALYTICS-2 and the requisition skills a gap raises.",
+                  "dependencies": [
+                    "EN-M1.3-01"
                   ],
                   "status": "not-started"
                 }

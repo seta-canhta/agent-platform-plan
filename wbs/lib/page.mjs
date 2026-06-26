@@ -65,6 +65,32 @@ export const STYLE = String.raw`
   .hist .bar { width: 13px; background: linear-gradient(180deg, var(--accent), rgba(37,99,235,0.35)); border-radius: 2px 2px 0 0; position: relative; min-height: 2px; }
   .hist .bar span { position: absolute; bottom: -12px; left: 0; right: 0; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--ink-faint); }
 
+  /* ── global filter dropdowns (multi-select) ─────────────── */
+  .flt-bar { display: flex; gap: 7px; align-items: center; }
+  .flt { position: relative; }
+  .flt-btn {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.3px; white-space: nowrap;
+    color: var(--ink-dim); background: var(--card); border: 1px solid var(--line);
+    border-radius: 7px; padding: 5px 9px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .flt-btn:hover { border-color: var(--line-bright); color: var(--ink); }
+  .flt-btn i { font-style: normal; font-size: 8px; opacity: 0.6; }
+  .flt.on .flt-btn { color: var(--accent); border-color: var(--line-bright); background: rgba(37,99,235,0.06); }
+  .flt-pop {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 120;
+    min-width: 165px; max-height: 300px; overflow-y: auto;
+    background: var(--card); border: 1px solid var(--line); border-radius: 9px;
+    box-shadow: 0 16px 40px rgba(28,46,82,0.20); padding: 7px;
+    display: none; flex-direction: column; gap: 1px;
+  }
+  .flt.open .flt-pop { display: flex; }
+  .flt-opt { display: flex; align-items: center; gap: 8px; padding: 5px 7px; border-radius: 5px; cursor: pointer; font-family: 'Archivo', sans-serif; font-size: 12px; color: var(--ink); }
+  .flt-opt:hover { background: var(--paper-2); }
+  .flt-opt input { accent-color: var(--accent); cursor: pointer; margin: 0; }
+  .flt-empty { padding: 6px 7px; font-size: 11px; color: var(--ink-faint); }
+  .flt-clear { margin-top: 5px; font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink-dim); background: var(--paper-2); border: 1px solid var(--line); border-radius: 5px; padding: 5px; cursor: pointer; }
+  .flt-clear:hover { color: var(--block); border-color: rgba(220,38,38,0.3); }
+
   #live { margin-left: auto; display: flex; align-items: center; gap: 7px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; padding: 5px 11px; border-radius: 20px; border: 1px solid var(--line); background: var(--card); }
   #live::before { content: ''; width: 7px; height: 7px; border-radius: 50%; }
   #live.on  { color: var(--done); border-color: rgba(22,163,74,0.35); }
@@ -73,7 +99,8 @@ export const STYLE = String.raw`
   #live.off::before { background: var(--block); }
   @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(22,163,74,0.45); } 70% { box-shadow: 0 0 0 7px rgba(22,163,74,0); } 100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); } }
 
-  .legend { display: flex; gap: 13px; font-size: 10.5px; color: var(--ink-dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.3px; }
+  .rule.push { margin-left: auto; }
+  .legend { display: flex; gap: 9px; font-size: 10.5px; color: var(--ink-dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.3px; }
   .legend-item { display: flex; align-items: center; gap: 6px; }
   .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
   #hint { font-size: 10px; color: var(--ink-faint); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.3px; }
@@ -406,14 +433,9 @@ export function body(view, nav) {
   <div class="readout"><span class="k">Items</span><span class="val" id="s-items"></span></div>
   <div class="readout"><span class="k">Points</span><span class="val" id="s-points"></span></div>
   <div class="readout"><span class="k">Blockers</span><span class="val" id="s-blockers"></span></div>
-  <div class="readout"><span class="k">Distribution</span><div class="hist" id="hist"></div></div>
-  <span id="live" class="off">offline</span>
-  <div class="rule"></div>
-  <div class="legend">
-    <span class="legend-item"><span class="legend-dot" style="background:var(--done)"></span>done</span>
-    <span class="legend-item"><span class="legend-dot" style="background:var(--prog)"></span>active</span>
-    <span class="legend-item"><span class="legend-dot" style="background:var(--block)"></span>blocked</span>
-    <span class="legend-item"><span class="legend-dot" style="background:var(--idle)"></span>queued</span>
+  <div class="readout"><span class="k">Filter</span><div class="flt-bar" id="filters"></div></div>
+  <div class="rule push"></div>
+  <div class="legend" id="legend">
     <span class="legend-item"><span class="legend-dot" style="background:var(--enabler)"></span>enabler</span>
   </div>${exportBtn}
 </div>
@@ -435,7 +457,7 @@ export function body(view, nav) {
 
 // Browser scripts, in load order. rows.js must precede table.js/export.js
 // (they call WBS.toRows); all four merge into window.WBS so order is otherwise free.
-export const CLIENT_SCRIPTS = ['/rows.js', '/render.js', '/table.js', '/export.js', '/quickedit.js', '/backlog.js', '/app.js'];
+export const CLIENT_SCRIPTS = ['/rows.js', '/filter.js', '/render.js', '/table.js', '/export.js', '/quickedit.js', '/backlog.js', '/app.js'];
 
 export function assemble(bootScript, { renderInline = null, view = 'map', nav = { mapHref: '#', tableHref: '#', backlogHref: '#' } } = {}) {
   const renderTag = renderInline

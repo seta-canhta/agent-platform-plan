@@ -95,9 +95,12 @@
     }
 
     function visibleRows() {
+      let rs = rows;
+      if (window.WBS.filter && window.WBS.filter.active())
+        rs = rs.filter((r) => window.WBS.filter.itemMatches(r, r._moduleId));
       const q = state.q.trim().toLowerCase();
-      if (!q) return rows;
-      return rows.filter((r) =>
+      if (!q) return rs;
+      return rs.filter((r) =>
         (r.id + ' ' + r.title + ' ' + r.story + ' ' + r.roles + ' ' + r.screen + ' ' + (r.sprint || ''))
           .toLowerCase().includes(q));
     }
@@ -123,6 +126,7 @@
       draw();
     });
 
+    if (window.WBS.filter) window.WBS.filter.onChange(draw);   // global filter → redraw backlog
     draw();
   }
 
