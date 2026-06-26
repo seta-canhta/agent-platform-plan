@@ -7,20 +7,23 @@
     "story_format": "As a [role], I want to [action] so that [benefit]",
     "point_scale": [1, 2, 3, 5, 8, 13],
     "notes": [
-      "WBS in progress. Broken down so far: People M1.1 Dashboard, M1.2 Employees, M1.3 Org Chart, M1.4 Resource Allocation; and Project Monitoring M3.1 Portfolio, M3.3 Weekly Reports and M3.4 RA Monitoring — decomposed from the mockup (Seta People.dc.html).",
-      "M3 Project Monitoring: M3.1 Portfolio, M3.3 Weekly Reports (list + report drawer + submit form) and M3.4 RA Monitoring decomposed. M3.2 Requests, M3.5 Risks & Issues, M3.6 KPI Metrics and M3.7 Retro remain stubs pending their own breakdown.",
+      "WBS in progress. Broken down so far: People M1.1 Dashboard, M1.2 Employees, M1.3 Org Chart, M1.4 Resource Allocation; and Project Monitoring M3.1 Portfolio, M3.2 Project Requests, M3.3 Weekly Reports and M3.4 RA Monitoring — decomposed from the mockup (Seta People.dc.html).",
+      "M3 Project Monitoring: M3.1 Portfolio, M3.2 Project Requests (pipeline + charter/approval + staffing/R&R + new-request form), M3.3 Weekly Reports, M3.4 RA Monitoring and M3.8 Project Closure (user-defined) decomposed. M3.5 Risks & Issues, M3.6 KPI Metrics and M3.7 Retro remain stubs pending their own breakdown.",
       "Reconcile done with M3.4 and M3.3: EN-M3.4-01 is the single allocation source (resolves EN-M1.4-01 and the Portfolio billable-rate/Member-scope deps); EN-M3.3-01 + US-M3.3.S2-01 own the weekly-report data and drawer (resolve all six Portfolio per-week/reported/stale-green/drill deps). Portfolio now has zero unresolved external_deps. New cross-boundary flags from M3.3: backfill → M2 Hiring (US-M3.3.S2-03), Recovery action → M3.5 Risks & Issues (US-M3.3.S3-02).",
       "Full M3 lifecycle inventoried (request → approve → create → staff/R&R → weekly report → RA monitoring → risks/recovery → KPI/CAPA → retro). FLAG: M3.7 Retro (pmRetro) is built but unwired — not a module tab and its only entry trigger (data-gotoretro) is never rendered, so it is currently unreachable in the UI (an orphaned view, like the dashAM dead-code case). Confirm scope before breaking it down.",
       "Reconcile: dashboard skill/tech deps resolve to EN-M1.2-01; dashboard utilization/bench and org-chart project members resolve to EN-M1.4-01 (the allocation model). The one remaining cross-module link is EN-M1.4-01 → M3 (allocations are staffed/edited in the PM module; People reads them) — the canonical 'People utilization fed by PM workload' dependency. Other external_deps await M1.5 Performance, the M1.6/M1.8 lifecycle stubs, M2 Hiring and M0 Admin.",
       "Structure change: the former Journey/Lifecycle module is dissolved — Onboarding/Probation/Offboarding moved into People as M1.6/M1.7/M1.8; the Directory is now a child of Admin (M0.1, deferred); the Journey dashboard is dropped entirely.",
       "Remaining People sub-modules (Performance, Onboarding, Probation, Offboarding) are stubs pending their own breakdown.",
-      "external_deps left in the file are the documented cross-boundary dependency map; reconcile resolves each to a concrete item id once the owning sub-module/module is decomposed."
+      "Account/client master data has no owner in this WBS: the ACCOUNTS list (id, name, industry, owning AM, projects) is referenced across People and PM but has no management screen in the mockup. Captured as out-of-scope M0.2 (Admin/org-config), with the two data backbones that key off it — EN-M1.2-01 (employee record) and EN-M3.1-01 (project/portfolio) — flagged to M0. (Projects, by contrast, are in-scope: seeded + created via M3.2.)",
+      "Project lifecycle end-state is absent from the mockup (no close/complete/archive screen; phase is seed/display-only). Approve/reject is covered in M3.2. Per user direction, project STATUS (active/on-hold/closed) and the SHUTDOWN cascade (closing a project releases its RA → staff to bench) are now decomposed as user-defined sub-module M3.8 Project Closure, with status added to the project record (EN-M3.1-01). M3.8 is flagged as beyond the current mockup (no closure screen exists yet; candidate host = Portfolio/project detail).",
+      "external_deps left in the file are the documented cross-boundary dependency map; reconcile resolves each to a concrete item id once the owning sub-module/module is decomposed (those pointing at M0 Admin are permanent out-of-scope flags)."
     ]
   },
   "out_of_scope": [
     { "id": "M0", "name": "Admin", "reason": "System administration / access-control console — out of scope for this WBS.",
       "children": [
-        { "id": "M0.1", "name": "Directory", "reason": "Org-wide people directory — an Admin-owned screen (the former Journey 'Directory' tab). Deferred." }
+        { "id": "M0.1", "name": "Directory", "reason": "Org-wide people directory — an Admin-owned screen (the former Journey 'Directory' tab). Deferred." },
+        { "id": "M0.2", "name": "Accounts / Clients", "reason": "Account/client master data (id, name, industry, owning AM, projects) referenced across People and PM — employees' account, the account org chart, portfolio account rollups, allocations and requisitions all read it — but with NO create/edit-account screen anywhere in the mockup. Owned by Admin / org-configuration (or an upstream CRM); out of scope." }
       ] },
     { "id": "AI", "name": "Super Century AI", "reason": "Standalone AI assistant module — out of scope for this WBS." },
     { "id": "SHELL", "name": "App shell / platform chrome", "reason": "Cross-cutting shell — global search, notifications bell, 'Ask Seta' agent panel, theme & persona switch, sidebar/top-bar nav. Platform-level, belongs to no single People sub-module; tracked separately." }
@@ -428,6 +431,9 @@
                   "mockup_ref": "Seta People.dc.html#employees-directory",
                   "notes": "Owns the canonical employee record incl. skills/techstack the dashboard aggregates. Field-level rules per MoM 1.3/1.4; enforced at API level.",
                   "dependencies": [],
+                  "external_deps": [
+                    { "needs": "account / client master data (id, name, industry, owning AM)", "likely_module": "M0", "reason": "the account each employee belongs to is reference data with no management screen in the mockup; owned by Admin/org-configuration (out of scope)." }
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1118,17 +1124,21 @@
                   "id": "EN-M3.1-01",
                   "type": "enabler",
                   "title": "Project record & account-health rollup model",
-                  "story": "Provide the canonical project record (account, PM, phase, RAG health, QCDP pillars with auto vs reported values, team size, billable man-months, CSS, predictability, weekly-reported flag, open risk) and the account-level rollups every PM screen reads: account health (worst-of project RAG), account QCDP (worst pillar across projects), team/BMM totals and average CSS.",
+                  "story": "Provide the canonical project record (account, PM, phase, status [active/on-hold/closed], RAG health, QCDP pillars with auto vs reported values, team size, billable man-months, CSS, predictability, weekly-reported flag, open risk) and the account-level rollups every PM screen reads: account health (worst-of project RAG), account QCDP (worst pillar across projects), team/BMM totals and average CSS.",
                   "acceptance_criteria": [
                     "Given a set of projects, when an account is rolled up, then its health is the worst RAG among its projects, its QCDP is the worst value per pillar, and team, BMM and CSS are aggregated.",
                     "Given a project's QCDP has an auto-computed value and a reported override, when surfaced, then both are available and an override is distinguishable from the auto value.",
-                    "Given an account has no projects in the current scope, when rolled up, then it is omitted rather than shown with zeroes."
+                    "Given an account has no projects in the current scope, when rolled up, then it is omitted rather than shown with zeroes.",
+                    "Given a project's status, when active health, billability and report-compliance are aggregated, then only active and on-hold projects are counted and closed projects are excluded (surfaced separately as closed)."
                   ],
                   "story_points": 5,
                   "roles": ["BOD", "PMO", "AM", "EM/TL", "Member"],
                   "mockup_ref": "Seta People.dc.html#pm-portfolio",
-                  "notes": "Health rollup: Red if any project Red, else Yellow if any Yellow, else Green. QCDP pillars = Quality, Cost, Delivery, Process (each RAG); account QCDP = worst pillar across its projects. Owns the project record the People allocation/org views and the rest of M3 read.",
+                  "notes": "Health rollup: Red if any project Red, else Yellow if any Yellow, else Green. QCDP pillars = Quality, Cost, Delivery, Process (each RAG); account QCDP = worst pillar across its projects. Owns the project record the People allocation/org views and the rest of M3 read. Status lifecycle: active → on-hold → closed (default active on creation); closed projects leave the active portfolio and closure releases their allocations (M3.8).",
                   "dependencies": [],
+                  "external_deps": [
+                    { "needs": "account / client master data (and account→AM ownership)", "likely_module": "M0", "reason": "projects and the portfolio are keyed by account; the account master record has no management screen here and is owned by Admin/org-configuration (out of scope)." }
+                  ],
                   "status": "not-started"
                 },
                 {
@@ -1342,9 +1352,192 @@
         {
           "id": "M3.2",
           "name": "Project Requests",
-          "description": "Project-charter governance: PM submits a charter → PMO sign-off → BoD approval → project created in the Portfolio → staffing & access (R&R: Owner/Edit/View per person) granted. Owns the request/approval workflow and initial staffing. The R&R access grant likely crosses to Admin/access-control (M0).",
-          "status": "not-started",
-          "screens": []
+          "description": "Project-charter governance, visible to BOD/PMO and the requesting PM (EM/TL): submit a charter → PMO sign-off → BoD approval (creates the project live in Portfolio) → staffing & access (R&R: Owner/Edit/View per person). Owns the request/approval workflow and the initial staffing; the workspace-access grant crosses to Admin/access-control (M0).",
+          "status": "in-progress",
+          "screens": [
+            {
+              "id": "M3.2.S1",
+              "name": "Project Requests list",
+              "description": "The request pipeline: counts by stage (total, awaiting PMO, awaiting BoD, approved & created, rejected) and a card per request with its stage badge and stepper. Entry point for a new request.",
+              "roles": ["BOD", "PMO", "EM/TL"],
+              "mockup_ref": "Seta People.dc.html#pm-requests",
+              "sub_screens": [
+                { "id": "M3.2.S1.1", "name": "Pipeline KPIs", "description": "Total, awaiting PMO, awaiting BoD, approved & created, rejected." },
+                { "id": "M3.2.S1.2", "name": "Request cards", "description": "Per-request card: id, name, account, PM, BMM, team, stage badge and stepper; rejection reason if rejected." }
+              ],
+              "items": [
+                {
+                  "id": "EN-M3.2-01",
+                  "type": "enabler",
+                  "title": "Project request (charter) model & approval workflow",
+                  "story": "Provide the project-request record (charter: name, account, requesting PM, budget BMM, team size, methodology, pricing, timeline, objective, scope) and its approval stage machine — Submitted → PMO Review → BoD Review → Project created — with rejection (and a reason) possible at either review stage.",
+                  "acceptance_criteria": [
+                    "Given a request, when its stage is shown, then it reflects exactly one of awaiting-PMO, awaiting-BoD, Approved & created, or Rejected, with a stepper showing progress.",
+                    "Given a request is rejected, when displayed, then the stage it was rejected at and the reason are retained.",
+                    "Given a request advances or is rejected, when the change is made, then it is recorded with an audit entry."
+                  ],
+                  "story_points": 5,
+                  "roles": ["BOD", "PMO", "EM/TL"],
+                  "mockup_ref": "Seta People.dc.html#pm-requests",
+                  "notes": "Stages: Submitted → PMO sign-off → BoD approval → Project created (live in Portfolio). PM = the requesting manager (EM/TL).",
+                  "dependencies": [],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.2.S1-01",
+                  "type": "story",
+                  "title": "View the project-request pipeline",
+                  "story": "As a BOD, PMO or PM, I want to see the project-request pipeline with counts by stage so that I can track what needs review and what's been approved.",
+                  "acceptance_criteria": [
+                    "Given I open Project Requests, when the list renders, then it shows counts of total, awaiting PMO, awaiting BoD, approved & created and rejected, plus a card per request with its stage badge and stepper.",
+                    "Given a request was rejected, when its card renders, then the rejection reason is shown.",
+                    "Given there are no requests, when the list renders, then an empty state is shown."
+                  ],
+                  "story_points": 3,
+                  "roles": ["BOD", "PMO", "EM/TL"],
+                  "mockup_ref": "Seta People.dc.html#pm-requests",
+                  "dependencies": ["EN-M3.2-01"],
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M3.2.S2",
+              "name": "Request charter & approval",
+              "description": "The charter modal: full charter, stage stepper and rejection reason, with the stage-gated actions — PMO sign-off, BoD approval (creates the project), and reject with a reason.",
+              "roles": ["BOD", "PMO", "EM/TL"],
+              "mockup_ref": "Seta People.dc.html#pm-request-charter",
+              "sub_screens": [
+                { "id": "M3.2.S2.1", "name": "Charter detail", "description": "Account, PM, BMM, team, methodology, pricing, timeline, submitted, objective, scope, stepper." },
+                { "id": "M3.2.S2.2", "name": "Approval actions", "description": "Stage-gated PMO sign-off, BoD approve & create, and reject." }
+              ],
+              "items": [
+                {
+                  "id": "US-M3.2.S2-01",
+                  "type": "story",
+                  "title": "Open a request's charter",
+                  "story": "As a BOD, PMO or PM, I want to open a request's charter so that I can review its objective, scope and commercials before deciding.",
+                  "acceptance_criteria": [
+                    "Given I open a request, when the charter renders, then it shows account, requesting PM, budget (BMM), team size, methodology, pricing, timeline, submitted date, objective and scope, plus the stage stepper.",
+                    "Given the request is rejected, when opened, then the rejection stage and reason are shown.",
+                    "Given the request has been created into a project, when opened, then the linked project and its staffing are shown."
+                  ],
+                  "story_points": 3,
+                  "roles": ["BOD", "PMO", "EM/TL"],
+                  "mockup_ref": "Seta People.dc.html#pm-request-charter",
+                  "dependencies": ["EN-M3.2-01"],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.2.S2-02",
+                  "type": "story",
+                  "title": "PMO sign-off on a request",
+                  "story": "As a PMO, I want to sign off a submitted request so that only PMO-approved charters reach the Board.",
+                  "acceptance_criteria": [
+                    "Given a request is awaiting PMO review, when I approve it, then it advances to BoD review and the action is audit-logged.",
+                    "Given a request is not at PMO review, when I open it, then the PMO sign-off action is not available."
+                  ],
+                  "story_points": 3,
+                  "roles": ["PMO", "BOD"],
+                  "mockup_ref": "Seta People.dc.html#pm-request-charter",
+                  "dependencies": ["US-M3.2.S2-01"],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.2.S2-03",
+                  "type": "story",
+                  "title": "BoD approval that creates the project",
+                  "story": "As a BOD member, I want to approve a PMO-signed request so that the project is created live in the Portfolio.",
+                  "acceptance_criteria": [
+                    "Given a request is awaiting BoD review, when I approve it, then a new project is created in the Portfolio with a generated id and the request is marked Approved & created.",
+                    "Given the project is created, when I confirm, then the action is audit-logged and staffing & access can be granted next.",
+                    "Given a request is not at BoD review, when I open it, then the BoD approval action is not available."
+                  ],
+                  "story_points": 5,
+                  "roles": ["BOD"],
+                  "mockup_ref": "Seta People.dc.html#pm-request-charter",
+                  "dependencies": ["US-M3.2.S2-01", "EN-M3.1-01"],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.2.S2-04",
+                  "type": "story",
+                  "title": "Reject a request with a reason",
+                  "story": "As a PMO or BOD member, I want to reject a request with a reason so that the requester knows why it didn't proceed.",
+                  "acceptance_criteria": [
+                    "Given a request is at PMO or BoD review, when I reject it with a reason, then it is marked Rejected at that stage with the reason recorded and audit-logged.",
+                    "Given I cancel the rejection, when dismissed, then the request is unchanged."
+                  ],
+                  "story_points": 2,
+                  "roles": ["PMO", "BOD"],
+                  "mockup_ref": "Seta People.dc.html#pm-request-charter",
+                  "dependencies": ["US-M3.2.S2-01"],
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M3.2.S3",
+              "name": "Staffing & Access (R&R)",
+              "description": "After a project is created: staff people onto it with a role and allocation %, and grant each their workspace access (Owner/Edit/View).",
+              "roles": ["BOD", "PMO", "EM/TL"],
+              "mockup_ref": "Seta People.dc.html#pm-request-staffing",
+              "sub_screens": [
+                { "id": "M3.2.S3.1", "name": "Staffing list", "description": "People on the project with role, RA % and access level." },
+                { "id": "M3.2.S3.2", "name": "Add person", "description": "Add a person with role, RA % and access." }
+              ],
+              "items": [
+                {
+                  "id": "US-M3.2.S3-01",
+                  "type": "story",
+                  "title": "Staff people and grant access on a created project",
+                  "story": "As a PMO or PM, I want to staff people onto a created project and grant each their access (Owner/Edit/View) so that the team can start with the right permissions.",
+                  "acceptance_criteria": [
+                    "Given a created project, when I add a person with a role, allocation % and access level, then they appear on the project's staffing list, the project's staff count updates and the grant is audit-logged.",
+                    "Given I add someone already staffed, when I try, then they are not added twice.",
+                    "Given the project is not yet created, when I open the request, then the staffing section is unavailable."
+                  ],
+                  "story_points": 5,
+                  "roles": ["PMO", "EM/TL", "BOD"],
+                  "mockup_ref": "Seta People.dc.html#pm-request-staffing",
+                  "notes": "Initial staffing creates allocations (the RA source, EN-M3.4-01); the Owner/Edit/View workspace-access grant is an access-control concern owned by Admin (M0).",
+                  "dependencies": ["US-M3.2.S2-03", "EN-M3.4-01"],
+                  "external_deps": [
+                    { "needs": "grant/revoke workspace access (Owner/Edit/View) and audit it", "likely_module": "M0", "reason": "per-person access control is owned by Admin/access-control, which is out of scope for this WBS." }
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M3.2.S4",
+              "name": "New Project Request",
+              "description": "The charter submission form: name (required), account, PM, budget BMM, team size, methodology, pricing, timeline, objective and scope.",
+              "roles": ["BOD", "PMO", "EM/TL"],
+              "mockup_ref": "Seta People.dc.html#pm-request-new",
+              "sub_screens": [
+                { "id": "M3.2.S4.1", "name": "Charter form", "description": "Charter fields with name required; submit enters the pipeline awaiting PMO." }
+              ],
+              "items": [
+                {
+                  "id": "US-M3.2.S4-01",
+                  "type": "story",
+                  "title": "Submit a new project request",
+                  "story": "As a PM (EM/TL), PMO or BOD, I want to submit a new project-request charter so that it enters the approval pipeline.",
+                  "acceptance_criteria": [
+                    "Given I open the new-request form, when I enter at least a project name (plus account, budget, team, methodology, pricing, timeline, objective, scope), then on submit a request is created at 'awaiting PMO review' and audit-logged.",
+                    "Given I omit the project name, when I submit, then I am warned it is required and nothing is created.",
+                    "Given the request is created, when I return to the list, then it appears at the top awaiting PMO review."
+                  ],
+                  "story_points": 3,
+                  "roles": ["EM/TL", "PMO", "BOD"],
+                  "mockup_ref": "Seta People.dc.html#pm-request-new",
+                  "dependencies": ["EN-M3.2-01"],
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M3.3",
@@ -1717,6 +1910,77 @@
           "description": "Account-level retrospective (Keep / Problem / Try) seeded from the week's reports, risks and metrics; a Try item can be promoted into a tracked task in M3.5. FLAGGED: built in the mockup (pmRetro) but not wired to a module tab and its only entry button (data-gotoretro) is never rendered — an orphaned/unreachable view. In scope is a team decision before breakdown.",
           "status": "not-started",
           "screens": []
+        },
+        {
+          "id": "M3.8",
+          "name": "Project Closure",
+          "description": "USER-DEFINED (beyond the current mockup): the project status lifecycle and shutdown. Set a project active / on-hold / closed, and on closure release its resource allocations so staff return to the bench. Status is owned by the project record (EN-M3.1-01); closure cascades to the allocation source (EN-M3.4-01). No closure screen exists in the mockup yet — likely hosted on the Portfolio or a project-detail view.",
+          "status": "in-progress",
+          "screens": [
+            {
+              "id": "M3.8.S1",
+              "name": "Project status & closure",
+              "description": "Governance control to change a project's status and shut it down; on closure the project's allocations are released and it leaves the active portfolio. User-defined; not in the current mockup.",
+              "roles": ["BOD", "PMO"],
+              "mockup_ref": "(none — user-defined; not in the current mockup. Candidate host: Portfolio / project detail.)",
+              "sub_screens": [
+                { "id": "M3.8.S1.1", "name": "Status control", "description": "Set project status: active / on-hold / closed." },
+                { "id": "M3.8.S1.2", "name": "Closure confirmation", "description": "Confirm shutdown and the resulting allocation release." }
+              ],
+              "items": [
+                {
+                  "id": "US-M3.8.S1-01",
+                  "type": "story",
+                  "title": "Set a project's status (active / on-hold / closed)",
+                  "story": "As a BOD or PMO, I want to set a project's status to active, on-hold or closed so that the portfolio reflects where each project really is in its lifecycle.",
+                  "acceptance_criteria": [
+                    "Given a project, when I change its status to active, on-hold or closed, then the new status is saved and the change is audit-logged.",
+                    "Given a project is put on-hold, when the portfolio renders, then it is shown as on-hold and is not chased for a weekly report while remaining visible.",
+                    "Given a status change, when applied, then it is reversible (e.g. on-hold back to active), except that closure has already released allocations."
+                  ],
+                  "story_points": 3,
+                  "roles": ["BOD", "PMO"],
+                  "mockup_ref": "(none — user-defined; not in the current mockup.)",
+                  "notes": "Status lifecycle: active → on-hold → closed; default active on creation (M3.2). On-hold pauses reporting expectations but keeps staffing; closed triggers allocation release (US-M3.8.S1-02).",
+                  "dependencies": ["EN-M3.1-01"],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.8.S1-02",
+                  "type": "story",
+                  "title": "Release allocations when a project is closed",
+                  "story": "As a BOD or PMO, I want closing a project to release its resource allocations so that staff free up to the bench and utilization stops counting the closed work.",
+                  "acceptance_criteria": [
+                    "Given I close a project, when I confirm, then every allocation on that project is ended (planned effort set to 0 / end-dated at closure) and the people return to the bench.",
+                    "Given allocations are released, when People utilization and the portfolio billable rate next aggregate, then the closed project's effort no longer contributes.",
+                    "Given a person was staffed only on the closed project, when it closes, then they are shown as idle/bench rather than mis-counted."
+                  ],
+                  "story_points": 3,
+                  "roles": ["BOD", "PMO"],
+                  "mockup_ref": "(none — user-defined; not in the current mockup.)",
+                  "notes": "Closure cascade: ending the project's allocations is a write to the allocation source (EN-M3.4-01); the freed capacity flows to People utilization via EN-M1.4-01.",
+                  "dependencies": ["US-M3.8.S1-01", "EN-M3.4-01"],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M3.8.S1-03",
+                  "type": "story",
+                  "title": "Drop closed projects from the active portfolio",
+                  "story": "As a BOD or PMO, I want closed projects to leave the active portfolio so that health, billability and report-compliance reflect only live work.",
+                  "acceptance_criteria": [
+                    "Given a project is closed, when the portfolio aggregates active health, billable rate and report compliance, then the closed project is excluded and shown separately as closed.",
+                    "Given a closed project, when Weekly Reports renders, then it is not expected to report and is not flagged as not-reported.",
+                    "Given a closed project is reopened to active, when applied, then it re-enters the active portfolio."
+                  ],
+                  "story_points": 2,
+                  "roles": ["BOD", "PMO"],
+                  "mockup_ref": "(none — user-defined; not in the current mockup.)",
+                  "dependencies": ["EN-M3.1-01", "US-M3.8.S1-01"],
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
         }
       ]
     }
