@@ -14,6 +14,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const srcPath = process.argv[2] ?? join(here, 'wbs.json');
 const mapOut = join(here, 'index.html');
 const tableOut = join(here, 'table.html');
+const backlogOut = join(here, 'backlog.html');
 
 const data = JSON.parse(readFileSync(srcPath, 'utf8'));
 const { errors, warnings } = validate(data);
@@ -45,11 +46,13 @@ const assignees = ${JSON.stringify(assignees)};`;
 
 const mapBoot = `${dataDecl}\nWBS.setScreens(screens);\nWBS.setComments(comments);\nWBS.setAssignees(assignees);\nWBS.renderWBS(data, stats);${snapshotLabel}`;
 const tableBoot = `${dataDecl}\nWBS.renderHeader(data, stats); WBS.renderTable(data); WBS.setData(data); WBS.bindExport();${snapshotLabel}`;
+const backlogBoot = `${dataDecl}\nWBS.renderHeader(data, stats); WBS.setData(data); WBS.renderBacklog(data, { assignees, live: false });${snapshotLabel}`;
 
-const nav = { mapHref: 'index.html', tableHref: 'table.html' };
+const nav = { mapHref: 'index.html', tableHref: 'table.html', backlogHref: 'backlog.html' };
 writeFileSync(mapOut, assemble(mapBoot, { renderInline: renderJs, view: 'map', nav }));
 writeFileSync(tableOut, assemble(tableBoot, { renderInline: renderJs, view: 'table', nav }));
-console.log(`\n  ✓ wrote ${mapOut} + ${tableOut} (static snapshot, 2 pages)\n`);
+writeFileSync(backlogOut, assemble(backlogBoot, { renderInline: renderJs, view: 'backlog', nav }));
+console.log(`\n  ✓ wrote ${mapOut} + ${tableOut} + ${backlogOut} (static snapshot, 3 pages)\n`);
 
 export function report(data, s, errors, warnings) {
   console.log(`\nWBS: ${data._meta?.project ?? '(untitled)'}  v${data._meta?.version ?? '?'}`);

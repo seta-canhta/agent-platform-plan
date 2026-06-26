@@ -95,6 +95,10 @@ function applyItemPatch(b) {
     if (a && !loadAssignees().includes(a)) return { error: 'unknown assignee' };
     if (a) it.assignee = a; else delete it.assignee;   // '' clears the assignment
   }
+  if ('sprint' in patch) {
+    const s = String(patch.sprint || '').trim();
+    if (s) it.sprint = s; else delete it.sprint;        // '' moves it back to the backlog
+  }
   const { errors } = validate(data);
   if (errors.length) return { error: errors[0] };
   writeFileSync(dataPath, JSON.stringify(data, null, 2) + '\n');
@@ -143,11 +147,13 @@ es.addEventListener('data',   () => { load(); WBS.flash('updated'); });
 es.addEventListener('reload', () => location.reload());
 `;
 
-const SERVE_NAV = { mapHref: '/', tableHref: '/table' };
+const SERVE_NAV = { mapHref: '/', tableHref: '/table', backlogHref: '/backlog' };
 const MAP_BOOT = makeBoot('WBS.setScreens(payload.screens); WBS.setComments(payload.comments); WBS.setAssignees(payload.assignees); WBS.setLive(true); WBS.renderWBS(payload.data, payload.stats)');
 const TABLE_BOOT = makeBoot(
   'WBS.renderHeader(payload.data, payload.stats); WBS.setData(payload.data); WBS.renderTable(payload.data)',
   'WBS.bindExport();');
+const BACKLOG_BOOT = makeBoot(
+  'WBS.renderHeader(payload.data, payload.stats); WBS.setData(payload.data); WBS.renderBacklog(payload.data, { assignees: payload.assignees, live: true })');
 
 const clients = new Set();
 function broadcast(event) {
@@ -164,6 +170,10 @@ const server = createServer(async (req, res) => {
     const assemble = await getAssemble();
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(assemble(TABLE_BOOT, { renderInline: null, view: 'table', nav: SERVE_NAV }));
+  } else if (url === '/backlog' || url === '/backlog.html') {
+    const assemble = await getAssemble();
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(assemble(BACKLOG_BOOT, { renderInline: null, view: 'backlog', nav: SERVE_NAV }));
   } else if (CLIENT_SCRIPTS.includes(url)) {
     res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-store' });
     res.end(readFileSync(join(here, 'lib', url.slice(1)), 'utf8'));

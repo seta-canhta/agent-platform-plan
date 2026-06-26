@@ -27,33 +27,36 @@
         || (screenIndex.byScreen && screenIndex.byScreen[dd.id]) || null;
   }
 
+  // Convert any <i data-lucide="..."> placeholders the last render injected into SVG icons.
+  const icons = () => { try { if (window.lucide) window.lucide.createIcons(); } catch {} };
+
   // Builds the detail HTML for a node's data — shared by the hover tooltip and the
   // click modal. `withShot` adds the related-screen screenshot (modal only; the
   // hover tooltip stays compact/text-only).
   // The read-only meta of an item (notes / roles / dependencies / external needs) —
   // shared by the read-only detail and the in-place edit view. The screenshot is
   // rendered separately (shotHTML) so the Edit button can sit between meta and screen.
-  const assigneeLineHTML = dd => '<div class="tt-meta">👤 '+(dd.assignee ? esc(dd.assignee) : '<span style="opacity:.55">Unassigned</span>')+'</div>';
+  const assigneeLineHTML = dd => '<div class="tt-meta"><i data-lucide="user"></i> '+(dd.assignee ? esc(dd.assignee) : '<span style="opacity:.55">Unassigned</span>')+'</div>';
   function itemTailHTML(dd){
     let h='';
-    if (dd.notes) h += '<div class="tt-meta">📌 '+dd.notes+'</div>';
-    if (dd.roles && dd.roles.length) h += '<div class="tt-meta">◢ '+dd.roles.join(' · ')+'</div>';
+    if (dd.notes) h += '<div class="tt-meta"><i data-lucide="pin"></i> '+dd.notes+'</div>';
+    if (dd.roles && dd.roles.length) h += '<div class="tt-meta"><i data-lucide="users"></i> '+dd.roles.join(' · ')+'</div>';
     if (dd.deps && dd.deps.length){
       const parts = dd.deps.map(x => {
         const cross = dd.crossDeps&&dd.crossDeps.indexOf(x)>=0 ? ' ⤴' : '';
         return itemsById[x] ? '<a class="dep-link" data-dep="'+x+'">'+x+'</a>'+cross : x+cross;
       });
-      h += '<div class="tt-meta" style="color:'+(dd.crossBlocked?C.blocked:C.dim)+'">⛓ blocked by '+parts.join(', ')+(dd.crossDeps&&dd.crossDeps.length?'  · ⤴ cross-module':'')+'</div>';
+      h += '<div class="tt-meta" style="color:'+(dd.crossBlocked?C.blocked:C.dim)+'"><i data-lucide="lock"></i> blocked by '+parts.join(', ')+(dd.crossDeps&&dd.crossDeps.length?'  · ⤴ cross-module':'')+'</div>';
     }
     if (dd.blocks && dd.blocks.length){
       const parts = dd.blocks.map(x => {
         const cross = dd.crossBlocks&&dd.crossBlocks.indexOf(x)>=0 ? ' ⤴' : '';
         return (itemsById[x] ? '<a class="dep-link" data-dep="'+x+'">'+x+'</a>' : x)+cross;
       });
-      h += '<div class="tt-meta" style="color:'+C.dim+'">⛔ blocks '+parts.join(', ')+(dd.crossBlocks&&dd.crossBlocks.length?'  · ⤴ cross-module':'')+'</div>';
+      h += '<div class="tt-meta" style="color:'+C.dim+'"><i data-lucide="ban"></i> blocks '+parts.join(', ')+(dd.crossBlocks&&dd.crossBlocks.length?'  · ⤴ cross-module':'')+'</div>';
     }
     if (dd.ext && dd.ext.length)
-      h += '<div class="tt-meta" style="color:'+C.blocked+'">⚠ external need: '+dd.ext.map(e=>e.needs+(e.likely_module?' ['+e.likely_module+']':'')).join(' · ')+'</div>';
+      h += '<div class="tt-meta" style="color:'+C.blocked+'"><i data-lucide="triangle-alert"></i> external need: '+dd.ext.map(e=>e.needs+(e.likely_module?' ['+e.likely_module+']':'')).join(' · ')+'</div>';
     return h;
   }
 
@@ -66,18 +69,22 @@
       + '<img class="tt-shot" src="screens/'+shot+'" loading="lazy" alt="Related mockup screen for '+dd.id+'"></a></div>';
   }
 
-  function detailHTML(dd, withShot){
+  // `modal` true → render the editable quick-edit strip up top (status / SP /
+  // assignee / sprint) and drop the read-only assignee line (the dropdown replaces
+  // it). The hover tooltip passes modal=false, so it stays read-only and compact.
+  function detailHTML(dd, withShot, modal){
     let h='<div class="tt-id">'+dd.id+'</div><div class="tt-name">'+dd.name+'</div>';
     if (isItem({data:dd})){
       const c = dd.type==='enabler'?ENABLER:statusColor(dd.status);
       h += '<div class="tt-badge" style="color:'+c+'">'+dd.type.toUpperCase()+' · SP '+dd.sp+' · '+(dd.status||'')+'</div>';
+      if (modal) h += quickStripHTML(dd);     // editable controls, at the top
       if (dd.story) h += '<div class="tt-story">'+dd.story+'</div>';
       if (dd.ac && dd.ac.length) h += '<div class="tt-ac"><b>Acceptance</b><ul>'+dd.ac.map(a=>'<li>'+a+'</li>').join('')+'</ul></div>';
-      h += assigneeLineHTML(dd) + itemTailHTML(dd) + (withShot ? shotHTML(dd) : '');
+      h += (modal ? '' : assigneeLineHTML(dd)) + itemTailHTML(dd) + (withShot ? shotHTML(dd) : '');
     } else {
       if (dd.description) h += '<div class="tt-story">'+dd.description+'</div>';
       if (dd.total_us) h += '<div class="tt-meta">Σ '+dd.total_us+' items · '+dd.total_sp+' pts</div>';
-      if (dd.roles && dd.roles.length) h += '<div class="tt-meta">◢ '+dd.roles.join(' · ')+'</div>';
+      if (dd.roles && dd.roles.length) h += '<div class="tt-meta"><i data-lucide="users"></i> '+dd.roles.join(' · ')+'</div>';
     }
     return h;
   }
@@ -102,7 +109,7 @@
        + '<span class="cm-author">'+esc(c.author||'you')+'</span>'
        + '<span class="cm-time">'+fmtTime(c.created)+'</span></div>';
     h += '<div class="cm-text">'+esc(c.text)+'</div>';
-    if (c.agent_note) h += '<div class="cm-agent">↳ '+esc(c.agent_note)+'</div>';
+    if (c.agent_note) h += '<div class="cm-agent"><i data-lucide="corner-down-right"></i> '+esc(c.agent_note)+'</div>';
     if (liveMode){
       h += '<div class="cm-actions">';
       if (c.state!=='skip') h += '<button class="cm-act" data-act="skip" data-item="'+itemId+'" data-cid="'+c.id+'">skip</button>';
@@ -149,10 +156,16 @@
     h += '<div class="ed-field"><label>Title</label><input class="ed-title" type="text" value="'+esc(dd.name)+'"></div>';
     const asgOpts = '<option value=""'+(dd.assignee?'':' selected')+'>— Unassigned —</option>'
       + assignees.map(m => '<option value="'+esc(m)+'"'+(m===dd.assignee?' selected':'')+'>'+esc(m)+'</option>').join('');
+    const sprints = window.WBS.quickSprints ? window.WBS.quickSprints(_data) : [];
+    const curSp = dd.sprint || '';
+    const spOpts = '<option value=""'+(curSp?'':' selected')+'>— Backlog —</option>'
+      + sprints.map(s => '<option value="'+esc(s)+'"'+(s===curSp?' selected':'')+'>'+esc(s)+'</option>').join('')
+      + (curSp && sprints.indexOf(curSp)<0 ? '<option value="'+esc(curSp)+'" selected>'+esc(curSp)+'</option>' : '');
     h += '<div class="ed-grid">'
        +   '<div class="ed-field"><label>Status</label><select class="ed-status">'+sel(dd.status,['not-started','in-progress','done','blocked'])+'</select></div>'
        +   '<div class="ed-field"><label>Story points</label><select class="ed-sp">'+sel(dd.sp,[1,2,3,5,8,13])+'</select></div>'
        +   '<div class="ed-field"><label>Assignee</label><select class="ed-assignee">'+asgOpts+'</select></div>'
+       +   '<div class="ed-field"><label>Sprint</label><select class="ed-sprint">'+spOpts+'</select></div>'
        + '</div>';
     h += '<div class="ed-field"><label>Story</label><textarea class="ed-story" rows="4">'+esc(dd.story)+'</textarea></div>';
     h += '<div class="ed-field"><label>Acceptance criteria</label><div class="ed-ac">'
@@ -162,6 +175,14 @@
     h += shotHTML(dd);              // related screen below the editor
     return h;
   }
+  // Quick-edit strip (status / assignee / sprint) shown in the read-only modal
+  // view, so these three fields are editable without entering the full edit form.
+  // Reuses the shared controls (quickedit.js); disabled when not live.
+  function quickStripHTML(dd){
+    if (!window.WBS.quickControlsHTML) return '';
+    const ctx = { sprints: window.WBS.quickSprints(_data), assignees, live: liveMode };
+    return '<div class="qe-strip">' + window.WBS.quickControlsHTML(dd, ctx) + '</div>';
+  }
   function postItem(id, patch){
     return fetch('/item', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, patch }) })
       .then(r => r.json())
@@ -170,7 +191,7 @@
   }
 
   // ── right comments drawer: every comment across all items, with state filter ──
-  let drawerOpen = true;      // open by default
+  let drawerOpen = false;     // closed by default; opened via the 💬 control
   let drawerFilter = 'all';   // all | open | resolved | unresolved | skip
 
   function allComments(){
@@ -186,9 +207,9 @@
     h += '<div class="dw-top"><a class="cm-jump" data-jump="'+c.item_id+'">'+c.item_id+'</a>'
        + '<span class="cm-badge '+cls+'">'+c.state+'</span>'
        + '<span class="dw-time">'+fmtTime(c.created)+'</span></div>';
-    if (item) h += '<div class="dw-name">'+esc(item.name)+(item.assignee?' <span class="dw-asg">· 👤 '+esc(item.assignee)+'</span>':'')+'</div>';
+    if (item) h += '<div class="dw-name">'+esc(item.name)+(item.assignee?' <span class="dw-asg">· <i data-lucide="user"></i> '+esc(item.assignee)+'</span>':'')+'</div>';
     h += '<div class="cm-text">'+esc(c.text)+'</div>';
-    if (c.agent_note) h += '<div class="cm-agent">↳ '+esc(c.agent_note)+'</div>';
+    if (c.agent_note) h += '<div class="cm-agent"><i data-lucide="corner-down-right"></i> '+esc(c.agent_note)+'</div>';
     if (liveMode){
       h += '<div class="cm-actions">';
       if (c.state!=='skip') h += '<button class="cm-act" data-act="skip" data-item="'+c.item_id+'" data-cid="'+c.id+'">skip</button>';
@@ -210,9 +231,10 @@
     const body = list.length ? list.map(drawerEntryHTML).join('')
                              : '<div class="dw-empty">No '+(drawerFilter==='all'?'':drawerFilter+' ')+'comments yet.</div>';
     inner.innerHTML =
-      '<div class="dw-head"><b class="dw-h">COMMENTS</b><button class="dw-close" title="Close drawer">×</button></div>'
+      '<div class="dw-head"><b class="dw-h">COMMENTS</b><button class="dw-close" title="Close drawer" aria-label="Close drawer"><i data-lucide="x"></i></button></div>'
       + '<div class="dw-filter">'+chips+'</div>'
       + '<div class="dw-list">'+body+'</div>';
+    icons();
   }
 
   // Modal: a pinned, dismissable view of a node's detail (same content as the hover tooltip).
@@ -239,13 +261,14 @@
     // sits just above the screenshot.
     const top = (liveMode && item && editing === dd.id)
       ? editDetailHTML(dd)
-      : detailHTML(dd, false)
-        + (liveMode && item ? '<button class="ed-toggle">✎ Edit fields</button>' : '')
+      : detailHTML(dd, false, true)
+        + (liveMode && item ? '<button class="ed-toggle"><i data-lucide="pencil"></i> Edit fields</button>' : '')
         + (item ? shotHTML(dd) : '');
     body.innerHTML = top + (item ? commentsHTML(dd.id) : '');
     const ta2 = body.querySelector('.cm-input');
     if (ta2){ ta2.value = draft[dd.id] || ''; if (hadFocus){ ta2.focus(); try { ta2.setSelectionRange(selS, selE); } catch {} } }
     back.classList.add('visible');
+    icons();
   }
   function hideModalUI(){
     editing = null;
@@ -316,6 +339,7 @@
           status: body.querySelector('.ed-status').value,
           story_points: Number(body.querySelector('.ed-sp').value),
           assignee: body.querySelector('.ed-assignee').value,
+          sprint: body.querySelector('.ed-sprint') ? body.querySelector('.ed-sprint').value : '',
           title: body.querySelector('.ed-title').value,
           story: body.querySelector('.ed-story').value,
           acceptance_criteria: [...body.querySelectorAll('.ed-ac-input')].map(i => i.value.trim()).filter(Boolean),
@@ -349,7 +373,7 @@
           const items = (screen.items||[]).map(it => {
             const node = {
               id:it.id, name:it.title, type:it.type, story:it.story||'', status:it.status||'not-started',
-              sp:it.story_points||0, roles:it.roles||[], ac:it.acceptance_criteria||[], assignee:it.assignee||'',
+              sp:it.story_points||0, roles:it.roles||[], ac:it.acceptance_criteria||[], assignee:it.assignee||'', sprint:it.sprint||'',
               deps:it.dependencies||[], ext:(it.external_deps||[]).map(e=> typeof e==='string'?{needs:e}:e), notes:it.notes||'',
               mockup: it.mockup_ref || screen.mockup_ref || null, _mod:mod.id
             };
@@ -466,7 +490,9 @@
           else if (d.children){ d._children=d.children; d.children=null; collapsed.add(id); expanded.delete(id); }
           update(d); })
         .on('mousemove',(ev,d)=>{
-          tooltip.innerHTML=detailHTML(d.data); tooltip.classList.add('visible');
+          // Rebuild (and re-convert icons) only when the hovered node changes — not every move.
+          if (tooltip._nid !== d.data.id){ tooltip.innerHTML=detailHTML(d.data); tooltip._nid=d.data.id; icons(); }
+          tooltip.classList.add('visible');
           tooltip.style.left=Math.min(ev.clientX+16, innerWidth-396)+'px';
           tooltip.style.top=Math.max(66, ev.clientY-10)+'px';
         })
@@ -536,6 +562,7 @@
     if (lastTransform && !firstRender) svg.call(zoom.transform, lastTransform);
     else { const t = d3.zoomIdentity.translate(RECT_W/2+40, H/2); svg.call(zoom.transform, t); lastTransform = t; }
     firstRender = false;
+    icons();   // convert the static control-stack placeholders (#map-ctl)
   }
 
   // hex (#rrggbb) → rgba string with alpha

@@ -155,6 +155,8 @@ export function validate(data) {
             warnings.push(`item ${it.id}: unknown status "${it.status}"`);
           const itRefErr = mockupRefError(it.mockup_ref);
           if (itRefErr) errors.push(`item ${it.id}: ${itRefErr}`);
+          if (it.sprint != null && typeof it.sprint !== 'string')
+            errors.push(`item ${it.id}: sprint must be a string`);
         }
       }
     }

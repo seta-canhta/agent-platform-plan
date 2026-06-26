@@ -255,6 +255,24 @@ export const STYLE = String.raw`
   .t-band .b-stat { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-dim); }
   .t-empty { text-align: center; color: var(--ink-faint); padding: 40px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
 
+  /* ── backlog view (reuses the .t-* table styles) ─────────── */
+  #backlog-container { position: fixed; inset: 60px 0 0 0; z-index: 1; display: none; flex-direction: column; background: var(--card); }
+  body.page-backlog #backlog-container { display: flex; }
+  body.page-backlog #svg-container, body.page-backlog #hint { display: none; }
+  .th-ctl span { text-align: left; }
+
+  /* ── inline quick-edit selects (backlog cells + modal strip) ── */
+  .qe { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink); background: var(--card);
+    border: 1px solid var(--line); border-radius: 7px; padding: 5px 8px; cursor: pointer; max-width: 150px; }
+  .qe:hover { border-color: var(--line-bright); }
+  .qe:focus { outline: none; border-color: var(--line-bright); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .qe:disabled { cursor: default; opacity: 0.55; }
+  .td-ctl { white-space: nowrap; }
+  .qe-strip { display: flex; gap: 14px; flex-wrap: wrap; margin: 16px 0 0; padding-top: 16px; border-top: 1px solid var(--line); }
+  .qe-field { flex: 1 1 150px; }
+  .qe-field label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 5px; }
+  .qe-field .qe { width: 100%; max-width: none; }
+
   /* ── item comments (modal) ──────────────────────────────── */
   .cm-wrap { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 18px; }
   .cm-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 13px; }
@@ -317,6 +335,12 @@ export const STYLE = String.raw`
   .ed-cancel { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.6px; text-transform: uppercase; cursor: pointer; color: var(--ink-dim); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 18px; }
   .ed-cancel:hover { color: var(--ink); border-color: var(--line-bright); }
 
+  /* ── lucide icons ───────────────────────────────────────── */
+  .lucide, svg.lucide { width: 1em; height: 1em; stroke-width: 2; display: inline-block; vertical-align: -0.125em; flex: 0 0 auto; }
+  /* inline content icons: a touch smaller, with breathing room before the text */
+  .tt-meta svg.lucide, .cm-agent svg.lucide, .dw-asg svg.lucide { stroke-width: 1.8; margin-right: 5px; vertical-align: -0.15em; opacity: 0.9; }
+  .ed-toggle svg.lucide { margin-right: 5px; }
+
   /* ── floating map controls: expand / collapse / comments (icon-only) ───── */
   #map-ctl { position: fixed; top: 72px; right: 16px; z-index: 151; display: flex; flex-direction: column; gap: 8px; transition: right .22s cubic-bezier(.2,.8,.2,1); }
   body.drawer-open #map-ctl { right: 416px; }
@@ -369,6 +393,7 @@ export function body(view, nav) {
   <nav class="nav">
     <a class="${cls('map')}" href="${nav.mapHref}">◰ Mindmap</a>
     <a class="${cls('table')}" href="${nav.tableHref}">▦ Table</a>
+    <a class="${cls('backlog')}" href="${nav.backlogHref}">▥ Backlog</a>
   </nav>
   <div class="rule"></div>
   <div class="readout"><span class="k">Items</span><span class="val" id="s-items"></span></div>
@@ -388,12 +413,13 @@ export function body(view, nav) {
 <div id="err"></div>
 <div id="svg-container"><svg id="tree-svg"></svg></div>
 <div id="table-container"></div>
+<div id="backlog-container"></div>
 <div class="tooltip" id="tooltip"></div>
 <div class="modal-back" id="modal-back"><div class="modal-panel"><button class="modal-close" id="modal-close" aria-label="Close">×</button><div id="modal-body"></div></div></div>${view === 'map' ? String.raw`
 <div id="map-ctl">
-  <button class="map-ctl-btn" id="btn-expand" title="Expand all" aria-label="Expand all">⊕</button>
-  <button class="map-ctl-btn" id="btn-collapse" title="Collapse all" aria-label="Collapse all">⊖</button>
-  <button class="map-ctl-btn" id="cm-drawer-btn" title="Show all comments" aria-label="Comments">💬</button>
+  <button class="map-ctl-btn" id="btn-expand" title="Expand all" aria-label="Expand all"><i data-lucide="chevrons-up-down"></i></button>
+  <button class="map-ctl-btn" id="btn-collapse" title="Collapse all" aria-label="Collapse all"><i data-lucide="chevrons-down-up"></i></button>
+  <button class="map-ctl-btn" id="cm-drawer-btn" title="Show all comments" aria-label="Comments"><i data-lucide="message-square"></i></button>
 </div>
 <aside id="cm-drawer"><div id="cm-drawer-inner"></div></aside>` : ''}
 <div id="hint" style="position:fixed; bottom:14px; left:22px; z-index:80;">drag · scroll-zoom · click branch to expand · click item for detail</div>
@@ -402,9 +428,9 @@ export function body(view, nav) {
 
 // Browser scripts, in load order. rows.js must precede table.js/export.js
 // (they call WBS.toRows); all four merge into window.WBS so order is otherwise free.
-export const CLIENT_SCRIPTS = ['/rows.js', '/render.js', '/table.js', '/export.js', '/app.js'];
+export const CLIENT_SCRIPTS = ['/rows.js', '/render.js', '/table.js', '/export.js', '/quickedit.js', '/backlog.js', '/app.js'];
 
-export function assemble(bootScript, { renderInline = null, view = 'map', nav = { mapHref: '#', tableHref: '#' } } = {}) {
+export function assemble(bootScript, { renderInline = null, view = 'map', nav = { mapHref: '#', tableHref: '#', backlogHref: '#' } } = {}) {
   const renderTag = renderInline
     ? `<script>${renderInline}</script>`
     : CLIENT_SCRIPTS.map((s) => `<script src="${s}"></script>`).join('\n');
@@ -419,6 +445,7 @@ export function assemble(bootScript, { renderInline = null, view = 'map', nav = 
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
 <style>${STYLE}</style>
 </head>
 <body class="page-${view}">
