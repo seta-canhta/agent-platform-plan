@@ -19,6 +19,9 @@
   // Per-column-kind cell HTML.
   function cell(r, col) {
     const v = r[col.key];
+    const link = '#item=' + encodeURIComponent(r.id);
+    if (col.key === 'id') return `<a class="item-link t-code" href="${link}" title="open detail">${esc(v)}</a>`;
+    if (col.key === 'title') return `<a class="item-link" href="${link}" title="open detail">${esc(v)}</a>`;
     if (col.key === 'type') {
       const c = r._type === 'enabler' ? ENABLER : 'var(--ink-dim)';
       return `<span class="t-tag" style="color:${c};border-color:${c}">${esc(v)}</span>`;

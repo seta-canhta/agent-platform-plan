@@ -66,6 +66,9 @@
 
     function cell(r, c) {
       if (c.kind === 'ctl') return window.WBS.quickControl(c.key, r, ctx);
+      const link = '#item=' + encodeURIComponent(r.id);
+      if (c.key === 'id') return `<a class="item-link t-code" href="${link}" title="open detail">${esc(r.id)}</a>`;
+      if (c.key === 'title') return `<a class="item-link" href="${link}" title="open detail">${esc(r.title)}</a>`;
       if (c.key === 'type') {
         const col = r._type === 'enabler' ? ENABLER : 'var(--ink-dim)';
         return `<span class="t-tag" style="color:${col};border-color:${col}">${esc(r.type)}</span>`;

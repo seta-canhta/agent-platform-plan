@@ -149,11 +149,12 @@ es.addEventListener('reload', () => location.reload());
 
 const SERVE_NAV = { mapHref: '/', tableHref: '/table', backlogHref: '/backlog' };
 const MAP_BOOT = makeBoot('WBS.setScreens(payload.screens); WBS.setComments(payload.comments); WBS.setAssignees(payload.assignees); WBS.setLive(true); WBS.renderWBS(payload.data, payload.stats)');
+const MODAL_DEPS = 'WBS.setScreens(payload.screens); WBS.setComments(payload.comments); WBS.setAssignees(payload.assignees); WBS.setLive(true); WBS.indexItems(payload.data); ';
 const TABLE_BOOT = makeBoot(
-  'WBS.renderHeader(payload.data, payload.stats); WBS.setData(payload.data); WBS.renderTable(payload.data)',
+  MODAL_DEPS + 'WBS.renderHeader(payload.data, payload.stats); WBS.setData(payload.data); WBS.renderTable(payload.data)',
   'WBS.bindExport();');
 const BACKLOG_BOOT = makeBoot(
-  'WBS.renderHeader(payload.data, payload.stats); WBS.setData(payload.data); WBS.renderBacklog(payload.data, { assignees: payload.assignees, live: true })');
+  MODAL_DEPS + 'WBS.renderHeader(payload.data, payload.stats); WBS.setData(payload.data); WBS.renderBacklog(payload.data, { assignees: payload.assignees, live: true })');
 
 const clients = new Set();
 function broadcast(event) {

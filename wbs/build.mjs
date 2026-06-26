@@ -45,8 +45,9 @@ const comments = ${JSON.stringify(comments)};
 const assignees = ${JSON.stringify(assignees)};`;
 
 const mapBoot = `${dataDecl}\nWBS.setScreens(screens);\nWBS.setComments(comments);\nWBS.setAssignees(assignees);\nWBS.renderWBS(data, stats);${snapshotLabel}`;
-const tableBoot = `${dataDecl}\nWBS.renderHeader(data, stats); WBS.renderTable(data); WBS.setData(data); WBS.bindExport();${snapshotLabel}`;
-const backlogBoot = `${dataDecl}\nWBS.renderHeader(data, stats); WBS.setData(data); WBS.renderBacklog(data, { assignees, live: false });${snapshotLabel}`;
+const modalDeps = `WBS.setScreens(screens); WBS.setComments(comments); WBS.setAssignees(assignees); WBS.indexItems(data);`;
+const tableBoot = `${dataDecl}\n${modalDeps} WBS.renderHeader(data, stats); WBS.renderTable(data); WBS.setData(data); WBS.bindExport();${snapshotLabel}`;
+const backlogBoot = `${dataDecl}\n${modalDeps} WBS.renderHeader(data, stats); WBS.setData(data); WBS.renderBacklog(data, { assignees, live: false });${snapshotLabel}`;
 
 const nav = { mapHref: 'index.html', tableHref: 'table.html', backlogHref: 'backlog.html' };
 writeFileSync(mapOut, assemble(mapBoot, { renderInline: renderJs, view: 'map', nav }));

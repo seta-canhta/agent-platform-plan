@@ -73,11 +73,16 @@
   // assignee / sprint) and drop the read-only assignee line (the dropdown replaces
   // it). The hover tooltip passes modal=false, so it stays read-only and compact.
   function detailHTML(dd, withShot, modal){
-    let h='<div class="tt-id">'+dd.id+'</div><div class="tt-name">'+dd.name+'</div>';
-    if (isItem({data:dd})){
-      const c = dd.type==='enabler'?ENABLER:statusColor(dd.status);
-      h += '<div class="tt-badge" style="color:'+c+'">'+dd.type.toUpperCase()+' · SP '+dd.sp+' · '+(dd.status||'')+'</div>';
-      if (modal) h += quickStripHTML(dd);     // editable controls, at the top
+    const item = isItem({data:dd});
+    const c = item ? (dd.type==='enabler'?ENABLER:statusColor(dd.status)) : null;
+    // In the modal the type sits inline before the title (no separate badge);
+    // SP/status live in the editable strip below. The tooltip keeps the plain
+    // title + the full TYPE · SP · status badge.
+    const typePrefix = (item && modal) ? '<span class="tt-type" style="color:'+c+';border-color:'+c+'">'+dd.type.toUpperCase()+'</span> ' : '';
+    let h='<div class="tt-id">'+dd.id+'</div><div class="tt-name">'+typePrefix+dd.name+'</div>';
+    if (item){
+      if (!modal) h += '<div class="tt-badge" style="color:'+c+'">'+dd.type.toUpperCase()+' · SP '+dd.sp+' · '+(dd.status||'')+'</div>';
+      else h += quickStripHTML(dd);     // editable controls, at the top
       if (dd.story) h += '<div class="tt-story">'+dd.story+'</div>';
       if (dd.ac && dd.ac.length) h += '<div class="tt-ac"><b>Acceptance</b><ul>'+dd.ac.map(a=>'<li>'+a+'</li>').join('')+'</ul></div>';
       h += (modal ? '' : assigneeLineHTML(dd)) + itemTailHTML(dd) + (withShot ? shotHTML(dd) : '');
@@ -582,6 +587,9 @@
   window.WBS = window.WBS || {};
   Object.assign(window.WBS, {
     renderWBS(data, stats){ _data = data; renderHeader(data, stats); render(wbsToHierarchy(data)); renderDrawer(); syncModalFromHash(); },
+    // Build itemsById (and stash _data) WITHOUT rendering the map — lets the table
+    // and backlog pages open the same detail modal via #item=<id> deeplinks.
+    indexItems(data){ _data = data; wbsToHierarchy(data); syncModalFromHash(); },
     renderHeader,
     setScreens(idx){ screenIndex = idx || null; },    // { byItem, byScreen } from screens/index.json
     setComments(map){ commentsByItem = map || {}; },  // itemId → comments[]; from comments.json

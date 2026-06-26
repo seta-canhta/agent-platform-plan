@@ -254,6 +254,13 @@ export const STYLE = String.raw`
   .t-band .b-name { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 13px; color: var(--ink); }
   .t-band .b-stat { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-dim); }
   .t-empty { text-align: center; color: var(--ink-faint); padding: 40px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  /* deep-link from a table/backlog cell → opens the detail modal (#item=<id>) */
+  a.item-link { color: var(--accent); text-decoration: none; cursor: pointer; }
+  a.item-link:hover { text-decoration: underline; }
+  a.item-link.t-code { color: var(--accent); }
+  /* inline type prefix sitting before the modal title, on the same line */
+  .tt-type { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.6px; vertical-align: middle; border: 1px solid currentColor; border-radius: 5px; padding: 2px 8px; margin-right: 9px; }
 
   /* ── backlog view (reuses the .t-* table styles) ─────────── */
   #backlog-container { position: fixed; inset: 60px 0 0 0; z-index: 1; display: none; flex-direction: column; background: var(--card); }
@@ -268,7 +275,7 @@ export const STYLE = String.raw`
   .qe:focus { outline: none; border-color: var(--line-bright); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
   .qe:disabled { cursor: default; opacity: 0.55; }
   .td-ctl { white-space: nowrap; }
-  .qe-strip { display: flex; gap: 14px; flex-wrap: wrap; margin: 16px 0 0; padding-top: 16px; border-top: 1px solid var(--line); }
+  .qe-strip { display: flex; gap: 14px; flex-wrap: wrap; margin: 14px 0 22px; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
   .qe-field { flex: 1 1 150px; }
   .qe-field label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 5px; }
   .qe-field .qe { width: 100%; max-width: none; }

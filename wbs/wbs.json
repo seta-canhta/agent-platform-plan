@@ -234,14 +234,9 @@
                     "PMO"
                   ],
                   "dependencies": [
-                    "EN-M1.1-01"
-                  ],
-                  "external_deps": [
-                    {
-                      "needs": "joiners / leavers (onboarding & offboarding events)",
-                      "likely_module": "M1.6/M1.8",
-                      "reason": "headcount movement is sourced from Onboarding (M1.6) and Offboarding (M1.8), now People sub-modules."
-                    }
+                    "EN-M1.1-01",
+                    "EN-M1.6-01",
+                    "EN-M1.8-01"
                   ],
                   "status": "not-started"
                 },
@@ -346,14 +341,8 @@
                   ],
                   "notes": "Below-bar threshold = 3.5 (out of 5).",
                   "dependencies": [
-                    "EN-M1.1-01"
-                  ],
-                  "external_deps": [
-                    {
-                      "needs": "monthly scorecard / evaluation results",
-                      "likely_module": "M1.5",
-                      "reason": "review scores are produced by the Performance sub-module; the dashboard only aggregates them."
-                    }
+                    "EN-M1.1-01",
+                    "EN-M1.5-01"
                   ],
                   "status": "not-started"
                 },
@@ -568,14 +557,8 @@
                   ],
                   "notes": "Visible to the member, their TL/PM and HR only.",
                   "dependencies": [
-                    "EN-M1.1-01"
-                  ],
-                  "external_deps": [
-                    {
-                      "needs": "the member's monthly scorecard / evaluation",
-                      "likely_module": "M1.5",
-                      "reason": "scorecards are produced by the Performance sub-module; the dashboard only displays the member's own."
-                    }
+                    "EN-M1.1-01",
+                    "EN-M1.5-01"
                   ],
                   "status": "not-started"
                 },
@@ -595,14 +578,8 @@
                   ],
                   "dependencies": [
                     "EN-M1.1-01",
-                    "US-M1.1.S2-01"
-                  ],
-                  "external_deps": [
-                    {
-                      "needs": "the member's scorecard history across periods",
-                      "likely_module": "M1.5",
-                      "reason": "historical scores are owned by the Performance sub-module."
-                    }
+                    "US-M1.1.S2-01",
+                    "EN-M1.5-01"
                   ],
                   "status": "not-started"
                 }
@@ -865,14 +842,8 @@
                   ],
                   "notes": "Date of birth is masked unless viewer is HR Admin or the record owner.",
                   "dependencies": [
-                    "EN-M1.2-01"
-                  ],
-                  "external_deps": [
-                    {
-                      "needs": "the employee's monthly scorecards",
-                      "likely_module": "M1.5",
-                      "reason": "the profile's scorecard tab surfaces evaluations owned by the Performance sub-module."
-                    }
+                    "EN-M1.2-01",
+                    "EN-M1.5-01"
                   ],
                   "status": "not-started"
                 },
@@ -1605,16 +1576,771 @@
         {
           "id": "M1.5",
           "name": "Performance",
-          "description": "Monthly scorecards/evaluations (pillars, criteria, AMMI). Owns the review scores the dashboard summarizes.",
-          "status": "not-started",
-          "screens": []
+          "description": "Monthly two-tier performance review: members self-assess, Team Leads evaluate their members, and PMO evaluate Team Leads. Each evaluation scores a person on 18 weighted criteria across pillars (AI/Technical/Communication/Ownership/Delivery/Growth) plus a 6-dimension AMMI AI-maturity sub-model, producing a weighted total that maps to a verdict band; any criterion below 4.0 feeds an action plan. Reviews run monthly with a score trend across periods.",
+          "status": "in-progress",
+          "screens": [
+            {
+              "id": "M1.5.S1",
+              "name": "Performance reviews",
+              "description": "The People > Performance tab, rendering a different view per persona: member self-service, Team Lead team view, AM read-only completion, and the default PMO/BOD/HR two-tier oversight. Includes a monthly period selector and per-period score trend.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "HR",
+                "AM",
+                "EM/TL/PM",
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "people/performance"
+              },
+              "sub_screens": [
+                {
+                  "id": "M1.5.S1.1",
+                  "name": "Member self-service (persona employee)"
+                },
+                {
+                  "id": "M1.5.S1.2",
+                  "name": "Team Lead view (persona manager)"
+                },
+                {
+                  "id": "M1.5.S1.3",
+                  "name": "AM completion view (persona am)"
+                },
+                {
+                  "id": "M1.5.S1.4",
+                  "name": "PMO oversight, two-tier (default BOD/PMO/HR)"
+                }
+              ],
+              "items": [
+                {
+                  "id": "EN-M1.5-01",
+                  "type": "enabler",
+                  "title": "Scorecard model & two-tier review lifecycle",
+                  "story": "Establish the monthly scorecard capability: the weighted criteria across the pillars (with CORE flags), the weighted total, the verdict bands, the per-period history/trend, the auto action library, and the two-tier self-assess -> manager-evaluate -> acknowledge lifecycle. This is the model the People Dashboard and Employee profile read for scorecard data.",
+                  "acceptance_criteria": [
+                    "Given a person's criterion scores, when the scorecard is computed, then a weighted total is produced and mapped to the correct verdict band (Below / Meets / Solid / Strong / Top).",
+                    "Given a set of criteria, when a junior person is being scored, then CORE criteria are identifiable as mandatory and non-CORE as optional.",
+                    "Given any criterion scored below 4.0, when the review is saved, then that criterion is surfaced for an action plan drawn from the fixed action library.",
+                    "Given multiple monthly periods exist for a person, when their history is requested, then a score trend across periods is available.",
+                    "Given a review's lifecycle, when it moves through states, then status reflects Pending -> Submitted -> Acknowledged for both review tiers."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "PMO",
+                    "EM/TL/PM",
+                    "Member",
+                    "HR",
+                    "BOD"
+                  ],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
+                  "notes": "Verdict bands: total >=4.5 Top, >=4.0 Strong, >=3.5 Solid, >=3.0 Meets, else Below. A person's scorecard is visible to the member, their TL/PM and HR only. Two tiers: PMO evaluate Team Leads; Team Leads evaluate members. This model is the source the People Dashboard and Employee profile read for scorecard data.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "EN-M1.5-02",
+                  "type": "enabler",
+                  "title": "AMMI AI-maturity sub-model",
+                  "story": "Establish the AMMI AI-maturity sub-model: the 6 weighted dimensions composited into an AMMI level (0-4) that auto-pulls into the AI pillar as a criterion score.",
+                  "acceptance_criteria": [
+                    "Given scores on the 6 AMMI dimensions, when composited, then a weighted composite and a discrete AMMI level (0-4) are produced.",
+                    "Given a computed AMMI level, when an evaluation is scored, then the corresponding AI-pillar criterion is auto-populated from that level and is not hand-editable.",
+                    "Given a dimension is left blank, when the composite is computed, then it is treated as zero contribution without breaking the level calculation."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "EM/TL/PM",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.5-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.5.S1-01",
+                  "type": "story",
+                  "title": "Member self-service review view",
+                  "story": "As a Member, I want to see my-score KPIs and my review card (overall score, per-pillar scores with self-vs-manager comparison, and strengths / improve / focus) so that I understand my monthly evaluation and what to work on.",
+                  "acceptance_criteria": [
+                    "Given my review for the selected period exists, when I open the Performance tab, then I see my overall score, verdict, and the per-pillar scores with my self-assessment value shown alongside the manager value.",
+                    "Given the review has strengths, improve, and focus-action notes, when I view it, then all three are displayed.",
+                    "Given no review exists yet for the selected period, when I open the tab, then I see an empty state explaining my lead has not submitted yet.",
+                    "Given I switch the period selector, when a different month is chosen, then the KPIs and review card update to that period."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "Member"
+                  ],
+                  "mockup_ref": {
+                    "screen": "people/performance",
+                    "persona": "employee"
+                  },
+                  "dependencies": [
+                    "EN-M1.5-01"
+                  ],
+                  "notes": "Visible to the member, their TL/PM and HR only.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.5.S1-02",
+                  "type": "story",
+                  "title": "Acknowledge my review (Member)",
+                  "story": "As a Member, I want to acknowledge my review so that my lead knows I have read and accepted the feedback.",
+                  "acceptance_criteria": [
+                    "Given my review is submitted and not yet acknowledged, when I click Acknowledge, then the review status becomes Acknowledged and the action is recorded.",
+                    "Given I have already acknowledged, when I view the review, then I see an acknowledged confirmation and no acknowledge button.",
+                    "Given no review exists yet, when I view the card, then no acknowledge action is offered."
+                  ],
+                  "story_points": 1,
+                  "roles": [
+                    "Member"
+                  ],
+                  "mockup_ref": {
+                    "screen": "people/performance",
+                    "persona": "employee"
+                  },
+                  "dependencies": [
+                    "US-M1.5.S1-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.5.S1-03",
+                  "type": "story",
+                  "title": "Self-assessment status card (Member)",
+                  "story": "As a Member, I want a self-assessment card showing whether I have self-assessed this period with a start/edit entry so that I can complete it before my lead reviews me.",
+                  "acceptance_criteria": [
+                    "Given I have not self-assessed for the selected period, when I view the card, then it shows a not-started state and a Start self-assessment action.",
+                    "Given I have submitted a self-assessment, when I view the card, then it shows my per-pillar self-ratings and notes with an Edit action.",
+                    "Given I switch period, when a different month is selected, then the card reflects that period's self-assessment state."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "Member"
+                  ],
+                  "mockup_ref": {
+                    "screen": "people/performance",
+                    "persona": "employee"
+                  },
+                  "dependencies": [
+                    "EN-M1.5-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.5.S1-04",
+                  "type": "story",
+                  "title": "Team Lead team KPIs",
+                  "story": "As an EM/TL/PM, I want team KPIs (team size, evaluated count, team average, and my own PMO review score) so that I can track my team's review progress at a glance.",
+                  "acceptance_criteria": [
+                    "Given I lead a team, when I open the Performance tab, then I see team size, how many members are evaluated this period, and the team average score.",
+                    "Given my own PMO review exists for the period, when I view the KPIs, then my review score and verdict are shown; otherwise it shows pending/awaiting.",
+                    "Given I switch period, when a different month is selected, then all team KPIs recalculate for that period."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "people/performance",
+                    "persona": "manager"
+                  },
+                  "dependencies": [
+                    "EN-M1.5-01",
+                    "EN-M1.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.5.S1-05",
+                  "type": "story",
+                  "title": "Team Lead view & acknowledge own PMO review",
+                  "story": "As an EM/TL/PM, I want to view the review PMO gave me and acknowledge it so that I close the loop on my own evaluation.",
+                  "acceptance_criteria": [
+                    "Given PMO has submitted my review, when I view my-review card, then I see its score, verdict, strengths and improve notes, and the evaluator and period.",
+                    "Given my review is not yet acknowledged, when I click Acknowledge, then its status becomes Acknowledged.",
+                    "Given PMO has not reviewed me yet, when I view the card, then it shows a pending/awaiting state."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "people/performance",
+                    "persona": "manager"
+                  },
+                  "dependencies": [
+                    "EN-M1.5-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.5.S1-06",
+                  "type": "story",
+                  "title": "Team roster with per-member review status",
+                  "story": "As an EM/TL/PM, I want a team roster table showing each member's self-assessment status, score, verdict and review status with an Evaluate/Edit action so that I can run and track each member's monthly review.",
+                  "acceptance_criteria": [
+                    "Given my direct reports, when I view the roster, then each row shows whether they self-assessed, their score, verdict, and review status.",
+                    "Given a member has no review yet, when I view their row, then the action reads Evaluate; given a review exists, then it reads Edit.",
+                    "Given I have no direct reports in scope, when I open the view, then I see an empty state.",
+                    "Given I switch period, when a different month is selected, then each member's status reflects that period."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "people/performance",
+                    "persona": "manager"
+                  },
+                  "dependencies": [
+                    "EN-M1.5-01",
+                    "EN-M1.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.5.S1-07",
+                  "type": "story",
+                  "title": "Team auto action plan",
+                  "story": "As an EM/TL/PM, I want an auto action plan listing team-average criteria below 4.0 so that I can focus coaching on the team's weakest areas.",
+                  "acceptance_criteria": [
+                    "Given my team's evaluations for the period, when any criterion's team-average is below 4.0, then it appears in the action plan with its suggested action from the action library.",
+                    "Given all team-average criteria are at or above 4.0, when I view the section, then it shows an empty/healthy state.",
+                    "Given I switch period, when a different month is selected, then the action plan recomputes for that period."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "people/performance",
+                    "persona": "manager"
+                  },
+                  "dependencies": [
+                    "EN-M1.5-01"
+                  ],
+                  "notes": "Draws on the shared action library defined in the scorecard model (EN-M1.5-01); aggregates each criterion across the team to surface those averaging below the 4.0 bar.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.5.S1-08",
+                  "type": "story",
+                  "title": "AM read-only review completion",
+                  "story": "As an AM, I want a read-only view of review completion across the people in my accounts so that I can see whether reviews are on track without editing them.",
+                  "acceptance_criteria": [
+                    "Given people in my accounts, when I open the Performance tab, then I see how many of them have a completed review and the completion percentage.",
+                    "Given a person's review, when I view their row, then I see score and status but no Evaluate/Edit action.",
+                    "Given no people are in my accounts, when I open the view, then I see an empty state."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "AM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "people/performance",
+                    "persona": "am"
+                  },
+                  "dependencies": [
+                    "EN-M1.5-01",
+                    "EN-M1.2-01"
+                  ],
+                  "notes": "Read-only: an AM cannot evaluate; account scoping limits visibility to people in the AM's accounts.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.5.S1-09",
+                  "type": "story",
+                  "title": "PMO oversight KPIs",
+                  "story": "As PMO (co-viewed by BOD and HR), I want company-wide oversight KPIs (Team Leads to review, member-review completion %, company average, and cycle) so that I can monitor the monthly review cycle company-wide.",
+                  "acceptance_criteria": [
+                    "Given the period, when I open the oversight view, then I see the count of Team Leads to review and how many are evaluated by PMO.",
+                    "Given all member reviews, when I view the KPIs, then I see member-review completion as a fraction and percentage, plus the company average score.",
+                    "Given I switch period, when a different month is selected, then all oversight KPIs recalculate."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "PMO",
+                    "BOD",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.5-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.5.S1-10",
+                  "type": "story",
+                  "title": "Evaluate Team Leads table",
+                  "story": "As PMO, I want an Evaluate Team Leads table showing each lead's member count, team completion, lead score and status with an Evaluate/Edit action so that I can run the upper tier of the two-tier review.",
+                  "acceptance_criteria": [
+                    "Given the Team Leads, when I view the table, then each row shows their member count, team-done progress, lead score, and review status.",
+                    "Given a Team Lead has no review yet, when I view their row, then the action reads Evaluate; given one exists, then it reads Edit.",
+                    "Given I switch period, when a different month is selected, then each lead's figures reflect that period."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.5-01",
+                    "EN-M1.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.5.S1-11",
+                  "type": "story",
+                  "title": "Member-review completion matrix by team",
+                  "story": "As PMO (co-viewed by BOD and HR), I want a member-review completion matrix grouped by team so that I can see exactly which members still need evaluating.",
+                  "acceptance_criteria": [
+                    "Given the teams and their members, when I view the matrix, then each team shows a done/total count and a per-member indicator marking done vs pending.",
+                    "Given a team has no members, when the matrix renders, then that team is omitted.",
+                    "Given I switch period, when a different month is selected, then the matrix recomputes done/pending for that period."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "PMO",
+                    "BOD",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.5-01",
+                    "EN-M1.2-01"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M1.5.S2",
+              "name": "Member evaluation (modal)",
+              "description": "The scoring modal used by EM/TL/PM to evaluate members and by PMO to evaluate Team Leads: score every criterion across the pillars (1-5, step 0.5) with the previous period prefilled, score the 6 AMMI dimensions (auto-computing the AMMI level that feeds the AI pillar), see a live weighted total and verdict, capture strengths / improve / action free-text, and Save.",
+              "roles": [
+                "EM/TL/PM",
+                "PMO"
+              ],
+              "mockup_ref": {
+                "screen": "people/performance"
+              },
+              "items": [
+                {
+                  "id": "US-M1.5.S2-01",
+                  "type": "story",
+                  "title": "Score across the weighted criteria with live total",
+                  "story": "As an EM/TL/PM (or PMO evaluating a Team Lead), I want to score a person across the 18 weighted criteria (1-5, step 0.5) with the previous period prefilled and a live weighted total and verdict so that I can produce a calibrated monthly evaluation.",
+                  "acceptance_criteria": [
+                    "Given I open the evaluation, when a previous-period scorecard exists, then each criterion is prefilled from it and the previous value is shown for reference.",
+                    "Given I change any criterion score, when I edit it, then the weighted total and verdict band update live.",
+                    "Given I save with no criteria entered, when I confirm, then I am blocked with a prompt to enter at least the CORE criteria.",
+                    "Given a valid set of scores, when I save, then the evaluation is stored for the period with its total and verdict and the roster reflects it."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "EM/TL/PM",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.5-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.5.S2-02",
+                  "type": "story",
+                  "title": "Score the AMMI dimensions in the modal",
+                  "story": "As an EM/TL/PM (or PMO), I want to score the 6 AMMI dimensions within the evaluation so that the AMMI level is auto-computed and feeds the AI pillar criterion.",
+                  "acceptance_criteria": [
+                    "Given I enter the 6 AMMI dimension scores, when they change, then the composite and resulting AMMI level are shown and the AI-pillar AMMI criterion is auto-filled and read-only.",
+                    "Given the AMMI criterion is auto-filled, when I attempt to edit it directly, then it cannot be changed by hand.",
+                    "Given AMMI scores change, when the AI-pillar criterion updates, then the live weighted total reflects the new value."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "EM/TL/PM",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "US-M1.5.S2-01",
+                    "EN-M1.5-02"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.5.S2-03",
+                  "type": "story",
+                  "title": "Junior CORE-only scoring rule",
+                  "story": "As an EM/TL/PM (or PMO), I want juniors scored on CORE criteria only with EXT criteria optional so that early-career people are evaluated fairly on the essentials.",
+                  "acceptance_criteria": [
+                    "Given the person is a junior, when I open the evaluation, then the modal indicates CORE criteria are mandatory and EXT criteria are optional.",
+                    "Given a junior with any CORE criterion left blank, when I save, then I am blocked and told which CORE criteria are missing.",
+                    "Given a junior with EXT criteria blank but all CORE filled, when I save, then the evaluation is accepted."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "EM/TL/PM",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "US-M1.5.S2-01",
+                    "EN-M1.2-01"
+                  ],
+                  "notes": "Junior = Intern type, or onboarding/probation status (read from the employee record). CORE criteria are flagged on the scorecard model (EN-M1.5-01).",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.5.S2-04",
+                  "type": "story",
+                  "title": "Narrative, evidence rule and action-plan validation on save",
+                  "story": "As an EM/TL/PM (or PMO), I want to capture strengths, improve and a top action with the evidence and action-plan rules enforced so that low scores always come with justification and a remediation action.",
+                  "acceptance_criteria": [
+                    "Given I am scoring, when I assign a 1 or a 5 to any criterion, then I am reminded that score requires specific evidence.",
+                    "Given any criterion is scored below 4.0, when I save without a top action, then I am blocked and told a top action is required.",
+                    "Given all criteria are at or above 4.0, when I save, then a top action is not required.",
+                    "Given strengths and improve text, when I save, then they are stored with the evaluation."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "EM/TL/PM",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "US-M1.5.S2-01"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M1.5.S3",
+              "name": "Self-assessment (modal)",
+              "description": "The member self-assessment modal: the member rates themselves 1-5 on each pillar with notes, submitted before the lead reviews so the lead can calibrate.",
+              "roles": [
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "people/performance"
+              },
+              "items": [
+                {
+                  "id": "US-M1.5.S3-01",
+                  "type": "story",
+                  "title": "Submit pillar self-assessment",
+                  "story": "As a Member, I want to rate myself 1-5 on each pillar with notes and submit it before my lead reviews me so that my lead can calibrate against my self-view.",
+                  "acceptance_criteria": [
+                    "Given I open my self-assessment, when a prior one exists for the period, then my previous ratings and notes are prefilled for editing.",
+                    "Given I leave any pillar unrated, when I submit, then I am blocked and prompted to rate all pillars.",
+                    "Given all pillars rated, when I submit, then the self-assessment is saved for the period and my self-assessment status shows Done.",
+                    "Given I submitted earlier, when I reopen and change values, then re-submitting updates my self-assessment."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "Member"
+                  ],
+                  "mockup_ref": {
+                    "screen": "people/performance",
+                    "persona": "employee"
+                  },
+                  "dependencies": [
+                    "EN-M1.5-01"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M1.6",
           "name": "Onboarding",
-          "description": "Employee onboarding journey — task/checklist tracking and progress from offer to fully ramped. Moved from the former Journey module into People; complements the account creation in M1.2 Employees. Source of joiner events the dashboard reads.",
-          "status": "not-started",
-          "screens": []
+          "description": "Tracks every new joiner through Seta's defined onboarding process — 4 phases (Receive info → Prepare → Execute → Follow-up & complete), each a set of PIC-owned steps with an SLA, plus 4 PMO audit gates. A board shows per-joiner progress (phase strip, expandable step list, overall %), KPIs, and a swimlane filter so each party acts only on its own tasks. Onboarding cases enter the lifecycle when a candidate is hired.",
+          "status": "in-progress",
+          "screens": [
+            {
+              "id": "M1.6.S1",
+              "name": "Onboarding board",
+              "description": "The onboarding board: a KPI strip, a swimlane (PIC) filter, and per-joiner cards each with a 4-phase progress strip and an expandable step list with state, SLA, blocker toggle and PMO audit-gate sign-off. Full-access tier (BOD/PMO/HR) sees and acts on every joiner; EM/TL/PM and Member see and act only on their own swimlane.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "HR",
+                "EM/TL/PM",
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "lifecycle/lc_onboarding"
+              },
+              "sub_screens": [
+                {
+                  "id": "M1.6.S1.1",
+                  "name": "KPI strip",
+                  "description": "People onboarding, steps complete %, audit gates open, blocked steps."
+                },
+                {
+                  "id": "M1.6.S1.2",
+                  "name": "Swimlane filter",
+                  "description": "All / Recruitment / IT / Leader / CPO / HR / PMO; filters the board to one PIC's tasks."
+                },
+                {
+                  "id": "M1.6.S1.3",
+                  "name": "Joiner card",
+                  "description": "Per-joiner row: name/role/account/start date, a 4-phase progress strip, an expandable per-step list, and overall %."
+                },
+                {
+                  "id": "M1.6.S1.4",
+                  "name": "Step list & actions",
+                  "description": "Each step shows its PIC, SLA and state; complete a step, toggle a blocker, and PMO audit-gate sign-off."
+                }
+              ],
+              "items": [
+                {
+                  "id": "EN-M1.6-01",
+                  "type": "enabler",
+                  "title": "Onboarding case & 4-phase process model",
+                  "story": "Establish the onboarding case and Seta's 4-phase process model: an onboarding case enters the lifecycle when a candidate is hired, runs the 4 phases (Receive info → Prepare → Execute → Follow-up & complete), each phase a set of PIC-owned steps with an SLA, with a per-step state machine (to-do / in-progress / done / blocked, and pass for audit steps), case-health recalculation, the 4 PMO audit gates (AUDIT 01–04), and the joiner events that headcount and dashboards read.",
+                  "acceptance_criteria": [
+                    "Given a newly hired candidate, when the hire is confirmed, then a new onboarding case is seeded in the lifecycle (stage Preboarding/Onboarding) with the 4-phase process and all steps initialised to to-do.",
+                    "Given any step, when its owner advances it, then it moves to-do → in-progress → done (audit steps toggle to/from passed), the case progress % recomputes, and the case health is set to Blocked if any step is blocked, Complete at 100%, else On track.",
+                    "Given a step is blocked, when the blocker is cleared, then the case health is recalculated from the remaining open blockers.",
+                    "Given an onboarding case event (joiner intake, step completion, audit pass), then the event is recorded so headcount and dashboards can read it."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
+                  "notes": "PIC owners (Recruitment, IT, Leader/CPO/HR, PMO/Audit) are task-ownership attributes of the process model, not app roles. Each step carries an SLA (e.g. D-3, Day 1, D+7 hard, M+1/M+2). The 4 audit gates are signed off by PMO. A new joiner is seeded from a hired candidate (the hire-handoff is driven from the Candidates sub-module, M2.3).",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.6.S1-01",
+                  "type": "story",
+                  "title": "View onboarding KPI strip",
+                  "story": "As a BOD/PMO/HR user, I want a KPI strip across all onboarding joiners so that I can see overall onboarding health at a glance.",
+                  "acceptance_criteria": [
+                    "Given onboarding cases exist in my scope, when I open the board, then I see KPIs for people onboarding, steps complete (count and %), audit gates open, and blocked steps.",
+                    "Given a step is completed or blocked, when the board re-renders, then the affected KPIs update accordingly.",
+                    "Given no one is onboarding in my scope, then the KPI strip shows zeroed values rather than an error."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.6-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.6.S1-02",
+                  "type": "story",
+                  "title": "Scoped KPI strip for my swimlane",
+                  "story": "As an EM/TL/PM or Member, I want the KPI strip computed over only the joiners and tasks in my scope so that the numbers reflect my own responsibility.",
+                  "acceptance_criteria": [
+                    "Given I am a manager or member, when I open the board, then the KPI counts (people, steps complete, audit gates open, blocked) reflect only the joiners and tasks visible to me.",
+                    "Given I have no joiners in scope, then the strip shows zeroed values and the empty-scope state.",
+                    "Given a colleague updates a step outside my scope, then my KPI counts are unaffected."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M1.6-01"
+                  ],
+                  "notes": "Scope follows the same role/account/project visibility as the rest of the board; managers see their team's joiners, members see their own onboarding.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.6.S1-03",
+                  "type": "story",
+                  "title": "Filter the board by swimlane (PIC)",
+                  "story": "As a BOD/PMO/HR user, I want to filter the board to a single PIC swimlane (Recruitment / IT / Leader / CPO / HR / PMO) so that I can see that party's tasks across all joiners.",
+                  "acceptance_criteria": [
+                    "Given the board is showing All, when I pick a swimlane, then I see a role-grouped task list of only that PIC's steps across all joiners, each with joiner name, phase, SLA and state.",
+                    "Given a swimlane is selected, then the list shows open vs. total counts and orders open tasks ahead of completed ones.",
+                    "Given a swimlane has no tasks in scope, then an empty-swimlane message is shown.",
+                    "Given I select All, then the per-joiner card view is restored."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.6-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.6.S1-04",
+                  "type": "story",
+                  "title": "See only my Leader swimlane",
+                  "story": "As an EM/TL/PM, I want to see and act on only the Leader-owned onboarding tasks for my joiners so that I focus on what I own.",
+                  "acceptance_criteria": [
+                    "Given I am a manager, when I open the board, then I can see the Leader swimlane tasks for joiners in my scope and cannot act on steps owned by other PICs.",
+                    "Given a step is not Leader-owned, then its action controls are disabled for me.",
+                    "Given I have no Leader tasks in scope, then an empty-swimlane state is shown."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "lifecycle/lc_onboarding",
+                    "persona": "manager"
+                  },
+                  "dependencies": [
+                    "EN-M1.6-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.6.S1-05",
+                  "type": "story",
+                  "title": "View my own onboarding journey",
+                  "story": "As a Member (the new joiner), I want to see my own onboarding card with phase progress and step list so that I know where I am in the process and what is outstanding.",
+                  "acceptance_criteria": [
+                    "Given I am the joiner, when I open the board, then I see only my own onboarding card with its 4-phase strip, overall %, and expandable step list with each step's owner, SLA and state.",
+                    "Given a step I do not own, then its action controls are disabled for me.",
+                    "Given I am not currently onboarding, then an empty-scope message is shown."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "Member"
+                  ],
+                  "mockup_ref": {
+                    "screen": "lifecycle/lc_onboarding",
+                    "persona": "employee"
+                  },
+                  "dependencies": [
+                    "EN-M1.6-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.6.S1-06",
+                  "type": "story",
+                  "title": "View a joiner card with phase progress",
+                  "story": "As a BOD/PMO/HR user, I want a per-joiner card with name, role, account and start date, a 4-phase progress strip and overall %, expandable into the full step list so that I can track each joiner's onboarding.",
+                  "acceptance_criteria": [
+                    "Given onboarding cases in my scope, when I view the board, then each joiner shows a card with name/role/account/start date, a 4-phase strip with per-phase done/total counts, overall %, and a blocked-count badge when steps are blocked.",
+                    "Given I expand a card, then I see the steps grouped by phase, each with owner (PIC), SLA and state pill.",
+                    "Given I collapse the card, then the detail list is hidden and only the strip remains."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.6-01",
+                    "EN-M1.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.6.S1-07",
+                  "type": "story",
+                  "title": "Complete an onboarding step",
+                  "story": "As a BOD/PMO/HR user, I want to advance an onboarding step through its states so that the joiner's progress reflects the work done.",
+                  "acceptance_criteria": [
+                    "Given an editable non-audit step, when I advance it, then it cycles to-do → in-progress → done and the joiner's progress % and case health recompute.",
+                    "Given a step is blocked, when I act on it, then it returns to an open state before advancing.",
+                    "Given a step I am not permitted to edit, then its control is disabled.",
+                    "Given a step changes state, then the change is captured in the audit trail."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.6-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.6.S1-08",
+                  "type": "story",
+                  "title": "Toggle a blocker on a step",
+                  "story": "As a BOD/PMO/HR user, I want to raise or clear a blocker on an onboarding step so that the joiner's case health reflects when something is stuck.",
+                  "acceptance_criteria": [
+                    "Given an editable, not-done, non-audit step, when I raise a blocker, then the step shows blocked and the case health flips to Blocked.",
+                    "Given a blocked step, when I clear the blocker, then the step returns to open and the case health is recalculated from any remaining blockers.",
+                    "Given a done or audit step, then no blocker control is offered."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.6-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.6.S1-09",
+                  "type": "story",
+                  "title": "Complete my own Leader steps and blockers",
+                  "story": "As an EM/TL/PM, I want to complete and raise/clear blockers on the Leader-owned steps for my joiners so that I can drive the parts of onboarding I own.",
+                  "acceptance_criteria": [
+                    "Given a Leader-owned non-audit step for a joiner in my scope, when I advance it, then it cycles state and the joiner's progress and health recompute.",
+                    "Given a Leader-owned, not-done step, when I toggle a blocker, then the step and case health update accordingly.",
+                    "Given a step owned by another PIC, then its controls are disabled for me."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "lifecycle/lc_onboarding",
+                    "persona": "manager"
+                  },
+                  "dependencies": [
+                    "EN-M1.6-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.6.S1-10",
+                  "type": "story",
+                  "title": "Sign off a PMO audit gate",
+                  "story": "As a PMO user, I want to sign off an onboarding audit gate (AUDIT 01–04) so that the audited phase is verified and the next phase can proceed.",
+                  "acceptance_criteria": [
+                    "Given an audit-gate step awaiting sign-off, when I sign it off, then it is marked passed and counts toward the joiner's progress.",
+                    "Given a passed audit gate, when I revoke it, then it returns to awaiting sign-off and the 'audit gates open' KPI increases.",
+                    "Given I am not PMO, then the audit-gate control is disabled.",
+                    "Given an audit gate is signed off or revoked, then the action is recorded in the audit trail."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.6-01"
+                  ],
+                  "notes": "There are 4 PMO audit gates (AUDIT 01–04). Audit steps have no blocker control; only PMO (and the full-access tier) may sign them off.",
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "M1.7",
@@ -1626,9 +2352,428 @@
         {
           "id": "M1.8",
           "name": "Offboarding",
-          "description": "Employee offboarding workflow — exit process and alumni. Moved from the former Journey module into People; source of leaver/attrition events the dashboard reads.",
-          "status": "not-started",
-          "screens": []
+          "description": "Tracks a leaver through Seta's defined exit process — two phases (Pre-offboarding → Last working day D) of PIC-owned steps, each with an SLA, state machine (to-do/doing/done/audit-pass/blocked) and Overdue health. Offboarding is voluntary or involuntary (e.g. probation not passed) and carries a reason and last working day. PMO audits handover & access revocation, Finance audits asset & financial clearance; on 100% completion the case moves to Alumni. A board shows per-leaver cards (progress, current step, type, last day) opening to the full workflow, with KPIs and a PIC swimlane filter.",
+          "status": "in-progress",
+          "screens": [
+            {
+              "id": "M1.8.S1",
+              "name": "Offboarding board",
+              "description": "Per-leaver offboarding board with KPI strip, PIC swimlane filter and leaver cards that open to the full 2-phase exit workflow where steps are completed, blocked and audit-signed. BOD/PMO/HR see all leavers; EM/TL/PM and Member act only on their own swimlane.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "HR",
+                "EM/TL/PM",
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "lifecycle/lc_offboarding"
+              },
+              "sub_screens": [
+                {
+                  "id": "M1.8.S1.1",
+                  "name": "KPI strip",
+                  "description": "People offboarding, steps complete %, audit/clearance gates open, overdue/blocked steps."
+                },
+                {
+                  "id": "M1.8.S1.2",
+                  "name": "Swimlane filter",
+                  "description": "All / HR / Leader / IT / Finance / PMO — filters the workflow to one PIC's tasks."
+                },
+                {
+                  "id": "M1.8.S1.3",
+                  "name": "Leaver card",
+                  "description": "Per-leaver: name/role/account, offboarding type (voluntary/involuntary), reason, last working day, progress %, current step."
+                },
+                {
+                  "id": "M1.8.S1.4",
+                  "name": "Exit workflow detail & actions",
+                  "description": "The 2-phase step workflow; complete a step, toggle a blocker, PMO/Finance audit-gate sign-off; on 100% the case becomes Alumni."
+                }
+              ],
+              "items": [
+                {
+                  "id": "EN-M1.8-01",
+                  "type": "enabler",
+                  "title": "Offboarding case & exit-process model",
+                  "story": "Establish the offboarding case and Seta's exit-process model: a leaver case created from a resignation or a failed probation carrying offboarding type (voluntary/involuntary), reason and last working day; the 2-phase PIC-owned exit workflow (Pre-offboarding → Last working day D) with per-step SLAs; the per-step state machine (to-do / doing / done / audit-pass / blocked) with Overdue-health recalculation when a step is blocked; the PMO and Finance audit & clearance gates; and the transition to Alumni when all steps complete. This is also the home for 'leaver' events that headcount and dashboards read.",
+                  "acceptance_criteria": [
+                    "Given a resignation or a probation-not-passed decision, when an offboarding case is created, then it carries type (voluntary/involuntary), reason and last working day and is seeded with the full 2-phase step workflow each with a PIC owner and SLA.",
+                    "Given a step changes state, when it is set to blocked, then the case health recalculates to Overdue; when no step is blocked it returns to On track.",
+                    "Given every step is done and every audit gate is passed, when progress reaches 100%, then the case moves to Alumni and a leaver/offboarding-complete event is recorded.",
+                    "Given a step has an audit owner (PMO or Finance), then it cannot be treated as complete until that owner records an audit-pass."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.2-01"
+                  ],
+                  "notes": "PIC owners (HR, Leader, IT, Finance, PMO/Audit) and the Employee (the leaver) are task-ownership attributes of the process model, not app roles. A leaver case is seeded from a resignation or a failed probation.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.8.S1-01",
+                  "type": "story",
+                  "title": "View offboarding KPI strip",
+                  "story": "As a BOD/PMO/HR user, I want to see offboarding KPIs at the top of the board so that I can gauge exit volume, progress and risk at a glance.",
+                  "acceptance_criteria": [
+                    "Given active offboarding cases, when I open the board, then I see counts for people offboarding, average completion %, audit/clearance gates open, and overdue/blocked steps.",
+                    "Given no active offboarding, when I open the board, then the KPIs show zero/empty values without error.",
+                    "Given audit gates are open or steps are overdue, then those KPIs are visually emphasised."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.8-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.8.S1-02",
+                  "type": "story",
+                  "title": "Filter exit workflow by PIC swimlane",
+                  "story": "As a BOD/PMO/HR user, I want to filter the exit workflow by PIC swimlane (All / HR / Leader / IT / Finance / PMO) so that I can focus on one owner's tasks.",
+                  "acceptance_criteria": [
+                    "Given a leaver's workflow, when I select a swimlane, then only steps owned by that PIC are shown.",
+                    "Given I select All, then every step across both phases is shown.",
+                    "Given a selected swimlane has no steps, then the phase shows no rows without error."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M1.8-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.8.S1-03",
+                  "type": "story",
+                  "title": "View offboarding board with leaver cards",
+                  "story": "As a BOD/PMO/HR user, I want to see all active leavers as cards so that I can review each exit's progress and current step.",
+                  "acceptance_criteria": [
+                    "Given active offboarding cases, when I open the board, then each leaver card shows name, role, account, offboarding type, reason, last working day, progress % and the current step with its PIC.",
+                    "Given a card, when I click it, then the leaver's full 2-phase workflow opens.",
+                    "Given there are no leavers, then an empty-state message is shown instead of cards."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.8-01",
+                    "EN-M1.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.8.S1-04",
+                  "type": "story",
+                  "title": "View my team's leaver cards",
+                  "story": "As an EM/TL/PM, I want to see only the leavers in my own swimlane so that I can act on exits I am responsible for without seeing others.",
+                  "acceptance_criteria": [
+                    "Given I am a manager, when I open the board, then I only see leavers within my scope.",
+                    "Given a leaver outside my scope, then their card is not shown.",
+                    "Given I open a leaver in my scope, then I can only act on steps owned by Leader."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "lifecycle/lc_offboarding",
+                    "persona": "manager"
+                  },
+                  "dependencies": [
+                    "EN-M1.8-01"
+                  ],
+                  "notes": "Manager persona is scoped to Leader-owned steps only.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.8.S1-05",
+                  "type": "story",
+                  "title": "View my own offboarding case",
+                  "story": "As a Member who is leaving, I want to see my own offboarding card and progress so that I know where my exit stands and what I still owe.",
+                  "acceptance_criteria": [
+                    "Given I am the leaver, when I open the board, then I see only my own offboarding case with progress and current step.",
+                    "Given another person's case, then it is not visible to me.",
+                    "Given I open my case, then I can only act on steps owned by Employee."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "Member"
+                  ],
+                  "mockup_ref": {
+                    "screen": "lifecycle/lc_offboarding",
+                    "persona": "employee"
+                  },
+                  "dependencies": [
+                    "EN-M1.8-01"
+                  ],
+                  "notes": "Employee persona is scoped to Employee-owned steps only.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.8.S1-06",
+                  "type": "story",
+                  "title": "Open a leaver's full 2-phase exit workflow",
+                  "story": "As a BOD/PMO/HR user, I want to open a leaver's full exit workflow so that I can see every step across both phases with its PIC, SLA, state and audit gates.",
+                  "acceptance_criteria": [
+                    "Given a leaver, when I open the detail, then I see the Pre-offboarding and Last-working-day phases with each step's title, PIC chip, SLA and state pill.",
+                    "Given a step is an audit gate, then it is visually marked as a PMO or Finance audit step.",
+                    "Given the workflow, then the header shows offboarding type, reason, last working day and overall progress %."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.8-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.8.S1-07",
+                  "type": "story",
+                  "title": "Advance a step through its states",
+                  "story": "As a BOD/PMO/HR user, I want to advance a step through to-do → doing → done so that the exit process reflects real progress.",
+                  "acceptance_criteria": [
+                    "Given a non-audit step I can edit, when I advance it, then it cycles to-do → doing → done and overall progress recalculates.",
+                    "Given a step is blocked, when I advance it, then it leaves the blocked state and resumes the normal cycle.",
+                    "Given I lack edit rights for a step's PIC, then its control is disabled."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.8-01",
+                    "US-M1.8.S1-06"
+                  ],
+                  "notes": "Generic step-advance mechanic; covers steps without a dedicated story (e.g. IT prepare device-recovery / access-revoke list).",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.8.S1-08",
+                  "type": "story",
+                  "title": "Confirm resignation and notify stakeholders",
+                  "story": "As a BOD/PMO/HR user acting as HR, I want to confirm the resignation (date, reason, offboarding type) and notify IT/Finance/PM and schedule the exit interview so that the exit process starts on time.",
+                  "acceptance_criteria": [
+                    "Given a new leaver, when I confirm the resignation, then the date, reason and offboarding type (voluntary/involuntary) are recorded and the step is completed.",
+                    "Given the resignation is confirmed, then IT, Finance and PM are notified and the exit interview is scheduled.",
+                    "Given required details are missing, then the step cannot be confirmed."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.8-01",
+                    "US-M1.8.S1-06"
+                  ],
+                  "notes": "First Pre-offboarding step (PIC: HR, SLA within 24h); confirming it notifies IT/Finance/PM and schedules the exit interview.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.8.S1-09",
+                  "type": "story",
+                  "title": "Plan replacement and confirm handover as Leader",
+                  "story": "As an EM/TL/PM, I want to plan the replacement and confirm the work/repo handover for my leaver so that knowledge and responsibilities transfer before the last day.",
+                  "acceptance_criteria": [
+                    "Given my leaver, when I complete the replacement-planning step, then it is marked done with the handover receiver and task list recorded.",
+                    "Given the last working day, when I confirm the work/docs/repository handover, then the handover step is completed and submitted for PMO audit.",
+                    "Given a step I do not own as Leader, then I cannot edit it."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "lifecycle/lc_offboarding",
+                    "persona": "manager"
+                  },
+                  "dependencies": [
+                    "EN-M1.8-01",
+                    "US-M1.8.S1-06",
+                    "EN-M3.4-01"
+                  ],
+                  "notes": "Leader-owned steps only; the handover step is a PMO audit gate. Planning the replacement also releases the leaver's project allocations (owned by the PM RA Monitoring model).",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.8.S1-10",
+                  "type": "story",
+                  "title": "Build my handover file as the leaver",
+                  "story": "As a Member who is leaving, I want to build my handover file (tasks, docs, receiver) and send it to my Leader/PM for approval so that my work is properly transferred.",
+                  "acceptance_criteria": [
+                    "Given I am the leaver, when I complete my handover step, then my tasks, documents and receiver are captured and the step is submitted to Leader/PM.",
+                    "Given my handover is incomplete, then I can keep it in progress rather than done.",
+                    "Given a step I do not own as Employee, then I cannot edit it."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "Member"
+                  ],
+                  "mockup_ref": {
+                    "screen": "lifecycle/lc_offboarding",
+                    "persona": "employee"
+                  },
+                  "dependencies": [
+                    "EN-M1.8-01",
+                    "US-M1.8.S1-06"
+                  ],
+                  "notes": "Employee-owned step; the built handover file is subsequently PMO-audited.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.8.S1-11",
+                  "type": "story",
+                  "title": "Record access revocation and device recovery",
+                  "story": "As a BOD/PMO/HR user, I want to record the IT access-revocation and device-recovery steps on the last working day so that the leaver's access and assets are accounted for.",
+                  "acceptance_criteria": [
+                    "Given the last working day, when I complete the access-revoke and device-recovery step, then it is marked done covering mail, VPN, GitHub, cloud, Teams, timesheet, biometric and collected devices.",
+                    "Given the step is an audit gate, then it requires PMO audit-pass before it counts as cleared.",
+                    "Given access is not fully revoked, then the step can be left in progress or flagged blocked."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.8-01",
+                    "US-M1.8.S1-06"
+                  ],
+                  "external_deps": [
+                    {
+                      "needs": "revoke the leaver's system access across platforms",
+                      "likely_module": "M0",
+                      "reason": "per-person access control is owned by Admin/access-control (out of scope)"
+                    }
+                  ],
+                  "notes": "This tracks the offboarding STEP only; the actual cross-platform revoke is performed by Admin/access-control. PMO audit gate.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.8.S1-12",
+                  "type": "story",
+                  "title": "Sign off PMO audit gates",
+                  "story": "As a PMO user, I want to sign off the handover and access-revocation audit gates so that the exit cannot complete until these are independently confirmed.",
+                  "acceptance_criteria": [
+                    "Given a handover or access-revocation step is done, when I record an audit-pass, then the gate shows Audited and counts toward completion.",
+                    "Given I revoke an audit-pass, then the gate returns to an unaudited state and completion drops accordingly.",
+                    "Given I am not PMO, then I cannot sign off a PMO audit gate."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M1.8-01",
+                    "US-M1.8.S1-06"
+                  ],
+                  "notes": "PMO signs off handover and access-revocation audit gates; offboarding only completes when all audit parties confirm.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.8.S1-13",
+                  "type": "story",
+                  "title": "Complete asset & financial clearance sign-off",
+                  "story": "As a BOD/PMO/HR user (acting on Finance's behalf), I want to complete the asset & financial audit/clearance and sign off so that the leaver has no outstanding debt and settlement is confirmed.",
+                  "acceptance_criteria": [
+                    "Given the last working day, when I complete the financial-clearance step, then assets are reconciled, no-debt is confirmed and pay/bonus/leave settlement is finalized.",
+                    "Given I record the Finance audit-pass, then the gate shows Audited and counts toward completion.",
+                    "Given the financial clearance is not signed off, then the case cannot reach Alumni."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.8-01",
+                    "US-M1.8.S1-06"
+                  ],
+                  "notes": "Finance audit gate — asset & financial clearance is owned by the Finance PIC (a process attribute, not an app role); in the app it is signed off by the full-access tier.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.8.S1-14",
+                  "type": "story",
+                  "title": "Finalize payroll, liquidation and exit interview",
+                  "story": "As a BOD/PMO/HR user acting as HR, I want to finalize payroll, contract liquidation, records and the exit interview so that the case can complete and move to Alumni.",
+                  "acceptance_criteria": [
+                    "Given all prior steps are done, when I complete the HR final step, then payroll and contract liquidation are finalized, records are archived and the exit interview is completed.",
+                    "Given this completes the workflow at 100%, then the case moves to Alumni and an offboarding-complete event is recorded.",
+                    "Given earlier audit gates are still open, then completing this step alone does not move the case to Alumni."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR"
+                  ],
+                  "dependencies": [
+                    "EN-M1.8-01",
+                    "US-M1.8.S1-06",
+                    "US-M1.8.S1-12",
+                    "US-M1.8.S1-13"
+                  ],
+                  "notes": "Final Last-day HR step (hard SLA on day D); the case only becomes Alumni once every step is done and every audit gate passed.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M1.8.S1-15",
+                  "type": "story",
+                  "title": "Raise or clear a blocker on a step",
+                  "story": "As a BOD/PMO/HR user, I want to flag a step as blocked/overdue or clear it so that stalled clearances are visible and the case health reflects reality.",
+                  "acceptance_criteria": [
+                    "Given an editable non-audit step, when I flag it blocked, then it shows Blocked and the case health becomes Overdue.",
+                    "Given a blocked step, when I clear the blocker, then it returns to to-do and the case health returns to On track if no other step is blocked.",
+                    "Given a step's PIC I cannot edit, then I cannot raise or clear its blocker."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "HR",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M1.8-01",
+                    "US-M1.8.S1-06"
+                  ],
+                  "notes": "Blockers can only be toggled on steps the actor is allowed to edit (full-access any; manager Leader steps; employee Employee steps).",
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -3090,14 +4235,8 @@
                     "EM/TL/PM"
                   ],
                   "dependencies": [
-                    "EN-M2.3-01"
-                  ],
-                  "external_deps": [
-                    {
-                      "needs": "convert a hired candidate into an employee / trigger onboarding",
-                      "likely_module": "M1",
-                      "reason": "onboarding and the employee record are owned by the People module (Onboarding sub-module)"
-                    }
+                    "EN-M2.3-01",
+                    "EN-M1.6-01"
                   ],
                   "notes": "Stage moves are appended to the candidate's activity history; moving to Offer or Hired records a decision date, and once a candidate is Hired or Rejected the stage row is locked.",
                   "status": "not-started"
