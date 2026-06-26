@@ -29,13 +29,17 @@ live.textContent = 'snapshot'; live.className = ''; live.style.color = 'var(--in
 // Inline the captured-screenshot index if present (graceful if capture hasn't run).
 let screens = null;
 try { screens = JSON.parse(readFileSync(join(here, 'screens', 'index.json'), 'utf8')); } catch { /* no shots yet */ }
+// Inline item comments read-only (the static snapshot has no server to post to).
+let comments = {};
+try { comments = JSON.parse(readFileSync(join(here, 'comments.json'), 'utf8')).comments || {}; } catch { /* none yet */ }
 
 const dataDecl = `
 const data = ${JSON.stringify(data)};
 const stats = ${JSON.stringify(s)};
-const screens = ${JSON.stringify(screens)};`;
+const screens = ${JSON.stringify(screens)};
+const comments = ${JSON.stringify(comments)};`;
 
-const mapBoot = `${dataDecl}\nWBS.setScreens(screens);\nWBS.renderWBS(data, stats);${snapshotLabel}`;
+const mapBoot = `${dataDecl}\nWBS.setScreens(screens);\nWBS.setComments(comments);\nWBS.renderWBS(data, stats);${snapshotLabel}`;
 const tableBoot = `${dataDecl}\nWBS.renderHeader(data, stats); WBS.renderTable(data); WBS.setData(data); WBS.bindExport();${snapshotLabel}`;
 
 const nav = { mapHref: 'index.html', tableHref: 'table.html' };

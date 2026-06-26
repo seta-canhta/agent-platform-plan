@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "comments": {
+    "US-M2.2.S2-01": [
+      {
+        "id": "c-p5e5tup4h",
+        "text": "I need to have details fields list on the ticket",
+        "author": "you",
+        "state": "open",
+        "created": "2026-06-26T06:00:01.457Z",
+        "updated": "2026-06-26T06:00:01.457Z",
+        "agent_note": null
+      }
+    ]
+  }
+}

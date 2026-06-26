@@ -283,14 +283,8 @@
                     "PMO"
                   ],
                   "dependencies": [
-                    "EN-M1.1-01"
-                  ],
-                  "external_deps": [
-                    {
-                      "needs": "demand / open-role figures driving forecast demand",
-                      "likely_module": "M2",
-                      "reason": "demand is derived from open requisitions owned by the Hiring module."
-                    }
+                    "EN-M1.1-01",
+                    "EN-M2.2-01"
                   ],
                   "status": "not-started"
                 },
@@ -380,14 +374,8 @@
                   ],
                   "dependencies": [
                     "EN-M1.1-01",
-                    "EN-M1.2-01"
-                  ],
-                  "external_deps": [
-                    {
-                      "needs": "skill demand from open roles",
-                      "likely_module": "M2",
-                      "reason": "demand is derived from open requisitions owned by the Hiring module; skill supply now resolves to the Employees data model (EN-M1.2-01)."
-                    }
+                    "EN-M1.2-01",
+                    "EN-M2.2-01"
                   ],
                   "status": "not-started"
                 },
@@ -408,14 +396,8 @@
                   ],
                   "dependencies": [
                     "EN-M1.1-01",
-                    "EN-M1.2-01"
-                  ],
-                  "external_deps": [
-                    {
-                      "needs": "open-role demand",
-                      "likely_module": "M2",
-                      "reason": "demand comes from Hiring (M2); skill holdings now resolve to the Employees data model (EN-M1.2-01)."
-                    }
+                    "EN-M1.2-01",
+                    "EN-M2.2-01"
                   ],
                   "status": "not-started"
                 },
@@ -1651,6 +1633,1603 @@
       ]
     },
     {
+      "id": "M2",
+      "name": "Hiring Management",
+      "description": "Position management and internal mobility: open requisitions, an internal job board with skill-matched recommendations, and a releasing-EM → receiving-EM → PMO endorsement/approval chain whose approval creates an allocation. Phase-2 module that rolls out as hiring moves into People.",
+      "status": "in-progress",
+      "sub_modules": [
+        {
+          "id": "M2.2",
+          "name": "Requisitions",
+          "description": "Position Management & internal-mobility hub: managers/PMO create and manage open requisitions (job positions) on a board/list with a Sourcing→Screening→Interview→Offer stage track; members browse open roles on an internal job board and apply; applications flow through a releasing-EM → receiving-EM → PMO endorsement/approval chain, and PMO approval creates an allocation. Phase-2 module (hiring moves into People).",
+          "status": "not-started",
+          "screens": [
+            {
+              "id": "M2.2.S1",
+              "name": "Requisition Management & Approval",
+              "description": "Board/List management view of open positions for management personas: KPI strip, per-requisition card (title→JD, tech-stack tags, note, stage track, inline-editable Status/Start/Due, Open Nd/Overdue badge) and an internal-applicants list. Scoped: BOD/PMO see all, AM own account(s), EM/TL/PM own projects.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/requisitions"
+              },
+              "sub_screens": [
+                {
+                  "id": "M2.2.S1.1",
+                  "name": "KPI strip",
+                  "description": "Open positions, Internal applicants, Pending review, Approved counters."
+                },
+                {
+                  "id": "M2.2.S1.2",
+                  "name": "Board/List toggle",
+                  "description": "Switch between card board and table list of open positions."
+                },
+                {
+                  "id": "M2.2.S1.3",
+                  "name": "Requisition card",
+                  "description": "Stage track + inline status/stage/date edit + Open Nd/Overdue badge."
+                },
+                {
+                  "id": "M2.2.S1.4",
+                  "name": "Applicants-on-card list",
+                  "description": "Internal applicants per requisition; tap a row to review."
+                }
+              ],
+              "items": [
+                {
+                  "id": "EN-M2.2-01",
+                  "type": "enabler",
+                  "title": "Requisition / open-position data record",
+                  "story": "Establish the open-position record (title, account, project, grade, type new/replacement, current stage, status, start/due dates, tech stack, JD detail) together with its open/filled/on-hold lifecycle and Sourcing→Screening→Interview→Offer stage progression, as the single source the management board, job board, demand metrics and skill-demand all read.",
+                  "acceptance_criteria": [
+                    "Given a requisition exists, when it is read by any view, then title, account, project, grade, type, stage, status, start/due dates, tech stack and JD detail are available",
+                    "Given a requisition status is set to a stage name, when saved, then it stays Open and its stage advances accordingly; setting Filled or On hold changes status without a stage",
+                    "Given a requisition is On hold or Filled, when shown, then its stage track reflects paused/completed state rather than an active stage"
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "EN-M2.2-02",
+                  "type": "enabler",
+                  "title": "Role-based requisition scoping",
+                  "story": "Provide the scoping rule that restricts which requisitions and their applicants a management persona sees: BOD/PMO see all, AM sees requisitions for their own account(s), EM/TL/PM see requisitions for their own projects.",
+                  "acceptance_criteria": [
+                    "Given I am BOD or PMO, when I open the requisitions view, then I see every requisition company-wide",
+                    "Given I am an AM, when I open the view, then I see only requisitions belonging to my account(s), with a scope note shown",
+                    "Given I am an EM/TL/PM, when I open the view, then I see only requisitions for my own projects, with a scope note shown"
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "external_deps": [
+                    {
+                      "needs": "grant-based access (an AM viewing accounts they were specifically granted) and the system audit log of access",
+                      "likely_module": "M0",
+                      "reason": "per-person access grants and the audit trail are owned by Admin/access-control"
+                    }
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S1-01",
+                  "type": "story",
+                  "title": "View all open requisitions as BOD/PMO",
+                  "story": "As a BOD or PMO, I want to view every open requisition company-wide on a board so that I can oversee all hiring demand.",
+                  "acceptance_criteria": [
+                    "Given I am BOD or PMO, when the view loads, then all non-filled requisitions across all accounts and projects are listed",
+                    "Given there are no open requisitions, when the view loads, then an empty state is shown instead of an empty board",
+                    "Given a requisition exists, when it is shown, then its title, account/project, grade, type and current stage are visible"
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01",
+                    "EN-M2.2-02"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S1-02",
+                  "type": "story",
+                  "title": "View account-scoped requisitions as AM",
+                  "story": "As an AM, I want to view the open requisitions for my own account(s) so that I can manage hiring demand on accounts I own.",
+                  "acceptance_criteria": [
+                    "Given I am an AM, when the view loads, then only requisitions for my account(s) are shown with a scope note",
+                    "Given my account has no open requisitions, when the view loads, then an empty state is shown",
+                    "Given a requisition belongs to another account, when I browse, then it is not visible to me"
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "AM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-02"
+                  ],
+                  "status": "not-started",
+                  "mockup_ref": {
+                    "screen": "hiring/requisitions",
+                    "persona": "am"
+                  }
+                },
+                {
+                  "id": "US-M2.2.S1-03",
+                  "type": "story",
+                  "title": "View project-scoped requisitions as EM/TL/PM",
+                  "story": "As an EM/TL/PM, I want to view the open requisitions for my own projects so that I can manage hiring demand on teams I run.",
+                  "acceptance_criteria": [
+                    "Given I am an EM/TL/PM, when the view loads, then only requisitions for my projects are shown with a scope note",
+                    "Given my projects have no open requisitions, when the view loads, then an empty state is shown",
+                    "Given a requisition belongs to another project, when I browse, then it is not visible to me"
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-02"
+                  ],
+                  "status": "not-started",
+                  "mockup_ref": {
+                    "screen": "hiring/requisitions",
+                    "persona": "manager"
+                  }
+                },
+                {
+                  "id": "US-M2.2.S1-04",
+                  "type": "story",
+                  "title": "View requisition KPI strip",
+                  "story": "As a management user, I want a KPI strip of Open positions, Internal applicants, Pending review and Approved so that I can gauge hiring pipeline health at a glance.",
+                  "acceptance_criteria": [
+                    "Given the view loads, when the KPI strip renders, then it shows counts for Open positions, Internal applicants, Pending review and Approved scoped to what I can see",
+                    "Given there are no applications, when the strip renders, then Internal applicants, Pending review and Approved show zero gracefully",
+                    "Given an application moves to a decided state, when I refresh, then Pending review and Approved counts update accordingly"
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S1-05",
+                  "type": "story",
+                  "title": "Toggle requisitions between Board and List",
+                  "story": "As a management user, I want to switch the open positions between a card board and a table list so that I can read them in whichever layout suits the task.",
+                  "acceptance_criteria": [
+                    "Given I am on the requisitions view, when I select List, then the same scoped requisitions are shown as a table of position, account/project, grade, type, stage, applicants count, status and due",
+                    "Given I am on the List, when I select Board, then the card layout is restored",
+                    "Given I switch layout, when the view re-renders, then my current scope and data are preserved"
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S1-06",
+                  "type": "story",
+                  "title": "View requisition card with stage track and ageing badge",
+                  "story": "As a management user, I want each requisition card to show its tech-stack tags, note, Sourcing→Screening→Interview→Offer stage track and an Open Nd / Overdue badge so that I can see status and ageing at a glance.",
+                  "acceptance_criteria": [
+                    "Given a requisition is Open, when its card renders, then the stage track highlights the current stage and the badge shows how many days it has been open",
+                    "Given a requisition is past its due date, when its card renders, then it shows an Overdue badge instead of an open-days count",
+                    "Given a requisition is On hold or Filled, when its card renders, then the stage track and status pill reflect that state"
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S1-07",
+                  "type": "story",
+                  "title": "Inline-edit requisition status, stage and dates",
+                  "story": "As a management user, I want to inline-edit a requisition's status/stage and its start and due dates so that I can keep the board current without leaving it.",
+                  "acceptance_criteria": [
+                    "Given a requisition card, when I pick a stage name as status, then it stays Open and advances to that stage; when I pick Filled or On hold, then its status changes accordingly",
+                    "Given I change a start or due date, when I confirm, then the card updates and the ageing/Overdue badge recalculates",
+                    "Given I change any of these fields, when it saves, then the change is recorded to the audit trail"
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S1-08",
+                  "type": "story",
+                  "title": "View internal applicants on a requisition",
+                  "story": "As a management user, I want each requisition to list its internal applicants with name, role, applied date and application status so that I can see who is in the running and open one to review.",
+                  "acceptance_criteria": [
+                    "Given a requisition has applicants, when its card renders, then each applicant row shows name, role, applied date and current application status",
+                    "Given a requisition has no applicants, when its card renders, then a clear no-applicants state is shown",
+                    "Given an applicant row, when I tap it, then the application review opens for that application"
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M2.2.S2",
+              "name": "New Requisition form",
+              "description": "Modal to raise a new requisition: job title, account, grade, type (new/replacement), required interview mode, due date, comma-separated tech stack, and a required JD detail (About the role, Responsibilities, Requirements, Nice-to-have, one per line). On submit creates an Open requisition at stage 1, saves the JD, and logs to audit.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/requisitions"
+              },
+              "items": [
+                {
+                  "id": "US-M2.2.S2-01",
+                  "type": "story",
+                  "title": "Create a new requisition with full JD",
+                  "story": "As a management user, I want to raise a new requisition with its overview fields and full job description so that an open position is posted and ready for applicants.",
+                  "acceptance_criteria": [
+                    "Given the form, when I submit without a job title or without the About-the-role JD detail, then a validation message blocks submission",
+                    "Given valid input, when I submit, then a new requisition is created Open at the first stage with its tech stack and JD detail saved",
+                    "Given I enter Responsibilities/Requirements/Nice-to-have one per line, when saved, then each line is captured as a separate JD entry",
+                    "Given a requisition is created, when it is saved, then the creation is recorded to the audit trail and it appears on the board"
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "notes": "Interview mode and JD About-the-role are required. A requisition may also be raised from the Project Monitoring backfill flow (which carries a pre-filled title/account/replacement type); the requisition record itself is owned by this sub-module.",
+                  "dependencies": [
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M2.2.S3",
+              "name": "Job Description detail",
+              "description": "Read-only JD modal: stack tags, About the role, Responsibilities, Requirements, Nice-to-have, posted/closes dates. A Member viewing an open (not On-hold) role they have not applied to sees an Apply button.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM",
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/requisitions"
+              },
+              "items": [
+                {
+                  "id": "US-M2.2.S3-01",
+                  "type": "story",
+                  "title": "View read-only job description detail",
+                  "story": "As any user, I want to open a requisition's full job description so that I can understand the role before acting on it.",
+                  "acceptance_criteria": [
+                    "Given a requisition, when I open its JD, then I see stack tags, About the role, Responsibilities, Requirements, Nice-to-have and the posted/closes dates",
+                    "Given a requisition has no detailed JD, when I open it, then its note or a no-detail message is shown gracefully",
+                    "Given the JD modal is open, when I close it, then I return to where I was without losing context"
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM",
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S3-02",
+                  "type": "story",
+                  "title": "Apply for a role from the JD",
+                  "story": "As a Member, I want an Apply button on the job description of an eligible role so that I can apply directly while reading it.",
+                  "acceptance_criteria": [
+                    "Given I am a Member viewing an open role I have not applied to, when the JD opens, then an Apply-for-this-role button is shown",
+                    "Given the role is On hold or I already have a live application for it, when the JD opens, then no Apply button is shown",
+                    "Given the Apply button, when I tap it, then the apply flow opens for that role"
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "US-M2.2.S5-01"
+                  ],
+                  "status": "not-started",
+                  "mockup_ref": {
+                    "screen": "hiring/requisitions",
+                    "persona": "employee"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "M2.2.S4",
+              "name": "Internal Job Board / Open Roles",
+              "description": "Member-facing render of the requisitions tab: KPI strip (Open roles, Recommended for you, My applications, Approved), a decision banner when applications were decided, a My-applications card (tap → status history), a Recommended-for-you band (AI skill-and-grade match, top 3), and All open positions with Board/List toggle, text search and follow/unfollow. Internal posts intentionally do not publish effort/allocation requirements.",
+              "roles": [
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/requisitions",
+                "persona": "employee"
+              },
+              "sub_screens": [
+                {
+                  "id": "M2.2.S4.1",
+                  "name": "Member KPI strip",
+                  "description": "Open roles, Recommended for you, My applications, Approved."
+                },
+                {
+                  "id": "M2.2.S4.2",
+                  "name": "Decision banner + My applications card",
+                  "description": "Banner when applications were decided; list of my applications."
+                },
+                {
+                  "id": "M2.2.S4.3",
+                  "name": "Recommended for you band",
+                  "description": "Top-3 skill-and-grade matched open roles."
+                },
+                {
+                  "id": "M2.2.S4.4",
+                  "name": "All open positions",
+                  "description": "Board/List toggle + text search + follow/unfollow."
+                }
+              ],
+              "items": [
+                {
+                  "id": "US-M2.2.S4-01",
+                  "type": "story",
+                  "title": "Browse all open roles with toggle and search",
+                  "story": "As a Member, I want to browse all open positions company-wide with a board/list toggle and text search so that I can find roles to apply for.",
+                  "acceptance_criteria": [
+                    "Given I am a Member, when the job board loads, then all non-filled roles are shown with their account/project, grade, type and stack",
+                    "Given I type in search, when it filters, then only roles matching title, account, project or skill remain and a count of shown-of-total is displayed",
+                    "Given no role matches my search, when it filters, then a clear no-results message is shown",
+                    "Given the board, when I toggle to List, then the same roles render as a table and back to cards when toggled again"
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01"
+                  ],
+                  "notes": "Internal posts do not publish effort/allocation requirements; the human approval gate handles fit.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S4-02",
+                  "type": "story",
+                  "title": "View member job-board KPI strip",
+                  "story": "As a Member, I want a KPI strip of Open roles, Recommended for you, My applications and Approved so that I can see my internal-mobility status at a glance.",
+                  "acceptance_criteria": [
+                    "Given the job board loads, when the strip renders, then it shows Open roles count, my Recommended count, my applications count and my Approved count",
+                    "Given I have no applications, when the strip renders, then My applications and Approved show zero gracefully",
+                    "Given I submit or withdraw an application, when I refresh, then the relevant counters update"
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S4-03",
+                  "type": "story",
+                  "title": "See recommended roles matched to my skills and grade",
+                  "story": "As a Member, I want a Recommended-for-you band of the top open roles matched to my skills and grade so that the best stretch fits surface first.",
+                  "acceptance_criteria": [
+                    "Given I have a skill and grade profile, when the job board loads, then up to three open (non-paused) roles best matching my skills and grade are shown with a match indicator, highest match first",
+                    "Given no open role matches my profile, when the board loads, then the recommended band is omitted rather than shown empty",
+                    "Given a recommended role, when I act on it, then I can view its JD or apply like any other role"
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01",
+                    "EN-M1.2-01"
+                  ],
+                  "notes": "Match is computed from the member's own skill holdings and grade; supply data is owned by the People Employees model.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S4-04",
+                  "type": "story",
+                  "title": "View my applications and decision banner",
+                  "story": "As a Member, I want a My-applications card and a banner when any of my applications have been decided so that I can track and react to outcomes.",
+                  "acceptance_criteria": [
+                    "Given I have applications, when the board loads, then each is listed with role, account/project, applied date and current status",
+                    "Given one or more of my applications were approved or rejected, when the board loads, then a decision banner summarises how many decisions await my attention",
+                    "Given an application row, when I tap it, then its status history opens",
+                    "Given I have no applications, when the board loads, then the My-applications card and banner are omitted"
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S4-05",
+                  "type": "story",
+                  "title": "Follow or unfollow a role",
+                  "story": "As a Member, I want to star a role to follow it and unstar to stop so that I can keep track of positions I am interested in.",
+                  "acceptance_criteria": [
+                    "Given an open role, when I tap its follow star, then it becomes followed and the star shows active state",
+                    "Given a followed role, when I tap the star again, then it is unfollowed",
+                    "Given I follow or unfollow, when the action completes, then a confirmation is shown"
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M2.2.S5",
+              "name": "Apply to a role",
+              "description": "Member apply modal: shows role plus the member's current utilization, requires a CV upload, optional why-a-fit note. On submit creates the application (status Submitted), routes it to the releasing EM, and surfaces the applicant as an internal candidate to recruitment. It is a stretch assignment (extra % on top of current work).",
+              "roles": [
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/requisitions",
+                "persona": "employee"
+              },
+              "items": [
+                {
+                  "id": "US-M2.2.S5-01",
+                  "type": "story",
+                  "title": "Apply to a role with CV and optional note",
+                  "story": "As a Member, I want to apply to an open role by uploading my CV and optionally explaining my fit so that I can be considered for stretch work.",
+                  "acceptance_criteria": [
+                    "Given the apply modal, when I try to submit without a CV, then submission is blocked with a prompt to upload one",
+                    "Given I upload a CV and submit, then an application is created with status Submitted and routed to the releasing EM",
+                    "Given the modal is open, then it shows the role context and my current utilization and states the role is a stretch assignment on top of my current work",
+                    "Given I submit, then a confirmation is shown and the application appears under my applications"
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01",
+                    "EN-M3.4-01",
+                    "EN-M2.3-01"
+                  ],
+                  "notes": "A stretch assignment adds extra % on top of current work; the application enters the releasing-EM → receiving-EM → PMO chain.",
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M2.2.S6",
+              "name": "Application Review (endorsement → PMO approval)",
+              "description": "Review modal with applicant, current utilization, a 4-step tracker (Releasing EM → Receiving EM → PMO review → Decision), applicant note and a full audit timeline. Releasing EM endorses or declines (spare capacity); receiving EM endorses or declines (role wants them); PMO sets an additive allocation %, sees an over-allocation warning if current+new exceeds 100% (must override to proceed), then Approves (creates the allocation) or Rejects with a note. Every transition is logged.",
+              "roles": [
+                "EM/TL/PM",
+                "PMO"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/requisitions"
+              },
+              "items": [
+                {
+                  "id": "US-M2.2.S6-01",
+                  "type": "story",
+                  "title": "View application review with tracker and audit trail",
+                  "story": "As an EM/TL/PM or PMO, I want to open an application showing the applicant, their current utilization, the 4-step tracker, the applicant note and the full audit timeline so that I can act on it with full context.",
+                  "acceptance_criteria": [
+                    "Given an application, when I open the review, then it shows the applicant, role, current utilization, status pill, the 4-step tracker and the applicant's note",
+                    "Given the review is open, then the full audit timeline of every transition is shown newest-context first",
+                    "Given the application is at a given stage, then the tracker highlights the current step and marks completed steps"
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "EM/TL/PM",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01",
+                    "EN-M3.4-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S6-02",
+                  "type": "story",
+                  "title": "Releasing EM endorses or declines",
+                  "story": "As the releasing EM/TL/PM, I want to endorse that I can spare the applicant's capacity or decline so that only viable applications move forward.",
+                  "acceptance_criteria": [
+                    "Given an application is Submitted, when I record a releasing-EM endorsement, then its status advances to Receiving EM and the transition is logged",
+                    "Given I decline, when I confirm, then the application is rejected, ends, and the applicant will see the decision and reason in their history",
+                    "Given I act, then the transition is recorded to the audit trail"
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "US-M2.2.S6-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S6-03",
+                  "type": "story",
+                  "title": "Receiving EM endorses or declines",
+                  "story": "As the receiving EM/TL/PM, I want to endorse that the role wants this person or decline so that PMO only reviews mutually-confirmed applications.",
+                  "acceptance_criteria": [
+                    "Given an application is at Receiving EM, when I record a receiving-EM endorsement, then its status advances to PMO review and the transition is logged",
+                    "Given I decline, when I confirm, then the application is rejected and ends, with the reason visible in the applicant's history",
+                    "Given I act, then the transition is recorded to the audit trail"
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "US-M2.2.S6-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S6-04",
+                  "type": "story",
+                  "title": "PMO approves and sets allocation",
+                  "story": "As PMO, I want to set an additive allocation % and approve an application so that the internal move is confirmed and the allocation is created.",
+                  "acceptance_criteria": [
+                    "Given an application is at PMO review, when I set an allocation % and approve, then the application becomes Approved at that %, the decision and note are logged",
+                    "Given the applicant's current utilization plus the new % exceeds 100, when I approve, then an over-allocation warning appears and I must tick an override to proceed",
+                    "Given I do not tick the override, when I try to approve an over-allocating %, then approval is blocked with the warning",
+                    "Given approval succeeds, then the resulting allocation is recorded to the audit trail"
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "US-M2.2.S6-01",
+                    "EN-M3.4-01"
+                  ],
+                  "notes": "Allocation is additive (stretch, on top of current). Over-allocation (over 100%) requires an explicit override. Creating the allocation and the utilization figure are owned by the PM RA Monitoring model (EN-M3.4-01); this story is the approval decision and the additive-percent / override gate.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S6-05",
+                  "type": "story",
+                  "title": "PMO rejects with a note",
+                  "story": "As PMO, I want to reject an application with a note so that the applicant and record capture the rationale.",
+                  "acceptance_criteria": [
+                    "Given an application is at PMO review, when I reject with a note and confirm, then the application becomes Rejected and the note is logged",
+                    "Given I confirm rejection, then the decision is recorded to the audit trail and cannot be undone",
+                    "Given the application is rejected, then the applicant sees the outcome and note in their status history"
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "US-M2.2.S6-01"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M2.2.S7",
+              "name": "My Application detail",
+              "description": "Member modal showing the application status pill, the job description and the full status history; while the application is still in flight (Submitted / Receiving EM / PMO review) the member can withdraw it.",
+              "roles": [
+                "Member"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/requisitions",
+                "persona": "employee"
+              },
+              "items": [
+                {
+                  "id": "US-M2.2.S7-01",
+                  "type": "story",
+                  "title": "View my application detail and status history",
+                  "story": "As a Member, I want to open my application to see its status, the job description and the full status history so that I know exactly where it stands.",
+                  "acceptance_criteria": [
+                    "Given one of my applications, when I open it, then it shows the current status pill, the applied date, the role's job description and the full status history",
+                    "Given the application has progressed through endorsements or a decision, then each step appears in the history with its actor, timestamp and note",
+                    "Given I close the modal, then I return to the job board without losing context"
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.2.S7-02",
+                  "type": "story",
+                  "title": "Withdraw my in-flight application",
+                  "story": "As a Member, I want to withdraw an application that is still in progress so that I can pull out before a decision is made.",
+                  "acceptance_criteria": [
+                    "Given my application is Submitted, at Receiving EM or at PMO review, when I open it, then a Withdraw action is available",
+                    "Given my application is already Approved, Rejected or Withdrawn, when I open it, then no Withdraw action is shown",
+                    "Given I confirm withdrawal, then the application becomes Withdrawn, the action is logged, and I am told I can re-apply later while the role is open"
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "Member"
+                  ],
+                  "dependencies": [
+                    "US-M2.2.S7-01"
+                  ],
+                  "notes": "Withdrawal is allowed only while in flight (Submitted / Receiving EM / PMO review); the member may re-apply later while the role is open.",
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "M2.3",
+          "name": "Candidates",
+          "description": "The external recruitment pipeline: a kanban of candidates progressing New → Screening → Interview → Offer → Hired (plus Rejected), a candidate detail drawer for stage moves / rejection / interview scheduling, a CV-parse intake form, and a talent pool that re-matches rejected candidates to open roles. Candidate visibility is scoped exactly like requisitions (BOD/PMO see all; AM sees their account's roles; EM/TL/PM sees their projects' roles).",
+          "status": "not-started",
+          "screens": [
+            {
+              "id": "M2.3.S1",
+              "name": "Candidate Pipeline",
+              "description": "A KPI strip of per-stage counts, a search/open-role filter toolbar with a Board/List toggle, a 5-column kanban of candidate cards (with age-in-stage warning badges), a List table alternative, and a Talent pool of rejected candidates auto-matched to open roles.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/candidates"
+              },
+              "sub_screens": [
+                {
+                  "id": "M2.3.S1.1",
+                  "name": "Stage KPI strip"
+                },
+                {
+                  "id": "M2.3.S1.2",
+                  "name": "Search, open-role filter & Board/List toggle"
+                },
+                {
+                  "id": "M2.3.S1.3",
+                  "name": "Kanban columns & candidate card (age-in-stage)"
+                },
+                {
+                  "id": "M2.3.S1.4",
+                  "name": "Talent pool (rejected re-match)"
+                }
+              ],
+              "items": [
+                {
+                  "id": "EN-M2.3-01",
+                  "type": "enabler",
+                  "title": "Candidate data record & pipeline lifecycle",
+                  "story": "Provide the candidate record and its pipeline lifecycle: identity and contact, seniority, the requisition applied for, source, rating, skills, parsed CV and notes, with status across New → Screening → Interview → Offer → Hired plus Rejected, and a full activity history of every creation, stage change and decision. This record is also the home for internal applicants ingested from the Requisitions apply flow (source 'Internal application').",
+                  "acceptance_criteria": [
+                    "Given a candidate is created (via CV intake or internal application), when the record is saved, then it stores identity, contact, seniority, the applied requisition, source, rating, skills, CV and notes with status New.",
+                    "Given any stage change, rejection or hire, when it occurs, then it is appended to the candidate's activity history with actor and timestamp.",
+                    "Given an internal applicant submitted through the Requisitions apply flow, when it is ingested, then a candidate record is created here with source 'Internal application'."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01"
+                  ],
+                  "notes": "Candidate visibility scoping is intentionally not built here; it is reused from the Requisitions role-based scoping (EN-M2.2-02) by the role-scoped pipeline views.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.3.S1-01",
+                  "type": "story",
+                  "title": "View stage KPI strip",
+                  "story": "As a recruiter or hiring stakeholder (BOD/PMO/AM/EM/TL/PM), I want a strip of per-stage candidate counts so that I can see pipeline health at a glance.",
+                  "acceptance_criteria": [
+                    "Given I open the candidate pipeline, when it loads, then I see counts for New, Screening, Interviewing, Offering and Hired plus a separate Cancelled/Rejected count.",
+                    "Given a stage has no candidates, when I view the strip, then that stage shows zero."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.3-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.3.S1-02",
+                  "type": "story",
+                  "title": "View full candidate pipeline kanban (BOD/PMO)",
+                  "story": "As a BOD or PMO user, I want to see every candidate on a 5-column kanban so that I can oversee the whole recruitment pipeline.",
+                  "acceptance_criteria": [
+                    "Given I am BOD or PMO, when I open the pipeline in Board view, then I see columns New, Screening, Interview, Offer and Hired, each listing its candidate cards with a per-column count.",
+                    "Given a column has no candidates, when I view it, then an empty placeholder is shown.",
+                    "Given a candidate is Hired or Rejected, when I view the active columns, then they no longer appear in the in-progress stages."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.3-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.3.S1-03",
+                  "type": "story",
+                  "title": "View account-scoped pipeline as AM",
+                  "story": "As an Account Manager, I want the pipeline limited to candidates applying for roles on my account(s) so that I only see candidates relevant to me.",
+                  "acceptance_criteria": [
+                    "Given I am an Account Manager, when I open the pipeline, then I only see candidates applying to roles on my account(s) across the board, list and counts.",
+                    "Given a candidate applies to a role outside my account, when I view the pipeline, then they are hidden from me."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "AM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "hiring/candidates",
+                    "persona": "am"
+                  },
+                  "dependencies": [
+                    "EN-M2.3-01",
+                    "EN-M2.2-01",
+                    "EN-M2.2-02"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.3.S1-04",
+                  "type": "story",
+                  "title": "View project-scoped pipeline as EM/TL/PM",
+                  "story": "As an EM/TL/PM, I want the pipeline limited to candidates applying for roles on my project(s) so that I only see candidates relevant to my team.",
+                  "acceptance_criteria": [
+                    "Given I am an EM/TL/PM, when I open the pipeline, then I only see candidates applying to roles on my project(s).",
+                    "Given a candidate applies to a role on another project, when I view the pipeline, then they are hidden from me."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "hiring/candidates",
+                    "persona": "manager"
+                  },
+                  "dependencies": [
+                    "EN-M2.3-01",
+                    "EN-M2.2-02"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.3.S1-05",
+                  "type": "story",
+                  "title": "Search & filter candidates",
+                  "story": "As a recruiter or hiring stakeholder, I want to search by name/role/skill and filter by open role so that I can quickly find specific candidates.",
+                  "acceptance_criteria": [
+                    "Given the pipeline, when I type in the search box, then the board and list narrow to candidates whose name, applied role or skills match.",
+                    "Given I select an open role in the role filter, when it applies, then only candidates applying to that role are shown.",
+                    "Given no candidate matches the search or filter, when I view the pipeline, then an empty state is shown."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.3-01",
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.3.S1-06",
+                  "type": "story",
+                  "title": "Toggle Board / List view",
+                  "story": "As a recruiter or hiring stakeholder, I want to switch between a kanban Board and a List table so that I can view the pipeline in whichever layout suits the task.",
+                  "acceptance_criteria": [
+                    "Given Board view, when I switch to List, then candidates appear in a table with candidate, position, seniority, source, stage and rating columns.",
+                    "Given List view, when I switch back to Board, then the kanban columns are shown.",
+                    "Given an active search or role filter, when I switch views, then both layouts honor the same filter."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.3-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.3.S1-07",
+                  "type": "story",
+                  "title": "See age-in-stage warning badge on candidate cards",
+                  "story": "As a recruiter or hiring stakeholder, I want each candidate card to show how long the candidate has sat in their stage so that I can act on stalled candidates.",
+                  "acceptance_criteria": [
+                    "Given an active candidate, when I view their card, then a badge shows the number of days since they entered the current stage.",
+                    "Given a candidate has been in a stage 7 or more days, when I view the badge, then it shows a warning style; at 14 or more days, a critical style.",
+                    "Given a Hired or Rejected candidate, when I view their card, then no age badge is shown."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.3-01"
+                  ],
+                  "notes": "Age-in-stage is days since the candidate entered the current stage; the badge warns at 7 days and turns critical at 14 days, and is shown only for active (non-Hired, non-Rejected) candidates.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.3.S1-08",
+                  "type": "story",
+                  "title": "View Talent pool of rejected candidates re-matched to open roles",
+                  "story": "As a recruiter or hiring stakeholder, I want past rejected candidates auto-matched to currently open roles so that I can reconsider strong candidates for new openings.",
+                  "acceptance_criteria": [
+                    "Given there are past rejected candidates, when I open the Talent pool section, then each is shown with the open roles they are recommended for.",
+                    "Given a rejected candidate's skills and seniority match one or more open roles, when matches are computed, then the top matching open roles are listed as recommendations.",
+                    "Given a rejected candidate matches no open role, when I view their entry, then it shows that there is no matching open role right now.",
+                    "Given there are no rejected candidates, when I view the pipeline, then the Talent pool section is hidden."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.3-01",
+                    "EN-M2.2-01"
+                  ],
+                  "notes": "Talent pool lists only candidates with status Rejected; matches are derived by overlapping the candidate's skills and seniority against currently open roles, with the top matches surfaced.",
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M2.3.S2",
+              "name": "Candidate detail drawer",
+              "description": "A drawer opened from a candidate card: a clickable pipeline-stage row to move the candidate forward/back, contact and application blocks, the parsed CV doc, skills tags, notes, the candidate's interviews, a full activity timeline, and footer actions to Reject or Schedule an interview. Stage moves and rejection are logged.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/candidates"
+              },
+              "sub_screens": [
+                {
+                  "id": "M2.3.S2.1",
+                  "name": "Pipeline stage row"
+                },
+                {
+                  "id": "M2.3.S2.2",
+                  "name": "Profile (contact, application, CV, skills, notes)"
+                },
+                {
+                  "id": "M2.3.S2.3",
+                  "name": "Interviews list"
+                },
+                {
+                  "id": "M2.3.S2.4",
+                  "name": "Activity timeline"
+                },
+                {
+                  "id": "M2.3.S2.5",
+                  "name": "Footer actions (Reject, Schedule interview)"
+                }
+              ],
+              "items": [
+                {
+                  "id": "US-M2.3.S2-01",
+                  "type": "story",
+                  "title": "View candidate profile in drawer",
+                  "story": "As a recruiter or hiring stakeholder, I want to open a candidate's drawer and see their full profile so that I can assess them in one place.",
+                  "acceptance_criteria": [
+                    "Given I click a candidate card, when the drawer opens, then I see contact (email, phone, DOB, gender), application (position, account/project, source, rating), the parsed CV document, skills tags and notes.",
+                    "Given the candidate has been rejected, when the drawer opens, then a rejected banner is shown."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.3-01",
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.3.S2-02",
+                  "type": "story",
+                  "title": "View candidate activity timeline",
+                  "story": "As a recruiter or hiring stakeholder, I want a chronological activity timeline for the candidate so that I can see the full history of decisions and stage changes.",
+                  "acceptance_criteria": [
+                    "Given the candidate drawer, when I view the Activity section, then I see a chronological timeline of creation, stage changes and rejection, each with timestamp, actor and any note.",
+                    "Given an event has no note, when I view the timeline, then the event is still shown without a note line."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.3-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.3.S2-03",
+                  "type": "story",
+                  "title": "Move candidate through pipeline stages",
+                  "story": "As a recruiter or hiring stakeholder, I want to move a candidate forward or back through the pipeline stages so that the pipeline reflects their real progress.",
+                  "acceptance_criteria": [
+                    "Given an active candidate, when I click a stage in the pipeline-stage row, then the candidate moves to that stage and the change is recorded in the activity history with actor and time.",
+                    "Given I move a candidate to Hired, when the move is applied, then the candidate is marked Hired and handed off to employee onboarding.",
+                    "Given a candidate is already Hired or Rejected, when I view the stage row, then it is locked and no further moves are allowed."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.3-01"
+                  ],
+                  "external_deps": [
+                    {
+                      "needs": "convert a hired candidate into an employee / trigger onboarding",
+                      "likely_module": "M1",
+                      "reason": "onboarding and the employee record are owned by the People module (Onboarding sub-module)"
+                    }
+                  ],
+                  "notes": "Stage moves are appended to the candidate's activity history; moving to Offer or Hired records a decision date, and once a candidate is Hired or Rejected the stage row is locked.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.3.S2-04",
+                  "type": "story",
+                  "title": "Reject a candidate",
+                  "story": "As a recruiter or hiring stakeholder, I want to reject a candidate with a confirmation so that the decision is deliberate and recorded.",
+                  "acceptance_criteria": [
+                    "Given an active candidate, when I click Reject, then I am asked to confirm before the rejection is applied.",
+                    "Given I confirm, when the rejection is applied, then the candidate moves to Rejected and the decision is recorded in the activity history.",
+                    "Given a candidate is already Hired or Rejected, when I view the footer, then the Reject action is disabled."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.3-01"
+                  ],
+                  "notes": "Rejected candidates remain visible under the Rejected/Talent-pool filter for later re-matching.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.3.S2-05",
+                  "type": "story",
+                  "title": "View candidate's interviews in drawer",
+                  "story": "As a recruiter or hiring stakeholder, I want to see the candidate's scheduled and completed interviews in the drawer so that I know where they stand in the interview process.",
+                  "acceptance_criteria": [
+                    "Given the candidate drawer, when I view the Interviews section, then I see the candidate's scheduled and completed interview rounds with date, mode and result.",
+                    "Given the candidate has no interviews, when I view the section, then an empty state is shown."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.3-01",
+                    "EN-M2.4-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.3.S2-06",
+                  "type": "story",
+                  "title": "Schedule an interview from the drawer",
+                  "story": "As a recruiter or hiring stakeholder, I want to schedule an interview directly from the candidate drawer so that I can progress the candidate without leaving their profile.",
+                  "acceptance_criteria": [
+                    "Given the candidate drawer, when I click Schedule interview, then I can schedule an interview for this candidate.",
+                    "Given an interview is scheduled, when I return to the drawer, then it appears in the candidate's Interviews section."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.3-01",
+                    "US-M2.4.S2-01"
+                  ],
+                  "notes": "This story is the drawer entry-point that launches scheduling; the interview-scheduling workflow itself is owned by the Interviews sub-module (M2.4).",
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M2.3.S3",
+              "name": "New candidate (CV-parse intake)",
+              "description": "A modal to create a candidate: drop a CV, the system parses it and auto-fills name, contact, DOB, gender, seniority and detected skills (all editable); pick the position applied for and source, add notes, and save to create the candidate at stage New. A banner reminds the recruiter to verify parsed values against the original CV.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/candidates"
+              },
+              "sub_screens": [
+                {
+                  "id": "M2.3.S3.1",
+                  "name": "CV drop & parse"
+                },
+                {
+                  "id": "M2.3.S3.2",
+                  "name": "Candidate fields form (auto-filled, editable)"
+                }
+              ],
+              "items": [
+                {
+                  "id": "US-M2.3.S3-01",
+                  "type": "story",
+                  "title": "Create a candidate by uploading a CV that auto-fills the fields",
+                  "story": "As a recruiter, I want to upload a CV that auto-fills the candidate's details so that I can add a candidate quickly and accurately.",
+                  "acceptance_criteria": [
+                    "Given the New candidate modal, when I upload a CV, then the system parses it and auto-fills name, contact, DOB, gender, seniority and detected skills, all of which remain editable.",
+                    "Given parsed values are shown, when I review the form, then a banner reminds me to verify the values against the original CV before saving.",
+                    "Given I select the position applied for and the source, add notes and save, then a candidate is created at stage New and appears in the pipeline.",
+                    "Given I try to save without a name or CV, when I click save, then I am warned and no candidate is created."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.3-01",
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "M2.4",
+          "name": "Interviews",
+          "description": "Interview control table and feedback loop for Hiring Management: a scoped, sortable table of all interviews (scheduled to completed) with a KPI strip and filter segment, a schedule form, inline status changes, a structured feedback modal (result/rating/recommendation/Teams transcript/notes), and cancel/no-show reason capture. Interview visibility is scoped exactly like requisitions and candidates (BOD/PMO all; AM their account's roles; EM/TL/PM their projects' roles).",
+          "status": "not-started",
+          "screens": [
+            {
+              "id": "M2.4.S1",
+              "name": "Interview Control Table",
+              "description": "A KPI strip (Scheduled, This week, Completed, Pass rate), a filter segment (All/Upcoming/Completed), a Schedule interview button, and a scoped table where each row shows candidate, position, round, when (relative label + date/time/duration with a Today highlight), mode, panel avatars, an online Join link, an inline status select, and a result pill with an Add feedback affordance once completed.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/interviews"
+              },
+              "sub_screens": [
+                {
+                  "id": "M2.4.S1.1",
+                  "name": "KPI strip"
+                },
+                {
+                  "id": "M2.4.S1.2",
+                  "name": "Filter segment"
+                },
+                {
+                  "id": "M2.4.S1.3",
+                  "name": "Interview row (when/mode/panel/Join/status/result)"
+                },
+                {
+                  "id": "M2.4.S1.4",
+                  "name": "Inline status change"
+                }
+              ],
+              "items": [
+                {
+                  "id": "EN-M2.4-01",
+                  "type": "enabler",
+                  "title": "Interview record & scheduling lifecycle",
+                  "story": "Establish the interview as a first-class record and the schedule → conduct → feedback lifecycle that the whole sub-module depends on: an interview captures candidate, round (Screening/Technical/Culture-fit/Final), date, time, duration, mode (Online/Onsite), interview panel, meeting link, status (Scheduled → Completed/Cancelled/No-show), and result (Pending/Pass/Fail/Hold) plus rating, recommendation, transcript and notes once feedback is recorded.",
+                  "acceptance_criteria": [
+                    "Given an interview is created, when it is saved, then it is persisted with status Scheduled and result Pending and appears in the control table.",
+                    "Given an interview, when its status moves to Completed, Cancelled or No-show, then the change and its outcome (result, or cancellation reason) are retained on the record.",
+                    "Given any state change to an interview, then a timestamped audit entry is written naming the actor and the action."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.3-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.4.S1-01",
+                  "type": "story",
+                  "title": "View interview KPI strip",
+                  "story": "As a hiring stakeholder (BOD/PMO/AM/EM/TL/PM), I want a KPI strip summarising Scheduled, This week, Completed and Pass rate so that I can gauge interview activity and outcomes at a glance.",
+                  "acceptance_criteria": [
+                    "Given interviews I am allowed to see, when the screen loads, then I see counts for Scheduled and Completed and a count of interviews scheduled within the current week.",
+                    "Given completed interviews, then Pass rate is shown as the percentage of completed interviews with a Pass result.",
+                    "Given no completed interviews are in scope, then Pass rate shows 0% rather than an error."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.4-01"
+                  ],
+                  "notes": "Pass rate = passed completed interviews / all completed interviews in scope; 'This week' counts only Scheduled interviews dated within the current week.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.4.S1-02",
+                  "type": "story",
+                  "title": "View the full interview control table",
+                  "story": "As a BOD or PMO user, I want to see every interview in one sortable table so that I can oversee all hiring activity across the company.",
+                  "acceptance_criteria": [
+                    "Given I am BOD or PMO, when I open the table, then I see all interviews regardless of account or project, sorted chronologically by date and time.",
+                    "Given an interview row, then it shows the candidate, the position the candidate applied for, round, when (relative label + date/time/duration), mode, the interview panel, an online Join link, the status, and a result pill.",
+                    "Given an interview scheduled for today and still Scheduled, then its row is highlighted as Today.",
+                    "Given no interviews exist, then an empty-state message is shown instead of an empty table."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.4-01",
+                    "EN-M2.3-01",
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.4.S1-03",
+                  "type": "story",
+                  "title": "View account-scoped interviews as AM",
+                  "story": "As an AM, I want the interview table limited to interviews for my account's roles so that I only see hiring activity I am responsible for.",
+                  "acceptance_criteria": [
+                    "Given I am an AM, when I open the table, then I see only interviews whose candidate applied for a role on one of my accounts.",
+                    "Given an interview outside my accounts, then it never appears in my table or KPI counts.",
+                    "Given I have no in-scope interviews, then an empty-state message is shown."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "AM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "hiring/interviews",
+                    "persona": "am"
+                  },
+                  "dependencies": [
+                    "EN-M2.4-01",
+                    "EN-M2.2-02",
+                    "EN-M2.3-01",
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.4.S1-04",
+                  "type": "story",
+                  "title": "View project-scoped interviews as EM/TL/PM",
+                  "story": "As an EM/TL/PM, I want the interview table limited to interviews for my projects' roles so that I only see hiring activity for my teams.",
+                  "acceptance_criteria": [
+                    "Given I am an EM/TL/PM, when I open the table, then I see only interviews whose candidate applied for a role on one of my projects.",
+                    "Given an interview outside my projects, then it never appears in my table or KPI counts.",
+                    "Given I have no in-scope interviews, then an empty-state message is shown."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "EM/TL/PM"
+                  ],
+                  "mockup_ref": {
+                    "screen": "hiring/interviews",
+                    "persona": "manager"
+                  },
+                  "dependencies": [
+                    "EN-M2.4-01",
+                    "EN-M2.2-02",
+                    "EN-M2.3-01",
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.4.S1-05",
+                  "type": "story",
+                  "title": "Filter the interview table",
+                  "story": "As a hiring stakeholder, I want to filter the table by All, Upcoming or Completed so that I can focus on what is still to happen or on past outcomes.",
+                  "acceptance_criteria": [
+                    "Given the filter segment, when I choose Upcoming, then only Scheduled interviews remain visible.",
+                    "Given the filter segment, when I choose Completed, then only Completed interviews remain visible.",
+                    "Given the chosen filter excludes everything in my scope, then an empty-state message is shown."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.4-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.4.S1-06",
+                  "type": "story",
+                  "title": "Join an online interview",
+                  "story": "As a hiring stakeholder, I want a Join link on online interview rows so that I can open the meeting directly from the table.",
+                  "acceptance_criteria": [
+                    "Given an Online interview with a meeting link, then the row shows a Join link that opens the meeting in a new tab.",
+                    "Given an Onsite interview or an interview with no meeting link, then no Join link is shown.",
+                    "Given I click Join, then the row's other actions (e.g. opening detail) are not triggered."
+                  ],
+                  "story_points": 1,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.4-01"
+                  ],
+                  "notes": "Online meeting links integrate with Microsoft Teams.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.4.S1-07",
+                  "type": "story",
+                  "title": "Change interview status inline",
+                  "story": "As a hiring stakeholder, I want to change an interview's status inline from the table so that I can keep its state current without opening a separate screen.",
+                  "acceptance_criteria": [
+                    "Given a row's status select, when I choose Scheduled, then the interview is set to Scheduled, its result returns to Pending, and the change is logged.",
+                    "Given I choose Completed, then the feedback modal opens to capture the outcome before the status is committed.",
+                    "Given I choose Cancelled or No-show, then the reason modal opens to capture a reason before the status is committed.",
+                    "Given a Completed interview, then a result pill plus an Add feedback affordance (or the existing rating) is shown."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.4-01"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M2.4.S2",
+              "name": "Schedule Interview (form)",
+              "description": "Modal to schedule an interview: pick the candidate from the active pipeline, round, date, time, duration, mode, meeting link (auto-generated for Online), a multi-select interview panel (at least one required), and a note. Saving creates the interview as Scheduled, advances a New/Screening candidate to the Interview stage, and is logged.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/interviews"
+              },
+              "items": [
+                {
+                  "id": "US-M2.4.S2-01",
+                  "type": "story",
+                  "title": "Schedule an interview",
+                  "story": "As a hiring stakeholder, I want to schedule an interview by picking a candidate, round, date/time/duration, mode, panel and note so that the interview is booked and appears on the control table.",
+                  "acceptance_criteria": [
+                    "Given the form, when I select a candidate from the active pipeline (candidates not yet Hired or Rejected) and complete round, date, time, duration and mode, then a new interview is created with status Scheduled.",
+                    "Given the panel multi-select, when I try to save with no panel member selected, then saving is blocked with a prompt to pick at least one.",
+                    "Given mode is Online and I leave the meeting link blank, then a meeting link is auto-generated; given mode is Onsite, then no link is required.",
+                    "Given the interview is saved, then it is added to the control table and the action is logged against the candidate."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.4-01",
+                    "EN-M2.3-01"
+                  ],
+                  "notes": "Candidate pool excludes Hired and Rejected candidates. Online meeting links integrate with Microsoft Teams (auto-generated meeting link).",
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M2.4.S3",
+              "name": "Interview Feedback (modal)",
+              "description": "Modal to record an interview outcome: Result (Pass/Hold/Fail), an overall star rating, a Recommendation (Hire/Next round/No hire), a Microsoft Teams transcript (paste or Pull from Teams), and free-text strengths/concerns. Saving marks the interview Completed, writes the result back to the candidate, and may surface that the candidate is ready to move to Offer.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/interviews"
+              },
+              "sub_screens": [
+                {
+                  "id": "M2.4.S3.1",
+                  "name": "Result / rating / recommendation"
+                },
+                {
+                  "id": "M2.4.S3.2",
+                  "name": "Teams transcript"
+                },
+                {
+                  "id": "M2.4.S3.3",
+                  "name": "Feedback notes"
+                }
+              ],
+              "items": [
+                {
+                  "id": "US-M2.4.S3-01",
+                  "type": "story",
+                  "title": "Record interview result, rating and recommendation",
+                  "story": "As an interviewer (BOD/PMO/EM/TL/PM), I want to record a result, an overall star rating and a hiring recommendation so that the interview outcome is captured and reflected on the candidate.",
+                  "acceptance_criteria": [
+                    "Given the feedback modal, when I pick a Result (Pass/Hold/Fail), an overall rating (1-5 stars) and a Recommendation (Hire/Next round/No hire) and save, then the interview is marked Completed with that result and rating.",
+                    "Given the result is saved, then the result pill and rating are shown on the interview row.",
+                    "Given a Pass result with a Hire recommendation for a candidate currently at the Interview stage, then the user is informed the candidate is ready to move to Offer."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.4-01",
+                    "EN-M2.3-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.4.S3-02",
+                  "type": "story",
+                  "title": "Capture the Teams transcript",
+                  "story": "As an interviewer, I want to paste or pull the Microsoft Teams transcript into the feedback so that the conversation record is attached to the interview.",
+                  "acceptance_criteria": [
+                    "Given the transcript field, when I paste text, then it is stored with the feedback on save.",
+                    "Given an interview held over Microsoft Teams, when I choose Pull from Teams, then the transcript field is populated from the meeting.",
+                    "Given no transcript is provided, then feedback can still be saved without one."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.4-01"
+                  ],
+                  "notes": "Transcript pull integrates with Microsoft Teams.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.4.S3-03",
+                  "type": "story",
+                  "title": "Write feedback strengths and concerns",
+                  "story": "As an interviewer, I want to write free-text strengths and concerns so that I can capture the qualitative reasoning behind the result.",
+                  "acceptance_criteria": [
+                    "Given the feedback notes field, when I enter text and save, then it is retained on the interview.",
+                    "Given existing notes on the interview, when I reopen the modal, then the previous notes are pre-filled and editable.",
+                    "Given the notes field is left empty, then feedback can still be saved."
+                  ],
+                  "story_points": 2,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.4-01"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M2.4.S4",
+              "name": "Cancel / No-show (modal)",
+              "description": "Modal that captures a reason when an interview is set to Cancelled or No-show; the interview's result returns to Pending and the action is logged.",
+              "roles": [
+                "BOD",
+                "PMO",
+                "AM",
+                "EM/TL/PM"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/interviews"
+              },
+              "items": [
+                {
+                  "id": "US-M2.4.S4-01",
+                  "type": "story",
+                  "title": "Capture a cancel / no-show reason",
+                  "story": "As a hiring stakeholder, I want to record why an interview was Cancelled or marked No-show so that the reason is preserved for the hiring record.",
+                  "acceptance_criteria": [
+                    "Given I set an interview to Cancelled or No-show, when the reason modal opens, then I can enter a reason and confirm.",
+                    "Given I confirm, then the interview's status is updated to the chosen state, its result returns to Pending, the reason is stored, and the action is logged.",
+                    "Given I close or go back without confirming, then the interview's status is left unchanged."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO",
+                    "AM",
+                    "EM/TL/PM"
+                  ],
+                  "dependencies": [
+                    "EN-M2.4-01"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "M3",
       "name": "Project Monitoring",
       "description": "PM/PMO project-governance module: portfolio health, project-request approvals, weekly reports, resource-allocation monitoring, risks & issues, and KPI metrics. Owns the project record, QCDP health and staffing/allocations the People module reads.",
@@ -2512,14 +4091,8 @@
                     "EM/TL/PM"
                   ],
                   "dependencies": [
-                    "US-M3.3.S2-01"
-                  ],
-                  "external_deps": [
-                    {
-                      "needs": "create a backfill requisition in recruitment",
-                      "likely_module": "M2",
-                      "reason": "the backfill creates a requisition owned by the Hiring/Recruitment module (M2)."
-                    }
+                    "US-M3.3.S2-01",
+                    "EN-M2.2-01"
                   ],
                   "status": "not-started"
                 }

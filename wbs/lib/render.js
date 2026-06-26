@@ -30,6 +30,41 @@
   // Builds the detail HTML for a node's data — shared by the hover tooltip and the
   // click modal. `withShot` adds the related-screen screenshot (modal only; the
   // hover tooltip stays compact/text-only).
+  // The read-only meta of an item (notes / roles / dependencies / external needs) —
+  // shared by the read-only detail and the in-place edit view. The screenshot is
+  // rendered separately (shotHTML) so the Edit button can sit between meta and screen.
+  function itemTailHTML(dd){
+    let h='';
+    if (dd.notes) h += '<div class="tt-meta">📌 '+dd.notes+'</div>';
+    if (dd.roles && dd.roles.length) h += '<div class="tt-meta">◢ '+dd.roles.join(' · ')+'</div>';
+    if (dd.deps && dd.deps.length){
+      const parts = dd.deps.map(x => {
+        const cross = dd.crossDeps&&dd.crossDeps.indexOf(x)>=0 ? ' ⤴' : '';
+        return itemsById[x] ? '<a class="dep-link" data-dep="'+x+'">'+x+'</a>'+cross : x+cross;
+      });
+      h += '<div class="tt-meta" style="color:'+(dd.crossBlocked?C.blocked:C.dim)+'">⛓ blocked by '+parts.join(', ')+(dd.crossDeps&&dd.crossDeps.length?'  · ⤴ cross-module':'')+'</div>';
+    }
+    if (dd.blocks && dd.blocks.length){
+      const parts = dd.blocks.map(x => {
+        const cross = dd.crossBlocks&&dd.crossBlocks.indexOf(x)>=0 ? ' ⤴' : '';
+        return (itemsById[x] ? '<a class="dep-link" data-dep="'+x+'">'+x+'</a>' : x)+cross;
+      });
+      h += '<div class="tt-meta" style="color:'+C.dim+'">⛔ blocks '+parts.join(', ')+(dd.crossBlocks&&dd.crossBlocks.length?'  · ⤴ cross-module':'')+'</div>';
+    }
+    if (dd.ext && dd.ext.length)
+      h += '<div class="tt-meta" style="color:'+C.blocked+'">⚠ external need: '+dd.ext.map(e=>e.needs+(e.likely_module?' ['+e.likely_module+']':'')).join(' · ')+'</div>';
+    return h;
+  }
+
+  // The RELATED SCREEN screenshot block (modal only; '' when no shot was captured).
+  function shotHTML(dd){
+    const shot = shotFor(dd);
+    if (!shot) return '';
+    return '<div class="tt-shot-wrap"><b class="tt-shot-h">RELATED SCREEN</b>'
+      + '<a href="screens/'+shot+'" target="_blank" rel="noopener" title="open full screenshot in a new tab">'
+      + '<img class="tt-shot" src="screens/'+shot+'" loading="lazy" alt="Related mockup screen for '+dd.id+'"></a></div>';
+  }
+
   function detailHTML(dd, withShot){
     let h='<div class="tt-id">'+dd.id+'</div><div class="tt-name">'+dd.name+'</div>';
     if (isItem({data:dd})){
@@ -37,35 +72,96 @@
       h += '<div class="tt-badge" style="color:'+c+'">'+dd.type.toUpperCase()+' · SP '+dd.sp+' · '+(dd.status||'')+'</div>';
       if (dd.story) h += '<div class="tt-story">'+dd.story+'</div>';
       if (dd.ac && dd.ac.length) h += '<div class="tt-ac"><b>Acceptance</b><ul>'+dd.ac.map(a=>'<li>'+a+'</li>').join('')+'</ul></div>';
-      if (dd.notes) h += '<div class="tt-meta">📌 '+dd.notes+'</div>';
-      if (dd.roles && dd.roles.length) h += '<div class="tt-meta">◢ '+dd.roles.join(' · ')+'</div>';
-      if (dd.deps && dd.deps.length){
-        const parts = dd.deps.map(x => {
-          const cross = dd.crossDeps&&dd.crossDeps.indexOf(x)>=0 ? ' ⤴' : '';
-          return itemsById[x] ? '<a class="dep-link" data-dep="'+x+'">'+x+'</a>'+cross : x+cross;
-        });
-        h += '<div class="tt-meta" style="color:'+(dd.crossBlocked?C.blocked:C.dim)+'">⛓ blocked by '+parts.join(', ')+(dd.crossDeps&&dd.crossDeps.length?'  · ⤴ cross-module':'')+'</div>';
-      }
-      if (dd.blocks && dd.blocks.length){
-        const parts = dd.blocks.map(x => {
-          const cross = dd.crossBlocks&&dd.crossBlocks.indexOf(x)>=0 ? ' ⤴' : '';
-          return (itemsById[x] ? '<a class="dep-link" data-dep="'+x+'">'+x+'</a>' : x)+cross;
-        });
-        h += '<div class="tt-meta" style="color:'+C.dim+'">⛔ blocks '+parts.join(', ')+(dd.crossBlocks&&dd.crossBlocks.length?'  · ⤴ cross-module':'')+'</div>';
-      }
-      if (dd.ext && dd.ext.length)
-        h += '<div class="tt-meta" style="color:'+C.blocked+'">⚠ external need: '+dd.ext.map(e=>e.needs+(e.likely_module?' ['+e.likely_module+']':'')).join(' · ')+'</div>';
-      const shot = withShot && shotFor(dd);
-      if (shot)
-        h += '<div class="tt-shot-wrap"><b class="tt-shot-h">RELATED SCREEN</b>'
-           + '<a href="screens/'+shot+'" target="_blank" rel="noopener" title="open full screenshot in a new tab">'
-           + '<img class="tt-shot" src="screens/'+shot+'" loading="lazy" alt="Related mockup screen for '+dd.id+'"></a></div>';
+      h += itemTailHTML(dd) + (withShot ? shotHTML(dd) : '');
     } else {
       if (dd.description) h += '<div class="tt-story">'+dd.description+'</div>';
       if (dd.total_us) h += '<div class="tt-meta">Σ '+dd.total_us+' items · '+dd.total_sp+' pts</div>';
       if (dd.roles && dd.roles.length) h += '<div class="tt-meta">◢ '+dd.roles.join(' · ')+'</div>';
     }
     return h;
+  }
+
+  // ── item comments (stored in comments.json; posting is live-mode only) ───
+  let commentsByItem = {};   // itemId → [ {id,text,author,state,created,updated,agent_note} ]
+  let liveMode = false;      // true only when served by serve.mjs (enables the post UI)
+  const draft = {};          // itemId → in-progress comment text (survives live re-renders)
+  const CM_STATES = ['open', 'resolved', 'unresolved', 'skip'];
+
+  const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+  function fmtTime(iso){
+    const d = new Date(iso); if (isNaN(d)) return '';
+    return d.toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' ' + d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+  }
+
+  function commentItemHTML(itemId, c){
+    const cls = 'cm-' + c.state;
+    let h = '<div class="cm-item '+cls+'" data-cid="'+c.id+'">';
+    h += '<div class="cm-meta"><span class="cm-badge '+cls+'">'+c.state+'</span>'
+       + '<span class="cm-author">'+esc(c.author||'you')+'</span>'
+       + '<span class="cm-time">'+fmtTime(c.created)+'</span></div>';
+    h += '<div class="cm-text">'+esc(c.text)+'</div>';
+    if (c.agent_note) h += '<div class="cm-agent">↳ '+esc(c.agent_note)+'</div>';
+    if (liveMode){
+      h += '<div class="cm-actions">';
+      if (c.state!=='skip') h += '<button class="cm-act" data-act="skip" data-item="'+itemId+'" data-cid="'+c.id+'">skip</button>';
+      if (c.state!=='open') h += '<button class="cm-act" data-act="open" data-item="'+itemId+'" data-cid="'+c.id+'">reopen</button>';
+      h += '<button class="cm-act cm-del" data-act="delete" data-item="'+itemId+'" data-cid="'+c.id+'">delete</button>';
+      h += '</div>';
+    }
+    return h + '</div>';
+  }
+
+  function commentsHTML(itemId){
+    const list = commentsByItem[itemId] || [];
+    const n = { open:0, resolved:0, unresolved:0, skip:0 };
+    list.forEach(c => { if (n[c.state]!=null) n[c.state]++; });
+    let h = '<div class="cm-wrap"><div class="cm-head"><b class="cm-h">COMMENTS</b><span class="cm-summary">'
+      + CM_STATES.map(s => '<span class="cm-count cm-'+s+(n[s]?'':' z')+'">'+n[s]+' '+s+'</span>').join('')
+      + '</span></div>';
+    h += list.length ? '<div class="cm-list">'+list.map(c=>commentItemHTML(itemId,c)).join('')+'</div>'
+                     : '<div class="cm-empty">No comments yet.</div>';
+    if (liveMode)
+      h += '<div class="cm-form"><textarea class="cm-input" rows="2" placeholder="Add a comment for the review agent…"></textarea>'
+         + '<button class="cm-add" data-item="'+itemId+'">Add comment</button></div>';
+    return h + '</div>';
+  }
+
+  // POST an add/setState/delete op; the server writes comments.json, which fires
+  // the file-watch → SSE → re-render (same path wbs.json edits use).
+  function postComment(payload){
+    return fetch('/comments', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+      .then(r => r.json())
+      .then(res => { if (res && res.error) throw new Error(res.error); return res; })
+      .catch(e => { flash('✗ '+e.message); throw e; });
+  }
+
+  // ── inline item editing (live mode only) ────────────────────────────────
+  let editing = null;   // id of the item being edited in place (suppresses SSE rebuilds)
+  const acRow = a => '<div class="ed-ac-row"><input type="text" class="ed-ac-input" value="'+esc(a)+'"><button class="ed-ac-del" type="button" title="remove">×</button></div>';
+  // Edit view: the SAME top fields as the read-only detail, but rendered as inputs in
+  // place (no duplicated read-only copy). The tail (notes/deps/screenshot) stays read-only.
+  function editDetailHTML(dd){
+    const sel = (cur, opts) => opts.map(o => '<option value="'+o+'"'+(String(o)===String(cur)?' selected':'')+'>'+o+'</option>').join('');
+    const ac = dd.ac && dd.ac.length ? dd.ac : [''];
+    let h = '<div class="tt-id">'+dd.id+' · editing</div>';
+    h += '<div class="ed-field"><label>Title</label><input class="ed-title" type="text" value="'+esc(dd.name)+'"></div>';
+    h += '<div class="ed-grid">'
+       +   '<div class="ed-field"><label>Status</label><select class="ed-status">'+sel(dd.status,['not-started','in-progress','done','blocked'])+'</select></div>'
+       +   '<div class="ed-field"><label>Story points</label><select class="ed-sp">'+sel(dd.sp,[1,2,3,5,8,13])+'</select></div>'
+       + '</div>';
+    h += '<div class="ed-field"><label>Story</label><textarea class="ed-story" rows="4">'+esc(dd.story)+'</textarea></div>';
+    h += '<div class="ed-field"><label>Acceptance criteria</label><div class="ed-ac">'
+       +   ac.map(acRow).join('') + '<button class="ed-ac-add" type="button">+ add criterion</button></div></div>';
+    h += itemTailHTML(dd);          // notes / roles / deps stay read-only
+    h += '<div class="ed-actions"><button class="ed-save">Save changes</button><button class="ed-cancel">Cancel</button></div>';
+    h += shotHTML(dd);              // related screen below the editor
+    return h;
+  }
+  function postItem(id, patch){
+    return fetch('/item', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id, patch }) })
+      .then(r => r.json())
+      .then(res => { if (res && res.error) throw new Error(res.error); return res; })
+      .catch(e => { flash('✗ '+e.message); throw e; });
   }
 
   // Modal: a pinned, dismissable view of a node's detail (same content as the hover tooltip).
@@ -75,10 +171,33 @@
     const back = document.getElementById('modal-back');
     const body = document.getElementById('modal-body');
     if (!back || !body) return;
-    body.innerHTML = detailHTML(dd, true);   // modal includes the related-screen shot
+    if (editing && editing !== dd.id) editing = null;   // navigated to a different item
+    // While editing this item in place, don't rebuild — preserve in-progress edits.
+    if (editing === dd.id && body.dataset.itemId === dd.id && body.querySelector('.ed-title')){
+      back.classList.add('visible'); return;
+    }
+    // Preserve any in-progress comment draft + caret across live SSE re-renders.
+    const ta = body.querySelector('.cm-input');
+    if (ta && body.dataset.itemId) draft[body.dataset.itemId] = ta.value;
+    const hadFocus = ta && document.activeElement === ta;
+    const selS = ta ? ta.selectionStart : 0, selE = ta ? ta.selectionEnd : 0;
+    body.dataset.itemId = dd.id;
+    const item = isItem({data:dd});
+    // In edit mode the editable top REPLACES the read-only detail (no duplicate).
+    // Read-only: detail (no shot) → Edit button → related screen, so the button
+    // sits just above the screenshot.
+    const top = (liveMode && item && editing === dd.id)
+      ? editDetailHTML(dd)
+      : detailHTML(dd, false)
+        + (liveMode && item ? '<button class="ed-toggle">✎ Edit fields</button>' : '')
+        + (item ? shotHTML(dd) : '');
+    body.innerHTML = top + (item ? commentsHTML(dd.id) : '');
+    const ta2 = body.querySelector('.cm-input');
+    if (ta2){ ta2.value = draft[dd.id] || ''; if (hadFocus){ ta2.focus(); try { ta2.setSelectionRange(selS, selE); } catch {} } }
     back.classList.add('visible');
   }
   function hideModalUI(){
+    editing = null;
     const back = document.getElementById('modal-back');
     if (back) back.classList.remove('visible');
   }
@@ -101,9 +220,56 @@
   if (typeof document !== 'undefined' && !document.body.dataset.modalWired){
     document.body.dataset.modalWired = '1';
     document.addEventListener('click', e => {
-      const link = e.target && e.target.closest && e.target.closest('.dep-link');
+      const t = e.target;
+      const link = t && t.closest && t.closest('.dep-link');
       if (link){ openModal(itemsById[link.dataset.dep]); return; }
-      if (e.target && (e.target.id === 'modal-back' || e.target.id === 'modal-close')) closeModal();
+      const add = t && t.closest && t.closest('.cm-add');
+      if (add){
+        const item = add.dataset.item;
+        const box = add.closest('.cm-form').querySelector('.cm-input');
+        const text = (box.value || '').trim();
+        if (!text) return;
+        add.disabled = true;
+        postComment({ op:'add', item_id:item, text })
+          .then(() => { draft[item] = ''; box.value = ''; flash('comment added'); })
+          .catch(()=>{}).finally(() => { add.disabled = false; });
+        return;
+      }
+      const act = t && t.closest && t.closest('.cm-act');
+      if (act){
+        const op = act.dataset.act, item = act.dataset.item, cid = act.dataset.cid;
+        const payload = op==='delete' ? { op:'delete', item_id:item, comment_id:cid }
+                                      : { op:'setState', item_id:item, comment_id:cid, state:op };
+        postComment(payload).then(()=>flash(op==='delete'?'comment deleted':'marked '+op)).catch(()=>{});
+        return;
+      }
+      const curId = () => { const b = document.getElementById('modal-body'); return b && b.dataset.itemId; };
+      if (t && t.closest && t.closest('.ed-toggle')){ editing = curId(); showModalUI(itemsById[editing]); return; }
+      if (t && t.closest && t.closest('.ed-cancel')){ const id = curId(); editing = null; showModalUI(itemsById[id]); return; }
+      if (t && t.closest && t.closest('.ed-ac-add')){ t.closest('.ed-ac-add').insertAdjacentHTML('beforebegin', acRow('')); return; }
+      if (t && t.closest && t.closest('.ed-ac-del')){ const r = t.closest('.ed-ac-row'); if (r) r.remove(); return; }
+      const save = t && t.closest && t.closest('.ed-save');
+      if (save){
+        const id = curId(), body = document.getElementById('modal-body');
+        const patch = {
+          status: body.querySelector('.ed-status').value,
+          story_points: Number(body.querySelector('.ed-sp').value),
+          title: body.querySelector('.ed-title').value,
+          story: body.querySelector('.ed-story').value,
+          acceptance_criteria: [...body.querySelectorAll('.ed-ac-input')].map(i => i.value.trim()).filter(Boolean),
+        };
+        save.disabled = true;
+        postItem(id, patch).then(() => { editing = null; flash('saved'); }).catch(()=>{}).finally(() => { save.disabled = false; });
+        return;
+      }
+      if (t && (t.id === 'modal-back' || t.id === 'modal-close')) closeModal();
+    });
+    // Keep the draft in sync so an SSE re-render never loses half-typed text.
+    document.addEventListener('input', e => {
+      if (e.target && e.target.classList && e.target.classList.contains('cm-input')){
+        const body = document.getElementById('modal-body');
+        if (body && body.dataset.itemId) draft[body.dataset.itemId] = e.target.value;
+      }
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
     window.addEventListener('hashchange', syncModalFromHash);
@@ -321,7 +487,9 @@
   Object.assign(window.WBS, {
     renderWBS(data, stats){ renderHeader(data, stats); render(wbsToHierarchy(data)); syncModalFromHash(); },
     renderHeader,
-    setScreens(idx){ screenIndex = idx || null; },   // { byItem, byScreen } from screens/index.json
+    setScreens(idx){ screenIndex = idx || null; },    // { byItem, byScreen } from screens/index.json
+    setComments(map){ commentsByItem = map || {}; },  // itemId → comments[]; from comments.json
+    setLive(v){ liveMode = !!v; },                     // enable the post UI (serve.mjs only)
     flash,
   });
 })();
