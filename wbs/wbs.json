@@ -1639,6 +1639,405 @@
       "status": "in-progress",
       "sub_modules": [
         {
+          "id": "M2.1",
+          "name": "Reports",
+          "description": "Strategic recruitment analytics for hiring leadership: a one-screen executive dashboard giving the 30-second read on hiring health (KPIs, pipeline, open-position deadlines, demand vs capacity, recruiter/channel performance, weekly AI signals), plus a built-but-unwired insights screen (on-time fulfillment, hiring leadtime, an AI JD↔CV match analyzer, and pass/fail case-study patterns). Company-wide analytics for the executive/governance audience; the report reads from requisitions, candidates and interviews owned by sibling Hiring sub-modules.",
+          "status": "not-started",
+          "screens": [
+            {
+              "id": "M2.1.S1",
+              "name": "Recruitment Reports (executive dashboard)",
+              "description": "A single scrolling executive dashboard for hiring leadership: an at-a-glance KPI strip with a composite hiring-health score, the candidate pipeline (funnel pass-through and stage leadtimes), open positions against their deadlines, a 6-month opened-vs-filled trend and 4-month demand forecast, recruiter and source performance, and weekly AI action signals.",
+              "roles": [
+                "BOD",
+                "PMO"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/reports"
+              },
+              "sub_screens": [
+                {
+                  "id": "M2.1.S1.1",
+                  "name": "Executive KPI strip"
+                },
+                {
+                  "id": "M2.1.S1.2",
+                  "name": "Hiring pipeline (funnel + stage leadtimes)"
+                },
+                {
+                  "id": "M2.1.S1.3",
+                  "name": "Open positions vs deadline"
+                },
+                {
+                  "id": "M2.1.S1.4",
+                  "name": "Can we keep up with demand?"
+                },
+                {
+                  "id": "M2.1.S1.5",
+                  "name": "Recruiters & channels"
+                },
+                {
+                  "id": "M2.1.S1.6",
+                  "name": "What to act on this week"
+                }
+              ],
+              "items": [
+                {
+                  "id": "EN-M2.1-01",
+                  "type": "enabler",
+                  "title": "Recruitment reporting dataset & aggregations",
+                  "story": "Provide the report-specific computed layer that powers both recruitment report screens — funnel pass-through, per-stage leadtimes, average time-to-hire, offer-accept rate, the composite hiring-health score, source performance, the recruiter scorecard, the opened-vs-filled hire trend and the next-months demand forecast — derived from requisitions, candidates and interviews.",
+                  "acceptance_criteria": [
+                    "Given the underlying requisition, candidate and interview records, when the reporting layer runs, then it produces the funnel counts with step-to-step pass-through, per-stage average leadtimes, average days-to-hire and offer-accept rate.",
+                    "Given role ageing, pipeline volume, conversion and offer-accept rate, when the hiring-health score is computed, then it returns a 0–100 score with a Healthy / Needs attention / At risk band.",
+                    "Given source and recruiter activity, when aggregates are computed, then source performance is ranked by hire-rate (with cost-per-hire) and recruiters are scored by a weighted blend of hires, on-time %, time-to-fill and CSAT.",
+                    "Given missing or empty source records for a period, when an aggregate cannot be computed, then it returns an empty/neutral result rather than failing the dashboard."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01",
+                    "EN-M2.3-01",
+                    "EN-M2.4-01"
+                  ],
+                  "notes": "Recruiter performance, source performance, offer stats, the funnel snapshot, the hire trend and the demand forecast are report-owned aggregates computed in this layer; only requisition, candidate and interview source records are external.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.1.S1-01",
+                  "type": "story",
+                  "title": "View the executive KPI strip",
+                  "story": "As a member of hiring leadership, I want an at-a-glance KPI strip showing open positions with month-over-month change, candidates in process, average days to hire against the 30-day goal, and offers-accepted percentage so that I can read hiring health in seconds.",
+                  "acceptance_criteria": [
+                    "Given the current reporting data, when I open the dashboard, then I see open positions with the +/- change versus last month, candidates in process, average days to hire, and offers-accepted percentage.",
+                    "Given average days to hire exceeds the 30-day goal, when the avg-days KPI renders, then it is flagged as over goal and shows how many days over; otherwise it shows as within goal.",
+                    "Given the offers KPI, when it renders, then it shows the accepted-versus-extended count alongside the percentage.",
+                    "Given no open positions in scope, when the strip renders, then per-role derived values degrade gracefully without error."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.1-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.1.S1-02",
+                  "type": "story",
+                  "title": "View the composite hiring-health score",
+                  "story": "As a member of hiring leadership, I want a single hiring-health score out of 100 blended from role ageing, pipeline volume, conversion and offer-accept rate so that I get one governance-level signal of overall hiring health.",
+                  "acceptance_criteria": [
+                    "Given the computed inputs, when the health card renders, then it shows a score out of 100 with a progress bar and one of Healthy, Needs attention, or At risk.",
+                    "Given a score of 75 or above, when the band is shown, then it reads Healthy; 55–74 reads Needs attention; below 55 reads At risk, each in its corresponding colour.",
+                    "Given the score blends role ageing, pipeline volume, conversion and offer-accept rate, when any one input shifts, then the score and band update accordingly."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.1-01"
+                  ],
+                  "notes": "Hiring-health score = equal blend of role-ageing score, pipeline-volume score, conversion score and offer-accept rate, normalised to 0–100.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.1.S1-03",
+                  "type": "story",
+                  "title": "View the hiring pipeline funnel with pass-through",
+                  "story": "As a member of hiring leadership, I want a funnel of how many candidates sit at each step from Applied to Hired with the step-to-step pass-through percentage and the biggest-drop call-out so that I can see where the pipeline stalls.",
+                  "acceptance_criteria": [
+                    "Given the pipeline data, when the funnel renders, then each step (Applied, Screening, Interview, Offer, Hired) shows its count and its share of the Applied total.",
+                    "Given consecutive steps, when the funnel renders, then the percentage of candidates moving on to the next step is shown between steps.",
+                    "Given the step with the lowest pass-through, when the funnel renders, then it is highlighted as the biggest drop with a summary insight naming that step.",
+                    "Given no candidates in the pipeline, when the funnel renders, then it shows zero counts without dividing-by-zero errors."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.1-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.1.S1-04",
+                  "type": "story",
+                  "title": "View average time spent at each pipeline step",
+                  "story": "As a member of hiring leadership, I want to see the average number of days candidates spend at each pipeline step derived from candidate history so that I can find the slowest stage to fix.",
+                  "acceptance_criteria": [
+                    "Given candidate stage history, when the leadtime section renders, then each step transition shows its average days and the number of candidates it is based on.",
+                    "Given a step transition with no historical data, when it renders, then it shows a no-data state rather than a misleading zero.",
+                    "Given the computed leadtimes, when the section renders, then the slowest step is highlighted and the end-to-end total leadtime is summarised in an insight."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.1-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.1.S1-05",
+                  "type": "story",
+                  "title": "View open positions against their deadlines",
+                  "story": "As a member of hiring leadership, I want a table of every open role showing how long it has been open, its due date, time left, and an On track / Due soon / Overdue status with a summary insight so that I can see which roles will miss their deadline.",
+                  "acceptance_criteria": [
+                    "Given the open requisitions in my scope, when the table renders, then each row shows the role, account, days open, due date, time left, and a status of On track, Due soon, or Overdue.",
+                    "Given a role past its due date, when its row renders, then it is marked Overdue; a role due within three weeks is marked Due soon; otherwise On track.",
+                    "Given the rows, when the summary insight renders, then it states how many are overdue, how many are due soon, the longest-open role, and the overall on-track percentage.",
+                    "Given no open positions in scope, when the section renders, then it shows an empty state without error."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.1-01",
+                    "EN-M2.2-01"
+                  ],
+                  "notes": "This section respects requisition scope — only requisitions the viewer is permitted to see are counted, even though the dashboard audience is BOD/PMO.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.1.S1-06",
+                  "type": "story",
+                  "title": "View roles-opened-vs-filled trend",
+                  "story": "As a member of hiring leadership, I want a trend of roles opened versus roles filled over the last six months so that I can see whether we are filling roles as fast as we open them.",
+                  "acceptance_criteria": [
+                    "Given six months of hiring data, when the chart renders, then it plots roles opened and people hired as two series across the months with a legend.",
+                    "Given opened consistently exceeds hired, when the chart renders, then the accompanying insight flags hiring capacity as the constraint.",
+                    "Given a month with no data, when the chart renders, then that month plots at zero without breaking the line."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.1-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.1.S1-07",
+                  "type": "story",
+                  "title": "View the demand-vs-expected-hires forecast",
+                  "story": "As a member of hiring leadership, I want a next-4-months forecast of people needed versus expected hires with the projected shortfall so that I can plan recruiter capacity ahead of demand.",
+                  "acceptance_criteria": [
+                    "Given the forecast data, when the chart renders, then it plots demand and expected hires as two series across the next four months with a legend.",
+                    "Given the cumulative gap, when the insight renders, then it states the projected shortfall by the second month and the total shortfall over four months.",
+                    "Given expected hires meet demand, when the insight renders, then it reflects no projected shortfall rather than a negative figure."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.1-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.1.S1-08",
+                  "type": "story",
+                  "title": "View the recruiter leaderboard",
+                  "story": "As a member of hiring leadership, I want recruiters ranked by a composite score blending hires, on-time percentage, time-to-fill and CSAT so that I can see who is delivering and pair others with the strongest performer.",
+                  "acceptance_criteria": [
+                    "Given recruiter performance data, when the leaderboard renders, then recruiters are ranked by their composite score, each row showing hires, average days to fill, on-time percentage and the score.",
+                    "Given the weighted blend, when scores are computed, then hires, on-time %, time-to-fill and CSAT are combined per their weights into the displayed score.",
+                    "Given the ranking, when the insight renders, then it names the top recruiter and recommends pairing others with them on the hardest roles.",
+                    "Given no recruiter activity, when the section renders, then it shows an empty state without error."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.1-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.1.S1-09",
+                  "type": "story",
+                  "title": "View hiring sources ranked by hire-rate",
+                  "story": "As a member of hiring leadership, I want a table of where hires come from ranked by hire-rate rather than CV volume, with cost-per-hire, so that I can invest in the best-value channels.",
+                  "acceptance_criteria": [
+                    "Given source performance data, when the table renders, then channels are ranked by hire-rate and each row shows applicants, hires, hire-rate and cost-per-hire.",
+                    "Given a high cost-per-hire, when the row renders, then the cost is visually flagged.",
+                    "Given the ranking, when the insight renders, then it names the best-value channel by its share of hires versus its share of applicants and advises spending less on low-converting high-volume boards."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.1-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.1.S1-10",
+                  "type": "story",
+                  "title": "View weekly AI action signals",
+                  "story": "As a member of hiring leadership, I want AI signal cards surfacing the biggest at-risk role with a fill-probability, the slowest funnel step, and the best-value source so that I know what to act on this week.",
+                  "acceptance_criteria": [
+                    "Given the computed analytics, when the signal cards render, then I see a biggest-risk card naming the most at-risk role with its days open, candidates in process and a fill-probability percentage.",
+                    "Given the funnel data, when the slowest-step card renders, then it names the step with the lowest pass-through and its percentage with a recommended action.",
+                    "Given source performance, when the best-opportunity card renders, then it names the best-value source and its hire share versus applicant share."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.1-01"
+                  ],
+                  "notes": "AI signals are advisory summaries computed from the dashboard's own analytics; no action is taken automatically.",
+                  "status": "not-started"
+                }
+              ]
+            },
+            {
+              "id": "M2.1.S2",
+              "name": "Recruitment Insights (built-but-unwired)",
+              "description": "A second analytics screen, designed in the mockup but not currently reachable from the tab navigation: an on-time fulfillment gauge over recently closed positions, hiring-leadtime breakdown bars, an AI JD↔CV match analyzer, and AI pass/fail case-study pattern analysis.",
+              "roles": [
+                "BOD",
+                "PMO"
+              ],
+              "sub_screens": [
+                {
+                  "id": "M2.1.S2.1",
+                  "name": "On-time fulfillment"
+                },
+                {
+                  "id": "M2.1.S2.2",
+                  "name": "Hiring leadtime"
+                },
+                {
+                  "id": "M2.1.S2.3",
+                  "name": "JD ↔ CV match analysis (AI)"
+                },
+                {
+                  "id": "M2.1.S2.4",
+                  "name": "Case studies — pass/fail patterns (AI)"
+                }
+              ],
+              "items": [
+                {
+                  "id": "US-M2.1.S2-01",
+                  "type": "story",
+                  "title": "View on-time fulfillment gauge",
+                  "story": "As a member of hiring leadership, I want a gauge of how many of the last N closed positions were filled on or before their due date plus the count that missed SLA so that I can judge fulfillment reliability.",
+                  "acceptance_criteria": [
+                    "Given the most recent closed positions, when the gauge renders, then it shows the percentage filled on or before their due date and the on-time count out of the total.",
+                    "Given positions that missed their due date, when the section renders, then it shows the count that missed SLA with a prompt to review sourcing channels and approval lag.",
+                    "Given the rate, when the gauge renders, then its colour reflects healthy, warning or at-risk thresholds.",
+                    "Given no closed positions yet, when the section renders, then it shows an empty state without dividing by zero."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.1-01",
+                    "EN-M2.2-01"
+                  ],
+                  "notes": "This screen is built in the mockup but is not currently wired to the tab navigation, so it cannot yet be opened from the live app.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.1.S2-02",
+                  "type": "story",
+                  "title": "View hiring leadtime breakdown",
+                  "story": "As a member of hiring leadership, I want average sourcing, evaluation and total leadtime bars across closed positions so that I can see which phase consumes the most time.",
+                  "acceptance_criteria": [
+                    "Given closed-position history, when the leadtime card renders, then it shows average sourcing days, average evaluation days and total leadtime as proportional bars.",
+                    "Given the breakdown, when the insight renders, then it states what share of total leadtime evaluation represents and identifies the biggest lever.",
+                    "Given no closed positions, when the card renders, then it shows an empty state without error."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.1-01",
+                    "EN-M2.2-01"
+                  ],
+                  "notes": "This screen is built in the mockup but is not currently wired to the tab navigation, so it cannot yet be opened from the live app.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.1.S2-03",
+                  "type": "story",
+                  "title": "Run a JD ↔ CV match analysis",
+                  "story": "As a member of hiring leadership, I want to paste or prefill a job description and a CV and have the agent extract skills from both, score the match, list matched and gap skills, and propose suggested edits so that I can quickly judge candidate fit.",
+                  "acceptance_criteria": [
+                    "Given a job description and a CV, when I run the analysis, then the agent extracts skills from each, computes a match score, and labels it as a strong, partial or weak match.",
+                    "Given the extracted skills, when results render, then matched skills and gap skills are listed with counts, plus any extra skills the CV adds beyond the JD.",
+                    "Given the results, when suggested edits render, then they call out gap skills to probe, light CVs to expand, and a recommended next step, which I can apply or dismiss.",
+                    "Given a JD or CV with too little detail, when I run the analysis, then I am warned to add more detail before a meaningful match can be produced.",
+                    "Given a chosen requisition, when I prefill the JD, then the JD field is populated from that requisition before analysis."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01"
+                  ],
+                  "notes": "AI-assisted analysis; suggested edits are a proposal pending human review and are not auto-applied. This screen is built in the mockup but is not currently wired to the tab navigation, so it cannot yet be opened from the live app.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.1.S2-04",
+                  "type": "story",
+                  "title": "View AI pass/fail case-study patterns",
+                  "story": "As a member of hiring leadership, I want a set of past pass/fail interview write-ups with an AI summary of the dominant failure clusters and a recommendation so that I can improve our interview process.",
+                  "acceptance_criteria": [
+                    "Given the case-study set, when the section renders, then each case shows the candidate, role, round, pass/fail result, reason and tags, with pass and fail counts summarised.",
+                    "Given the failure cases, when the AI summary renders, then it identifies the dominant failure clusters and a recommended process change.",
+                    "Given the user re-analyzes, when re-analysis runs, then the summary regenerates from the current case studies.",
+                    "Given no failure cases, when the summary renders, then it states no dominant failure pattern yet rather than fabricating one."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.4-01"
+                  ],
+                  "notes": "AI-generated summary and recommendation are advisory. This screen is built in the mockup but is not currently wired to the tab navigation, so it cannot yet be opened from the live app.",
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "id": "M2.2",
           "name": "Requisitions",
           "description": "Position Management & internal-mobility hub: managers/PMO create and manage open requisitions (job positions) on a board/list with a Sourcing→Screening→Interview→Offer stage track; members browse open roles on an internal job board and apply; applications flow through a releasing-EM → receiving-EM → PMO endorsement/approval chain, and PMO approval creates an allocation. Phase-2 module (hiring moves into People).",
@@ -1924,6 +2323,7 @@
                   "title": "Create a new requisition with full JD",
                   "story": "As a management user, I want to raise a new requisition with its overview fields and full job description so that an open position is posted and ready for applicants.",
                   "acceptance_criteria": [
+                    "Given the New requisition form, then it presents these fields — Overview: Job title (required), Account, Grade (L3/L4/L5), Type (new/replacement), Interview mode (Online/Onsite/Either, required), Due date, Tech stack; JD Detail: About the role (required), Responsibilities, Requirements, Nice to have (optional)",
                     "Given the form, when I submit without a job title or without the About-the-role JD detail, then a validation message blocks submission",
                     "Given valid input, when I submit, then a new requisition is created Open at the first stage with its tech stack and JD detail saved",
                     "Given I enter Responsibilities/Requirements/Nice-to-have one per line, when saved, then each line is captured as a separate JD entry",
@@ -1936,7 +2336,7 @@
                     "AM",
                     "EM/TL/PM"
                   ],
-                  "notes": "Interview mode and JD About-the-role are required. A requisition may also be raised from the Project Monitoring backfill flow (which carries a pre-filled title/account/replacement type); the requisition record itself is owned by this sub-module.",
+                  "notes": "Form fields — Overview: Job title (required), Account, Grade (L3/L4/L5), Type (new/replacement), Interview mode (Online/Onsite/Either — required), Due date, Tech stack (comma-separated, shown on the overview card). JD Detail (required): About the role (required), Responsibilities, Requirements, Nice to have (optional) — Responsibilities/Requirements/Nice-to-have are captured one entry per line. A requisition may also be raised from the Project Monitoring backfill flow (which carries a pre-filled title/account/replacement type); the requisition record itself is owned by this sub-module.",
                   "dependencies": [
                     "EN-M2.2-01"
                   ],
@@ -3219,6 +3619,216 @@
                     "EM/TL/PM"
                   ],
                   "dependencies": [
+                    "EN-M2.4-01"
+                  ],
+                  "status": "not-started"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "M2.5",
+          "name": "Knowledge Base",
+          "description": "Recruitment Knowledge Base — the learning layer over every closed position and final-stage interview: an executive read on final-round conversion and systemic gaps, interview-effectiveness analysis (pass rates by round + the traits winning candidates share), failure root-cause clustering, an owned improvement plan, the hardest-to-fill roles by leadtime, and the raw case-study evidence log. The clean dataset future hiring recommendations are built on. Company-wide; audience is the executive/governance side.",
+          "status": "not-started",
+          "screens": [
+            {
+              "id": "M2.5.S1",
+              "name": "Recruitment Knowledge Base",
+              "description": "A single scrolling learning dashboard: an Executive read (final pass rate, systemic-gap clustering, top hire predictors, avg time-to-hire), interview effectiveness (pass rate per round + traits winning candidates share), failure root-cause themes, an owned & prioritized improvement plan, the hardest roles to fill by leadtime, and the raw case-study log.",
+              "roles": [
+                "BOD",
+                "PMO"
+              ],
+              "mockup_ref": {
+                "screen": "hiring/knowledge"
+              },
+              "sub_screens": [
+                {
+                  "id": "M2.5.S1.1",
+                  "name": "Executive read"
+                },
+                {
+                  "id": "M2.5.S1.2",
+                  "name": "Interview effectiveness (by-round pass rates + winning-candidate signals)"
+                },
+                {
+                  "id": "M2.5.S1.3",
+                  "name": "Failure analysis (root-cause themes)"
+                },
+                {
+                  "id": "M2.5.S1.4",
+                  "name": "Improvement plan (owned actions)"
+                },
+                {
+                  "id": "M2.5.S1.5",
+                  "name": "Evidence (hardest roles + case-study log)"
+                }
+              ],
+              "items": [
+                {
+                  "id": "EN-M2.5-01",
+                  "type": "enabler",
+                  "title": "Recruitment knowledge dataset & learning analytics",
+                  "story": "Provide the recruitment-learning layer over closed positions and final-stage interviews: the case-study corpus (each with role, round, pass/fail result, reason and cause tags), the failure-theme taxonomy (a named cluster with its tags, recommended action, owner and priority), and the derived analytics — final-round pass rate, pass rate per interview round, the traits winning candidates share, failure clustering by root cause, and time-to-hire by closed position — that power the knowledge-base screen.",
+                  "acceptance_criteria": [
+                    "Given the closed positions and final-stage case studies, when the learning layer runs, then it computes the final-round pass rate, pass rate per round, and the frequency of each trait among passing candidates.",
+                    "Given the failure cases and the failure-theme taxonomy, when clustering runs, then each rejected case is grouped under its root-cause theme with the theme's recommended action, owner and priority, ranked by how many rejections it explains.",
+                    "Given closed-position history, when time-to-hire is computed, then each role's leadtime is available and ranked to surface the hardest roles.",
+                    "Given no failure cases exist, when clustering runs, then it reports no systemic failure theme rather than fabricating one."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.2-01",
+                    "EN-M2.4-01"
+                  ],
+                  "notes": "The failure-theme taxonomy and case-study corpus are knowledge-base-owned content; closed-position records come from Requisitions and the final-stage interview outcomes come from Interviews.",
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.5.S1-01",
+                  "type": "story",
+                  "title": "Read the executive summary of hiring quality",
+                  "story": "As a member of hiring leadership, I want an executive read that states the final-round conversion rate, whether failures are systemic or random, the clearest hire predictors and the average time-to-hire so that I get the one-paragraph verdict on hiring quality and where to act.",
+                  "acceptance_criteria": [
+                    "Given the analyzed final-stage candidates, when the executive read renders, then it shows the final pass rate with a healthy / mixed / inefficient verdict and a KPI row (final pass rate, rejected-and-analyzed count, number of systemic gaps, avg time-to-hire).",
+                    "Given failures cluster on a dominant theme, when the read renders, then it states how many rejections that theme explains and frames it as a process gap rather than a sourcing gap.",
+                    "Given the passing candidates, when the read renders, then it names the clearest hire predictors to screen for earlier.",
+                    "Given no analyzed candidates, when the read renders, then it shows an empty state without dividing by zero."
+                  ],
+                  "story_points": 5,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.5-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.5.S1-02",
+                  "type": "story",
+                  "title": "View pass rate by interview round",
+                  "story": "As a member of hiring leadership, I want pass rate broken down per interview round so that I can see which stage is the harshest filter and check it is real signal, not a mis-calibrated panel.",
+                  "acceptance_criteria": [
+                    "Given the case studies, when the by-round card renders, then each round shows its passed-of-total count and pass-rate bar, sorted with the harshest round first.",
+                    "Given the lowest-passing round, when the card renders, then it is highlighted with an insight prompting a check that it is genuine signal and not an over-tough panel.",
+                    "Given a round with no cases, when the card renders, then it is omitted rather than shown as zero of zero."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.5-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.5.S1-03",
+                  "type": "story",
+                  "title": "View the traits winning candidates share",
+                  "story": "As a member of hiring leadership, I want the traits most common among candidates who passed so that we can source and screen for the clearest hire predictors earlier.",
+                  "acceptance_criteria": [
+                    "Given the passing candidates' tags, when the signals card renders, then each trait is shown with its frequency as a ranked bar.",
+                    "Given the top trait, when the insight renders, then it recommends adding an explicit screening check for it at the CV / phone stage.",
+                    "Given no passing candidates, when the card renders, then it shows an empty state without error."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.5-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.5.S1-04",
+                  "type": "story",
+                  "title": "View failure patterns clustered by root cause",
+                  "story": "As a member of hiring leadership, I want rejected candidates clustered by root-cause theme so that I can see the systemic reasons we lose candidates rather than one-off rejections.",
+                  "acceptance_criteria": [
+                    "Given the rejected candidates, when the failure-analysis card renders, then each theme shows the number and percentage of rejections it explains and which candidates fall under it, ranked by size.",
+                    "Given a theme has no matching rejections, when the card renders, then that theme is not shown.",
+                    "Given no rejected candidates, when the card renders, then it states interview quality is healthy rather than showing empty themes."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.5-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.5.S1-05",
+                  "type": "story",
+                  "title": "View the owned, prioritized improvement plan",
+                  "story": "As a member of hiring leadership, I want each failure theme turned into a prioritized action with an owner and the evidence behind it so that the interview process is fixed by accountable changes, not opinions.",
+                  "acceptance_criteria": [
+                    "Given the failure themes, when the improvement plan renders, then each entry shows the recommended action, its priority, the evidence (how many rejections cite it) and a named owner.",
+                    "Given the plan, when it renders, then entries are ordered to reflect the themes that explain the most rejections.",
+                    "Given no systemic themes, when the plan renders, then it states there is nothing to fix rather than an empty list."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.5-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.5.S1-06",
+                  "type": "story",
+                  "title": "View the hardest roles to fill by leadtime",
+                  "story": "As a member of hiring leadership, I want closed positions ranked by time-to-hire with a difficulty marker so that I can see which roles are structurally hard to fill.",
+                  "acceptance_criteria": [
+                    "Given closed-position history, when the table renders, then each role shows its account and leadtime in days with an Easy / Moderate / Hard difficulty marker, longest leadtime first.",
+                    "Given the set, when the card header renders, then it shows the average leadtime across closed positions.",
+                    "Given no closed positions, when the card renders, then it shows an empty state without error."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.5-01",
+                    "EN-M2.2-01"
+                  ],
+                  "status": "not-started"
+                },
+                {
+                  "id": "US-M2.5.S1-07",
+                  "type": "story",
+                  "title": "Browse the raw case-study log",
+                  "story": "As a member of hiring leadership, I want the raw log of pass/fail final-stage write-ups with their reasons and tags so that I can inspect the evidence behind the analysis.",
+                  "acceptance_criteria": [
+                    "Given the case studies, when the log renders, then each entry shows the candidate, role, round, pass/fail result, the reason and the cause tags, with overall pass and fail counts.",
+                    "Given a pass and a fail entry, when they render, then they are visually distinguished by result.",
+                    "Given no case studies, when the log renders, then it shows an empty state without error."
+                  ],
+                  "story_points": 3,
+                  "roles": [
+                    "BOD",
+                    "PMO"
+                  ],
+                  "dependencies": [
+                    "EN-M2.5-01",
                     "EN-M2.4-01"
                   ],
                   "status": "not-started"

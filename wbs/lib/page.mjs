@@ -316,6 +316,40 @@ export const STYLE = String.raw`
   .ed-save:disabled { opacity: 0.5; cursor: default; }
   .ed-cancel { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.6px; text-transform: uppercase; cursor: pointer; color: var(--ink-dim); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 18px; }
   .ed-cancel:hover { color: var(--ink); border-color: var(--line-bright); }
+
+  /* ── floating map controls: expand / collapse / comments (icon-only) ───── */
+  #map-ctl { position: fixed; top: 72px; right: 16px; z-index: 151; display: flex; flex-direction: column; gap: 8px; transition: right .22s cubic-bezier(.2,.8,.2,1); }
+  body.drawer-open #map-ctl { right: 416px; }
+  .map-ctl-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1; cursor: pointer; color: var(--accent); background: var(--card); border: 1px solid var(--line-bright); border-radius: 10px; box-shadow: 0 4px 14px rgba(28,46,82,0.12); transition: background .14s, box-shadow .14s, color .14s; }
+  .map-ctl-btn:hover { background: rgba(37,99,235,0.08); box-shadow: 0 6px 18px rgba(37,99,235,0.18); }
+  .map-ctl-btn:active { transform: translateY(1px); }
+  body.drawer-open #cm-drawer-btn { display: none; }
+
+  /* ── comments drawer (right) ────────────────────────────── */
+  #cm-drawer { position: fixed; top: 60px; right: 0; bottom: 0; width: 400px; max-width: 88vw; z-index: 150; background: var(--card); border-left: 1px solid var(--line); box-shadow: -14px 0 44px rgba(28,46,82,0.16); transform: translateX(100%); transition: transform .22s cubic-bezier(.2,.8,.2,1); }
+  body.drawer-open #cm-drawer { transform: none; }
+  #cm-drawer-inner { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+  .dw-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); flex: 0 0 auto; }
+  .dw-h { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1.5px; color: var(--ink-dim); }
+  .dw-close { width: 26px; height: 26px; border: none; cursor: pointer; background: none; color: var(--ink-faint); font-size: 20px; line-height: 1; border-radius: 6px; transition: background .14s, color .14s; }
+  .dw-close:hover { background: rgba(37,99,235,0.08); color: var(--accent); }
+  .dw-filter { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px; border-bottom: 1px solid var(--line); flex: 0 0 auto; }
+  .dw-chip { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.4px; text-transform: uppercase; cursor: pointer; color: var(--ink-dim); background: var(--paper-2); border: 1px solid var(--line); border-radius: 20px; padding: 4px 11px; transition: background .12s, color .12s, border-color .12s; }
+  .dw-chip:hover { border-color: var(--line-bright); }
+  .dw-chip.active { color: #fff; background: var(--accent); border-color: var(--accent); }
+  .dw-list { flex: 1 1 auto; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 11px; }
+  .dw-item { border: 1px solid var(--line); border-left-width: 3px; border-radius: 9px; padding: 10px 13px; background: var(--paper-2); }
+  .dw-item.cm-open { border-left-color: var(--accent); }
+  .dw-item.cm-resolved { border-left-color: var(--done); }
+  .dw-item.cm-unresolved { border-left-color: var(--block); }
+  .dw-item.cm-skip { border-left-color: var(--ink-faint); opacity: 0.72; }
+  .dw-top { display: flex; align-items: center; gap: 8px; }
+  .dw-top .cm-jump { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--accent); text-decoration: none; cursor: pointer; }
+  .dw-top .cm-jump:hover { text-decoration: underline; }
+  .dw-time { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--ink-faint); }
+  .dw-name { font-family: 'Archivo', sans-serif; font-weight: 600; font-size: 12px; color: var(--ink); margin: 4px 0 5px; line-height: 1.3; }
+  .dw-asg { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 400; color: var(--ink-dim); }
+  .dw-empty { color: var(--ink-faint); font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 24px 4px; text-align: center; }
 `;
 
 // Page body. `view` is 'map' | 'table'; `nav` = { mapHref, tableHref } — both nav
@@ -355,7 +389,13 @@ export function body(view, nav) {
 <div id="svg-container"><svg id="tree-svg"></svg></div>
 <div id="table-container"></div>
 <div class="tooltip" id="tooltip"></div>
-<div class="modal-back" id="modal-back"><div class="modal-panel"><button class="modal-close" id="modal-close" aria-label="Close">×</button><div id="modal-body"></div></div></div>
+<div class="modal-back" id="modal-back"><div class="modal-panel"><button class="modal-close" id="modal-close" aria-label="Close">×</button><div id="modal-body"></div></div></div>${view === 'map' ? String.raw`
+<div id="map-ctl">
+  <button class="map-ctl-btn" id="btn-expand" title="Expand all" aria-label="Expand all">⊕</button>
+  <button class="map-ctl-btn" id="btn-collapse" title="Collapse all" aria-label="Collapse all">⊖</button>
+  <button class="map-ctl-btn" id="cm-drawer-btn" title="Show all comments" aria-label="Comments">💬</button>
+</div>
+<aside id="cm-drawer"><div id="cm-drawer-inner"></div></aside>` : ''}
 <div id="hint" style="position:fixed; bottom:14px; left:22px; z-index:80;">drag · scroll-zoom · click branch to expand · click item for detail</div>
 `;
 }

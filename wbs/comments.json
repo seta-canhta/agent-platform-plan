@@ -6,10 +6,10 @@
         "id": "c-p5e5tup4h",
         "text": "I need to have details fields list on the ticket",
         "author": "you",
-        "state": "open",
+        "state": "resolved",
         "created": "2026-06-26T06:00:01.457Z",
-        "updated": "2026-06-26T06:00:01.457Z",
-        "agent_note": null
+        "updated": "2026-06-26T07:30:00.000Z",
+        "agent_note": "Added full form-field list to notes: Overview (Job title, Account, Grade, Type, Interview mode, Due date, Tech stack) + JD Detail (About the role, Responsibilities, Requirements, Nice to have), with required/optional flags."
       }
     ]
   }

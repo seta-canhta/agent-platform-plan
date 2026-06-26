@@ -33,6 +33,7 @@
   // The read-only meta of an item (notes / roles / dependencies / external needs) —
   // shared by the read-only detail and the in-place edit view. The screenshot is
   // rendered separately (shotHTML) so the Edit button can sit between meta and screen.
+  const assigneeLineHTML = dd => '<div class="tt-meta">👤 '+(dd.assignee ? esc(dd.assignee) : '<span style="opacity:.55">Unassigned</span>')+'</div>';
   function itemTailHTML(dd){
     let h='';
     if (dd.notes) h += '<div class="tt-meta">📌 '+dd.notes+'</div>';
@@ -72,7 +73,7 @@
       h += '<div class="tt-badge" style="color:'+c+'">'+dd.type.toUpperCase()+' · SP '+dd.sp+' · '+(dd.status||'')+'</div>';
       if (dd.story) h += '<div class="tt-story">'+dd.story+'</div>';
       if (dd.ac && dd.ac.length) h += '<div class="tt-ac"><b>Acceptance</b><ul>'+dd.ac.map(a=>'<li>'+a+'</li>').join('')+'</ul></div>';
-      h += itemTailHTML(dd) + (withShot ? shotHTML(dd) : '');
+      h += assigneeLineHTML(dd) + itemTailHTML(dd) + (withShot ? shotHTML(dd) : '');
     } else {
       if (dd.description) h += '<div class="tt-story">'+dd.description+'</div>';
       if (dd.total_us) h += '<div class="tt-meta">Σ '+dd.total_us+' items · '+dd.total_sp+' pts</div>';
@@ -84,6 +85,7 @@
   // ── item comments (stored in comments.json; posting is live-mode only) ───
   let commentsByItem = {};   // itemId → [ {id,text,author,state,created,updated,agent_note} ]
   let liveMode = false;      // true only when served by serve.mjs (enables the post UI)
+  let assignees = [];        // team-member names for the assignee dropdown (assignees.json)
   const draft = {};          // itemId → in-progress comment text (survives live re-renders)
   const CM_STATES = ['open', 'resolved', 'unresolved', 'skip'];
 
@@ -145,9 +147,12 @@
     const ac = dd.ac && dd.ac.length ? dd.ac : [''];
     let h = '<div class="tt-id">'+dd.id+' · editing</div>';
     h += '<div class="ed-field"><label>Title</label><input class="ed-title" type="text" value="'+esc(dd.name)+'"></div>';
+    const asgOpts = '<option value=""'+(dd.assignee?'':' selected')+'>— Unassigned —</option>'
+      + assignees.map(m => '<option value="'+esc(m)+'"'+(m===dd.assignee?' selected':'')+'>'+esc(m)+'</option>').join('');
     h += '<div class="ed-grid">'
        +   '<div class="ed-field"><label>Status</label><select class="ed-status">'+sel(dd.status,['not-started','in-progress','done','blocked'])+'</select></div>'
        +   '<div class="ed-field"><label>Story points</label><select class="ed-sp">'+sel(dd.sp,[1,2,3,5,8,13])+'</select></div>'
+       +   '<div class="ed-field"><label>Assignee</label><select class="ed-assignee">'+asgOpts+'</select></div>'
        + '</div>';
     h += '<div class="ed-field"><label>Story</label><textarea class="ed-story" rows="4">'+esc(dd.story)+'</textarea></div>';
     h += '<div class="ed-field"><label>Acceptance criteria</label><div class="ed-ac">'
@@ -162,6 +167,52 @@
       .then(r => r.json())
       .then(res => { if (res && res.error) throw new Error(res.error); return res; })
       .catch(e => { flash('✗ '+e.message); throw e; });
+  }
+
+  // ── right comments drawer: every comment across all items, with state filter ──
+  let drawerOpen = true;      // open by default
+  let drawerFilter = 'all';   // all | open | resolved | unresolved | skip
+
+  function allComments(){
+    const out = [];
+    for (const id in commentsByItem)
+      for (const c of commentsByItem[id]) out.push(Object.assign({ item_id:id }, c));
+    out.sort((a,b) => (b.created||'').localeCompare(a.created||''));   // newest first
+    return out;
+  }
+  function drawerEntryHTML(c){
+    const item = itemsById[c.item_id], cls = 'cm-'+c.state;
+    let h = '<div class="dw-item '+cls+'">';
+    h += '<div class="dw-top"><a class="cm-jump" data-jump="'+c.item_id+'">'+c.item_id+'</a>'
+       + '<span class="cm-badge '+cls+'">'+c.state+'</span>'
+       + '<span class="dw-time">'+fmtTime(c.created)+'</span></div>';
+    if (item) h += '<div class="dw-name">'+esc(item.name)+(item.assignee?' <span class="dw-asg">· 👤 '+esc(item.assignee)+'</span>':'')+'</div>';
+    h += '<div class="cm-text">'+esc(c.text)+'</div>';
+    if (c.agent_note) h += '<div class="cm-agent">↳ '+esc(c.agent_note)+'</div>';
+    if (liveMode){
+      h += '<div class="cm-actions">';
+      if (c.state!=='skip') h += '<button class="cm-act" data-act="skip" data-item="'+c.item_id+'" data-cid="'+c.id+'">skip</button>';
+      if (c.state!=='open') h += '<button class="cm-act" data-act="open" data-item="'+c.item_id+'" data-cid="'+c.id+'">reopen</button>';
+      h += '<button class="cm-act cm-del" data-act="delete" data-item="'+c.item_id+'" data-cid="'+c.id+'">delete</button></div>';
+    }
+    return h + '</div>';
+  }
+  function renderDrawer(){
+    const inner = document.getElementById('cm-drawer-inner');
+    if (!inner) return;   // map page only
+    document.body.classList.toggle('drawer-open', drawerOpen);
+    const all = allComments();
+    const n = { all: all.length, open:0, resolved:0, unresolved:0, skip:0 };
+    all.forEach(c => { if (n[c.state]!=null) n[c.state]++; });
+    const chips = ['all','open','resolved','unresolved','skip'].map(f =>
+      '<button class="dw-chip cm-'+f+(drawerFilter===f?' active':'')+'" data-filter="'+f+'">'+f+' '+n[f]+'</button>').join('');
+    const list = all.filter(c => drawerFilter==='all' || c.state===drawerFilter);
+    const body = list.length ? list.map(drawerEntryHTML).join('')
+                             : '<div class="dw-empty">No '+(drawerFilter==='all'?'':drawerFilter+' ')+'comments yet.</div>';
+    inner.innerHTML =
+      '<div class="dw-head"><b class="dw-h">COMMENTS</b><button class="dw-close" title="Close drawer">×</button></div>'
+      + '<div class="dw-filter">'+chips+'</div>'
+      + '<div class="dw-list">'+body+'</div>';
   }
 
   // Modal: a pinned, dismissable view of a node's detail (same content as the hover tooltip).
@@ -221,6 +272,16 @@
     document.body.dataset.modalWired = '1';
     document.addEventListener('click', e => {
       const t = e.target;
+      // mindmap expand-all / collapse-all
+      if (t && t.closest && t.closest('#btn-expand')){ expandAll(); return; }
+      if (t && t.closest && t.closest('#btn-collapse')){ collapseAll(); return; }
+      // comments drawer: toggle / close / filter / jump-to-item
+      if (t && t.closest && t.closest('#cm-drawer-btn')){ drawerOpen = true; renderDrawer(); return; }
+      if (t && t.closest && t.closest('.dw-close')){ drawerOpen = false; renderDrawer(); return; }
+      const chip = t && t.closest && t.closest('.dw-chip');
+      if (chip){ drawerFilter = chip.dataset.filter; renderDrawer(); return; }
+      const jump = t && t.closest && t.closest('.cm-jump');
+      if (jump){ openModal(itemsById[jump.dataset.jump]); return; }
       const link = t && t.closest && t.closest('.dep-link');
       if (link){ openModal(itemsById[link.dataset.dep]); return; }
       const add = t && t.closest && t.closest('.cm-add');
@@ -254,6 +315,7 @@
         const patch = {
           status: body.querySelector('.ed-status').value,
           story_points: Number(body.querySelector('.ed-sp').value),
+          assignee: body.querySelector('.ed-assignee').value,
           title: body.querySelector('.ed-title').value,
           story: body.querySelector('.ed-story').value,
           acceptance_criteria: [...body.querySelectorAll('.ed-ac-input')].map(i => i.value.trim()).filter(Boolean),
@@ -287,7 +349,7 @@
           const items = (screen.items||[]).map(it => {
             const node = {
               id:it.id, name:it.title, type:it.type, story:it.story||'', status:it.status||'not-started',
-              sp:it.story_points||0, roles:it.roles||[], ac:it.acceptance_criteria||[],
+              sp:it.story_points||0, roles:it.roles||[], ac:it.acceptance_criteria||[], assignee:it.assignee||'',
               deps:it.dependencies||[], ext:(it.external_deps||[]).map(e=> typeof e==='string'?{needs:e}:e), notes:it.notes||'',
               mockup: it.mockup_ref || screen.mockup_ref || null, _mod:mod.id
             };
@@ -349,6 +411,12 @@
 
   const collapsed = new Set(), expanded = new Set();
   let lastTransform = null, firstRender = true;
+  let _data = null, _nodeIds = [];   // cached for expand-all / collapse-all re-renders
+
+  // Expand/collapse every branch by stuffing the expanded/collapsed sets with all
+  // parent ids, then re-rendering. State lives in the sets, so it survives live updates.
+  function expandAll(){ collapsed.clear(); _nodeIds.forEach(n => { if (n.kids) expanded.add(n.id); }); if (_data) render(wbsToHierarchy(_data)); }
+  function collapseAll(){ expanded.clear(); _nodeIds.forEach(n => { if (n.kids && n.depth >= 1) collapsed.add(n.id); }); if (_data) render(wbsToHierarchy(_data)); }
 
   function render(hierarchyData){
     const container = document.getElementById('svg-container');
@@ -364,6 +432,7 @@
     const zoom = d3.zoom().scaleExtent([0.04,3]).on('zoom', e => { g.attr('transform', e.transform); lastTransform = e.transform; });
     svg.call(zoom);
     const root = d3.hierarchy(hierarchyData);
+    _nodeIds = root.descendants().map(d => ({ id: d.data.id, depth: d.depth, kids: !!d.children }));
     root.each(d => {
       const id = d.data.id, defaultCollapsed = d.depth >= 3;
       const shouldCollapse = expanded.has(id) ? false : (collapsed.has(id) || defaultCollapsed);
@@ -485,10 +554,11 @@
 
   window.WBS = window.WBS || {};
   Object.assign(window.WBS, {
-    renderWBS(data, stats){ renderHeader(data, stats); render(wbsToHierarchy(data)); syncModalFromHash(); },
+    renderWBS(data, stats){ _data = data; renderHeader(data, stats); render(wbsToHierarchy(data)); renderDrawer(); syncModalFromHash(); },
     renderHeader,
     setScreens(idx){ screenIndex = idx || null; },    // { byItem, byScreen } from screens/index.json
     setComments(map){ commentsByItem = map || {}; },  // itemId → comments[]; from comments.json
+    setAssignees(list){ assignees = list || []; },    // team-member names; from assignees.json
     setLive(v){ liveMode = !!v; },                     // enable the post UI (serve.mjs only)
     flash,
   });

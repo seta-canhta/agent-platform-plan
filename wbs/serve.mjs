@@ -34,6 +34,14 @@ function loadComments() {
   } catch { return { version: 1, comments: {} }; }
 }
 const saveComments = (c) => writeFileSync(commentsPath, JSON.stringify(c, null, 2));
+
+// ── team members for the assignee dropdown ──
+const assigneesPath = join(dirname(dataPath), 'assignees.json');
+if (!existsSync(assigneesPath)) writeFileSync(assigneesPath, JSON.stringify({ members: ['Canh Ta', 'Hai Le', 'Viet Anh Nguyen', 'Hieu Nguyen'] }, null, 2));
+function loadAssignees() {
+  try { const a = JSON.parse(readFileSync(assigneesPath, 'utf8')); return Array.isArray(a.members) ? a.members : []; }
+  catch { return []; }
+}
 const cmId = () => 'c-' + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3);
 
 // Apply one add | setState | delete op to comments.json. Returns { ok, comment? } or { error }.
@@ -82,6 +90,11 @@ function applyItemPatch(b) {
     if (!ac.length) return { error: 'at least one acceptance criterion required' };
     it.acceptance_criteria = ac;
   }
+  if ('assignee' in patch) {
+    const a = String(patch.assignee || '').trim();
+    if (a && !loadAssignees().includes(a)) return { error: 'unknown assignee' };
+    if (a) it.assignee = a; else delete it.assignee;   // '' clears the assignment
+  }
   const { errors } = validate(data);
   if (errors.length) return { error: errors[0] };
   writeFileSync(dataPath, JSON.stringify(data, null, 2) + '\n');
@@ -105,7 +118,7 @@ function loadData() {
   const { errors, warnings } = validate(data);
   let screens = null;
   try { screens = JSON.parse(readFileSync(join(here, 'screens', 'index.json'), 'utf8')); } catch { /* no shots yet */ }
-  return { data, stats: stats(data), screens, comments: loadComments().comments, errors, warnings };
+  return { data, stats: stats(data), screens, comments: loadComments().comments, assignees: loadAssignees(), errors, warnings };
 }
 
 // One boot per page. `renderExpr` renders the page's view from `payload`;
@@ -131,7 +144,7 @@ es.addEventListener('reload', () => location.reload());
 `;
 
 const SERVE_NAV = { mapHref: '/', tableHref: '/table' };
-const MAP_BOOT = makeBoot('WBS.setScreens(payload.screens); WBS.setComments(payload.comments); WBS.setLive(true); WBS.renderWBS(payload.data, payload.stats)');
+const MAP_BOOT = makeBoot('WBS.setScreens(payload.screens); WBS.setComments(payload.comments); WBS.setAssignees(payload.assignees); WBS.setLive(true); WBS.renderWBS(payload.data, payload.stats)');
 const TABLE_BOOT = makeBoot(
   'WBS.renderHeader(payload.data, payload.stats); WBS.setData(payload.data); WBS.renderTable(payload.data)',
   'WBS.bindExport();');
@@ -211,6 +224,7 @@ function onChange(event) {
 }
 watch(dataPath, () => onChange('data'));
 watch(commentsPath, () => onChange('data'));
+try { watch(assigneesPath, () => onChange('data')); } catch { /* optional */ }
 for (const p of scriptPaths) watch(p, () => onChange('reload'));
 watch(pagePath, () => onChange('reload'));
 
