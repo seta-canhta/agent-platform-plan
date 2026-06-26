@@ -11,6 +11,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { spawn } from 'node:child_process';
 import { validate, stats } from './lib/schema.mjs';
+import { CLIENT_SCRIPTS } from './lib/page.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -18,7 +19,7 @@ const open = args.includes('--open');
 const portIdx = args.indexOf('--port');
 const port = portIdx >= 0 ? Number(args[portIdx + 1]) : 4173;
 const dataPath = args.find((a) => a.endsWith('.json')) ?? join(here, 'wbs.json');
-const renderPath = join(here, 'lib', 'render.js');
+const scriptPaths = CLIENT_SCRIPTS.map((s) => join(here, 'lib', s.slice(1)));
 const pagePath = join(here, 'lib', 'page.mjs');
 
 // Re-import page.mjs only when it changes (mtime as cache-bust key) so theme
@@ -39,24 +40,33 @@ function loadData() {
   return { data, stats: stats(data), errors, warnings };
 }
 
-const BOOT = String.raw`
+// One boot per page. `renderExpr` renders the page's view from `payload`;
+// `initExpr` runs once before the first load (e.g. wiring the Excel button).
+const makeBoot = (renderExpr, initExpr = '') => String.raw`
 const live = document.getElementById('live'), errEl = document.getElementById('err');
 async function load(){
   let payload;
   try { payload = await (await fetch('/data?t='+Date.now())).json(); }
   catch (e) { errEl.style.display='block'; errEl.textContent='⚠ '+e; return; }
-  if (payload.parseError){ errEl.style.display='block'; errEl.textContent='⚠ '+payload.parseError+'  (keeping last good map)'; return; }
+  if (payload.parseError){ errEl.style.display='block'; errEl.textContent='⚠ '+payload.parseError+'  (keeping last good view)'; return; }
   if (payload.errors && payload.errors.length){ errEl.style.display='block'; errEl.textContent='✗ '+payload.errors.join('\n✗ '); }
   else errEl.style.display='none';
-  WBS.renderWBS(payload.data, payload.stats);
+  ${renderExpr};
 }
+${initExpr}
 load();
 const es = new EventSource('/events');
 es.onopen  = () => { live.className='on';  live.textContent='live'; };
 es.onerror = () => { live.className='off'; live.textContent='offline'; };
-es.addEventListener('data',   () => { load(); WBS.flash('map updated'); });
+es.addEventListener('data',   () => { load(); WBS.flash('updated'); });
 es.addEventListener('reload', () => location.reload());
 `;
+
+const SERVE_NAV = { mapHref: '/', tableHref: '/table' };
+const MAP_BOOT = makeBoot('WBS.renderWBS(payload.data, payload.stats)');
+const TABLE_BOOT = makeBoot(
+  'WBS.renderHeader(payload.data, payload.stats); WBS.setData(payload.data); WBS.renderTable(payload.data)',
+  'WBS.bindExport();');
 
 const clients = new Set();
 function broadcast(event) {
@@ -68,10 +78,14 @@ const server = createServer(async (req, res) => {
   if (url === '/' || url === '/index.html') {
     const assemble = await getAssemble();
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(assemble(BOOT, { renderInline: null }));
-  } else if (url === '/render.js') {
+    res.end(assemble(MAP_BOOT, { renderInline: null, view: 'map', nav: SERVE_NAV }));
+  } else if (url === '/table' || url === '/table.html') {
+    const assemble = await getAssemble();
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(assemble(TABLE_BOOT, { renderInline: null, view: 'table', nav: SERVE_NAV }));
+  } else if (CLIENT_SCRIPTS.includes(url)) {
     res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-store' });
-    res.end(readFileSync(renderPath, 'utf8'));
+    res.end(readFileSync(join(here, 'lib', url.slice(1)), 'utf8'));
   } else if (url === '/data') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
     res.end(JSON.stringify(loadData()));
@@ -93,7 +107,7 @@ function onChange(event) {
   timer = setTimeout(() => broadcast(event), 120);
 }
 watch(dataPath, () => onChange('data'));
-watch(renderPath, () => onChange('reload'));
+for (const p of scriptPaths) watch(p, () => onChange('reload'));
 watch(pagePath, () => onChange('reload'));
 
 server.listen(port, () => {

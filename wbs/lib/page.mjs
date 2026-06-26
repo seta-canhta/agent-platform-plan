@@ -79,8 +79,8 @@ export const STYLE = String.raw`
   #hint { font-size: 10px; color: var(--ink-faint); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.3px; }
 
   #svg-container { position: fixed; inset: 60px 0 0 0; z-index: 1; }
-  svg { width: 100%; height: 100%; cursor: grab; display: block; }
-  svg:active { cursor: grabbing; }
+  #tree-svg { width: 100%; height: 100%; cursor: grab; display: block; }
+  #tree-svg:active { cursor: grabbing; }
 
   /* ── mindmap nodes & links ──────────────────────────────── */
   .link { fill: none; stroke: var(--line-bright); stroke-width: 1.3px; opacity: 0.4; }
@@ -114,6 +114,35 @@ export const STYLE = String.raw`
   .tt-ac li { position: relative; padding-left: 16px; margin: 4px 0; color: var(--ink-dim); }
   .tt-ac li::before { content: '▸'; position: absolute; left: 2px; color: var(--accent); }
   .tt-meta { margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-faint); }
+  .dep-link { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+  .tooltip .dep-link { pointer-events: none; }
+
+  /* ── detail modal (click to pin) ────────────────────────── */
+  .modal-back {
+    position: fixed; inset: 0; z-index: 250; display: flex; align-items: center; justify-content: center;
+    background: rgba(20,34,60,0.34); opacity: 0; pointer-events: none; transition: opacity .18s;
+  }
+  .modal-back.visible { opacity: 1; pointer-events: auto; }
+  .modal-panel {
+    position: relative; max-width: 720px; width: calc(100% - 64px); max-height: 86vh; overflow-y: auto;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 34px 40px; font-size: 15px; line-height: 1.7; color: var(--ink-dim);
+    box-shadow: 0 28px 70px rgba(28,46,82,0.32);
+    transform: translateY(8px) scale(.98); transition: transform .18s;
+  }
+  .modal-panel .tt-id { font-size: 12px; }
+  .modal-panel .tt-name { font-size: 19px; margin: 4px 0 12px; }
+  .modal-panel .tt-badge { font-size: 12px; padding: 3px 12px; margin-bottom: 12px; }
+  .modal-panel .tt-ac b { font-size: 11px; }
+  .modal-panel .tt-ac li { padding-left: 20px; margin: 7px 0; }
+  .modal-panel .tt-meta { font-size: 13px; margin-top: 11px; }
+  .modal-back.visible .modal-panel { transform: translateY(0) scale(1); }
+  .modal-close {
+    position: absolute; top: 10px; right: 12px; width: 26px; height: 26px; border: none; cursor: pointer;
+    background: none; color: var(--ink-faint); font-size: 22px; line-height: 1; border-radius: 6px;
+    transition: background .14s, color .14s;
+  }
+  .modal-close:hover { background: rgba(37,99,235,0.08); color: var(--accent); }
 
   #flash {
     position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(24px);
@@ -129,11 +158,110 @@ export const STYLE = String.raw`
     color: #b91c1c; font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
     padding: 10px 22px; white-space: pre-wrap;
   }
+
+  /* ── page nav (two items) + export ──────────────────────── */
+  .nav { display: flex; gap: 2px; padding: 3px; background: var(--paper); border: 1px solid var(--line); border-radius: 9px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 7px; text-decoration: none; white-space: nowrap; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.6px; text-transform: uppercase;
+    color: var(--ink-dim); background: none; border-radius: 6px;
+    padding: 6px 13px; transition: background .14s, color .14s;
+  }
+  .nav-item:hover { color: var(--ink); }
+  .nav-item.active { color: #fff; background: var(--accent); box-shadow: 0 2px 8px rgba(37,99,235,0.32); }
+  #btn-export {
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.6px; text-transform: uppercase;
+    display: flex; align-items: center; gap: 7px; cursor: pointer;
+    color: var(--done); background: var(--card); border: 1px solid rgba(22,163,74,0.35); border-radius: 8px;
+    padding: 7px 14px; transition: background .14s, box-shadow .14s, transform .08s;
+  }
+  #btn-export:hover { background: rgba(22,163,74,0.08); box-shadow: 0 4px 14px rgba(22,163,74,0.18); }
+  #btn-export:active { transform: translateY(1px); }
+  #btn-export svg { width: 13px; height: 13px; }
+
+  /* ── table view ─────────────────────────────────────────── */
+  #table-container { position: fixed; inset: 60px 0 0 0; z-index: 1; display: none; flex-direction: column; background: var(--card); }
+  body.page-table #table-container { display: flex; }
+  body.page-table #svg-container, body.page-table #hint { display: none; }
+  body.page-map #table-container { display: none; }
+
+  .t-toolbar {
+    display: flex; align-items: center; gap: 16px; padding: 10px 22px; flex: 0 0 auto;
+    background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(246,248,252,0.7));
+    border-bottom: 1px solid var(--line); backdrop-filter: blur(6px);
+  }
+  .t-search { display: flex; align-items: center; gap: 8px; color: var(--ink-faint);
+    background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 11px; min-width: 320px; }
+  .t-search:focus-within { border-color: var(--line-bright); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .t-search input { border: none; outline: none; background: none; flex: 1;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink); letter-spacing: 0.2px; }
+  .t-search input::placeholder { color: var(--ink-faint); }
+  .t-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+  .t-hint { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-faint); letter-spacing: 0.3px; }
+
+  .t-scroll { flex: 1 1 auto; overflow: auto; padding: 0 0 60px; background: var(--card); }
+  .t-table { border-collapse: separate; border-spacing: 0; min-width: 100%; font-size: 12px; background: var(--card); }
+  .t-table thead th {
+    position: sticky; top: 0; z-index: 5; text-align: left; cursor: pointer; user-select: none;
+    font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase;
+    color: var(--ink-dim); background: var(--paper-2); padding: 10px 12px; white-space: nowrap;
+    border-bottom: 2px solid var(--line-bright); box-shadow: 0 1px 0 var(--line);
+  }
+  .t-table thead th:hover { color: var(--accent); }
+  .t-table th.sorted { color: var(--accent); }
+  .t-table th .sort-i { margin-left: 5px; font-size: 8px; }
+  .th-num span, .td-num { text-align: center; }
+
+  .t-table td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--ink); line-height: 1.5; }
+  .t-table tbody tr:hover td { background: rgba(37,99,235,0.045); }
+  .t-table tr.is-enabler td { background: rgba(124,58,237,0.04); }
+  .t-table tr.is-enabler:hover td { background: rgba(124,58,237,0.08); }
+  .td-code { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-dim); white-space: nowrap; }
+  .td-num { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); }
+  .td-text { white-space: normal; min-width: 120px; max-width: 210px; }
+  .td-wide { white-space: normal; }
+  .td-wide .t-wide { min-width: 240px; max-width: 380px; color: var(--ink); font-size: 12px; }
+  .td-tag { white-space: nowrap; text-align: center; }
+  .t-tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 600;
+    letter-spacing: 0.5px; text-transform: uppercase; padding: 2px 8px; border-radius: 5px; border: 1px solid currentColor; }
+  .t-sp { font-family: 'JetBrains Mono', monospace; }
+  .t-ac { list-style: none; min-width: 260px; max-width: 420px; }
+  .t-ac li { position: relative; padding-left: 15px; margin: 3px 0; color: #34425a; font-size: 12px; line-height: 1.5; }
+  .t-ac li::before { content: '▸'; position: absolute; left: 2px; color: var(--accent); }
+  .t-dep { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-dim); white-space: nowrap; }
+  .t-dep.x { color: var(--block); }
+
+  /* band/total use an inner flex div — flex on a <td> would cancel its colspan */
+  .t-band td { padding: 0; position: sticky; top: 34px; z-index: 4; }
+  .t-band-row { display: flex; align-items: center; gap: 12px; padding: 8px 14px; cursor: pointer;
+    background: linear-gradient(180deg, #eef3fb, #e6edf8); border-bottom: 2px solid var(--line-bright);
+    transition: background .12s; user-select: none; }
+  .t-band-row:hover { background: linear-gradient(180deg, #e6eefb, #dde8f6); }
+  .t-band .b-caret { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); width: 10px; text-align: center; }
+  .t-band .b-id { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--accent); }
+  .t-band .b-name { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 13px; color: var(--ink); }
+  .t-band .b-stat { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-dim); }
+  .t-empty { text-align: center; color: var(--ink-faint); padding: 40px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
 `;
 
-export const BODY = String.raw`
+// Page body. `view` is 'map' | 'table'; `nav` = { mapHref, tableHref } — both nav
+// items always show, the current one highlighted. Excel button: table page only.
+export function body(view, nav) {
+  const exportBtn = view === 'table' ? String.raw`
+  <div class="rule"></div>
+  <button id="btn-export" title="Download a styled .xlsx Work Breakdown Structure">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
+    Excel
+  </button>` : '';
+  const cls = (v) => 'nav-item' + (v === view ? ' active' : '');
+  return String.raw`
 <div id="header">
   <h1 id="title"></h1>
+  <div class="rule"></div>
+  <nav class="nav">
+    <a class="${cls('map')}" href="${nav.mapHref}">◰ Mindmap</a>
+    <a class="${cls('table')}" href="${nav.tableHref}">▦ Table</a>
+  </nav>
   <div class="rule"></div>
   <div class="readout"><span class="k">Items</span><span class="val" id="s-items"></span></div>
   <div class="readout"><span class="k">Points</span><span class="val" id="s-points"></span></div>
@@ -147,18 +275,25 @@ export const BODY = String.raw`
     <span class="legend-item"><span class="legend-dot" style="background:var(--block)"></span>blocked</span>
     <span class="legend-item"><span class="legend-dot" style="background:var(--idle)"></span>queued</span>
     <span class="legend-item"><span class="legend-dot" style="background:var(--enabler)"></span>enabler</span>
-  </div>
+  </div>${exportBtn}
 </div>
 <div id="err"></div>
 <div id="svg-container"><svg id="tree-svg"></svg></div>
+<div id="table-container"></div>
 <div class="tooltip" id="tooltip"></div>
-<div id="hint" style="position:fixed; bottom:14px; left:22px; z-index:80;">drag · scroll-zoom · click node to expand</div>
+<div class="modal-back" id="modal-back"><div class="modal-panel"><button class="modal-close" id="modal-close" aria-label="Close">×</button><div id="modal-body"></div></div></div>
+<div id="hint" style="position:fixed; bottom:14px; left:22px; z-index:80;">drag · scroll-zoom · click branch to expand · click item for detail</div>
 `;
+}
 
-export function assemble(bootScript, { renderInline = null } = {}) {
+// Browser scripts, in load order. rows.js must precede table.js/export.js
+// (they call WBS.toRows); all four merge into window.WBS so order is otherwise free.
+export const CLIENT_SCRIPTS = ['/rows.js', '/render.js', '/table.js', '/export.js', '/app.js'];
+
+export function assemble(bootScript, { renderInline = null, view = 'map', nav = { mapHref: '#', tableHref: '#' } } = {}) {
   const renderTag = renderInline
     ? `<script>${renderInline}</script>`
-    : `<script src="/render.js"></script>`;
+    : CLIENT_SCRIPTS.map((s) => `<script src="${s}"></script>`).join('\n');
   return String.raw`<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -169,10 +304,11 @@ export function assemble(bootScript, { renderInline = null } = {}) {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <style>${STYLE}</style>
 </head>
-<body>
-${BODY}
+<body class="page-${view}">
+${body(view, nav)}
 ${renderTag}
 <script>${bootScript}</script>
 </body>

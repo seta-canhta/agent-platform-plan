@@ -8,11 +8,12 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { validate, stats, dependencyAnalysis } from './lib/schema.mjs';
-import { assemble } from './lib/page.mjs';
+import { assemble, CLIENT_SCRIPTS } from './lib/page.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const srcPath = process.argv[2] ?? join(here, 'wbs.json');
-const outPath = join(here, 'index.html');
+const mapOut = join(here, 'index.html');
+const tableOut = join(here, 'table.html');
 
 const data = JSON.parse(readFileSync(srcPath, 'utf8'));
 const { errors, warnings } = validate(data);
@@ -20,16 +21,22 @@ const s = stats(data);
 report(data, s, errors, warnings);
 if (errors.length) { console.error('\nBuild aborted — fix schema errors above.\n'); process.exit(1); }
 
-const renderJs = readFileSync(join(here, 'lib', 'render.js'), 'utf8');
-const boot = `
-const data = ${JSON.stringify(data)};
-const stats = ${JSON.stringify(s)};
-WBS.renderWBS(data, stats);
+// Inline every client script (in load order) into one <script> for the snapshot.
+const renderJs = CLIENT_SCRIPTS.map((s) => readFileSync(join(here, 'lib', s.slice(1)), 'utf8')).join('\n;\n');
+const snapshotLabel = `
 const live = document.getElementById('live');
-live.textContent = 'snapshot'; live.className = ''; live.style.color = 'var(--ink-faint)';
-`;
-writeFileSync(outPath, assemble(boot, { renderInline: renderJs }));
-console.log(`\n  ✓ wrote ${outPath} (static snapshot)\n`);
+live.textContent = 'snapshot'; live.className = ''; live.style.color = 'var(--ink-faint)';`;
+const dataDecl = `
+const data = ${JSON.stringify(data)};
+const stats = ${JSON.stringify(s)};`;
+
+const mapBoot = `${dataDecl}\nWBS.renderWBS(data, stats);${snapshotLabel}`;
+const tableBoot = `${dataDecl}\nWBS.renderHeader(data, stats); WBS.renderTable(data); WBS.setData(data); WBS.bindExport();${snapshotLabel}`;
+
+const nav = { mapHref: 'index.html', tableHref: 'table.html' };
+writeFileSync(mapOut, assemble(mapBoot, { renderInline: renderJs, view: 'map', nav }));
+writeFileSync(tableOut, assemble(tableBoot, { renderInline: renderJs, view: 'table', nav }));
+console.log(`\n  ✓ wrote ${mapOut} + ${tableOut} (static snapshot, 2 pages)\n`);
 
 export function report(data, s, errors, warnings) {
   console.log(`\nWBS: ${data._meta?.project ?? '(untitled)'}  v${data._meta?.version ?? '?'}`);

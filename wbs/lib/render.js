@@ -17,9 +17,80 @@
   const cardH = d => isItem(d) ? RECT_H_US : RECT_H_P;
   const isModule = d => d.data.type==='module';
 
+  let itemsById = {};   // id → item node, for resolving dependency links
+
+  // Builds the detail HTML for a node's data — shared by the hover tooltip and the click modal.
+  function detailHTML(dd){
+    let h='<div class="tt-id">'+dd.id+'</div><div class="tt-name">'+dd.name+'</div>';
+    if (isItem({data:dd})){
+      const c = dd.type==='enabler'?ENABLER:statusColor(dd.status);
+      h += '<div class="tt-badge" style="color:'+c+'">'+dd.type.toUpperCase()+' · SP '+dd.sp+' · '+(dd.status||'')+'</div>';
+      if (dd.story) h += '<div class="tt-story">'+dd.story+'</div>';
+      if (dd.ac && dd.ac.length) h += '<div class="tt-ac"><b>Acceptance</b><ul>'+dd.ac.map(a=>'<li>'+a+'</li>').join('')+'</ul></div>';
+      if (dd.notes) h += '<div class="tt-meta">📌 '+dd.notes+'</div>';
+      if (dd.roles && dd.roles.length) h += '<div class="tt-meta">◢ '+dd.roles.join(' · ')+'</div>';
+      if (dd.deps && dd.deps.length){
+        const parts = dd.deps.map(x => {
+          const cross = dd.crossDeps&&dd.crossDeps.indexOf(x)>=0 ? ' ⤴' : '';
+          return itemsById[x] ? '<a class="dep-link" data-dep="'+x+'">'+x+'</a>'+cross : x+cross;
+        });
+        h += '<div class="tt-meta" style="color:'+(dd.crossBlocked?C.blocked:C.dim)+'">⛓ blocked by '+parts.join(', ')+(dd.crossDeps&&dd.crossDeps.length?'  · ⤴ cross-module':'')+'</div>';
+      }
+      if (dd.ext && dd.ext.length)
+        h += '<div class="tt-meta" style="color:'+C.blocked+'">⚠ external need: '+dd.ext.map(e=>e.needs+(e.likely_module?' ['+e.likely_module+']':'')).join(' · ')+'</div>';
+    } else {
+      if (dd.description) h += '<div class="tt-story">'+dd.description+'</div>';
+      if (dd.total_us) h += '<div class="tt-meta">Σ '+dd.total_us+' items · '+dd.total_sp+' pts</div>';
+      if (dd.roles && dd.roles.length) h += '<div class="tt-meta">◢ '+dd.roles.join(' · ')+'</div>';
+    }
+    return h;
+  }
+
+  // Modal: a pinned, dismissable view of a node's detail (same content as the hover tooltip).
+  // Modal state is reflected in the URL hash (#item=<id>) so views are shareable and the
+  // browser back/forward buttons walk the navigation chain.
+  function showModalUI(dd){
+    const back = document.getElementById('modal-back');
+    const body = document.getElementById('modal-body');
+    if (!back || !body) return;
+    body.innerHTML = detailHTML(dd);
+    back.classList.add('visible');
+  }
+  function hideModalUI(){
+    const back = document.getElementById('modal-back');
+    if (back) back.classList.remove('visible');
+  }
+  // Render the modal that the current URL describes (called on load, hashchange, back/forward).
+  function syncModalFromHash(){
+    const m = /^#item=(.+)$/.exec(location.hash || '');
+    const dd = m && itemsById[decodeURIComponent(m[1])];
+    if (dd) showModalUI(dd); else hideModalUI();
+  }
+  function openModal(dd){
+    if (!dd) return;
+    const want = '#item=' + encodeURIComponent(dd.id);
+    if (location.hash === want) showModalUI(dd);   // same target: just (re)render
+    else location.hash = want;                     // triggers hashchange → syncModalFromHash
+  }
+  function closeModal(){
+    if (location.hash) history.pushState(null, '', location.pathname + location.search);
+    hideModalUI();
+  }
+  if (typeof document !== 'undefined' && !document.body.dataset.modalWired){
+    document.body.dataset.modalWired = '1';
+    document.addEventListener('click', e => {
+      const link = e.target && e.target.closest && e.target.closest('.dep-link');
+      if (link){ openModal(itemsById[link.dataset.dep]); return; }
+      if (e.target && (e.target.id === 'modal-back' || e.target.id === 'modal-close')) closeModal();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    window.addEventListener('hashchange', syncModalFromHash);
+  }
+
   function wbsToHierarchy(data){
     const root = { id:'root', name:data._meta.project, status:data._meta.status||'in-progress', type:'root', children:[] };
     const idMod = {}, flatItems = [];
+    itemsById = {};
     for (const mod of data.modules||[]){
       const modNode = { id:mod.id, name:mod.name, description:mod.description||'', status:mod.status||'not-started', type:'module', children:[] };
       for (const sub of (mod.sub_modules||[])){
@@ -31,7 +102,7 @@
               sp:it.story_points||0, roles:it.roles||[], ac:it.acceptance_criteria||[],
               deps:it.dependencies||[], ext:(it.external_deps||[]).map(e=> typeof e==='string'?{needs:e}:e), notes:it.notes||'', _mod:mod.id
             };
-            idMod[it.id] = mod.id; flatItems.push(node);
+            idMod[it.id] = mod.id; flatItems.push(node); itemsById[it.id] = node;
             return node;
           });
           subNode.children.push({ id:screen.id, name:screen.name, description:screen.description||'', status:screen.status||'not-started',
@@ -49,8 +120,10 @@
       it.blocked = it.deps.length > 0 || it.ext.length > 0;
       it.crossBlocked = it.crossDeps.length > 0 || it.ext.length > 0;
     }
+    const oosNode = (o) => ({ id:o.id, name:o.name, description:o.reason||'', status:'out-of-scope', type:'oos',
+      children: (o.children && o.children.length) ? o.children.map(oosNode) : undefined });
     for (const oos of (data.out_of_scope||[]))
-      root.children.push({ id:oos.id, name:oos.name, description:oos.reason||'', status:'out-of-scope', type:'oos' });
+      root.children.push(oosNode(oos));
     (function annotate(n){
       if (isItem({data:n})){ n.total_sp=n.sp; n.total_us=1; n.done_us=n.status==='done'?1:0; return; }
       if (!n.children){ n.total_sp=0; n.total_us=0; n.done_us=0; return; }
@@ -122,30 +195,12 @@
         .attr('transform', d=>'translate('+d.y+','+d.x+')').style('opacity', 0)
         .on('click',(ev,d)=>{ ev.stopPropagation();
           const id=d.data.id;
+          if (isItem(d)){ openModal(d.data); return; }   // leaf items: open the detail modal
           if (d._children){ d.children=d._children; d._children=null; expanded.add(id); collapsed.delete(id); }
           else if (d.children){ d._children=d.children; d.children=null; collapsed.add(id); expanded.delete(id); }
           update(d); })
         .on('mousemove',(ev,d)=>{
-          const dd=d.data; let h='<div class="tt-id">'+dd.id+'</div><div class="tt-name">'+dd.name+'</div>';
-          if (isItem({data:dd})){
-            const c = dd.type==='enabler'?ENABLER:statusColor(dd.status);
-            h += '<div class="tt-badge" style="color:'+c+'">'+dd.type.toUpperCase()+' · SP '+dd.sp+' · '+(dd.status||'')+'</div>';
-            if (dd.story) h += '<div class="tt-story">'+dd.story+'</div>';
-            if (dd.ac && dd.ac.length) h += '<div class="tt-ac"><b>Acceptance</b><ul>'+dd.ac.map(a=>'<li>'+a+'</li>').join('')+'</ul></div>';
-            if (dd.notes) h += '<div class="tt-meta">📌 '+dd.notes+'</div>';
-            if (dd.roles && dd.roles.length) h += '<div class="tt-meta">◢ '+dd.roles.join(' · ')+'</div>';
-            if (dd.deps && dd.deps.length){
-              const parts = dd.deps.map(x => (dd.crossDeps&&dd.crossDeps.indexOf(x)>=0) ? x+' ⤴' : x);
-              h += '<div class="tt-meta" style="color:'+(dd.crossBlocked?C.blocked:C.dim)+'">⛓ blocked by '+parts.join(', ')+(dd.crossDeps&&dd.crossDeps.length?'  · ⤴ cross-module':'')+'</div>';
-            }
-            if (dd.ext && dd.ext.length)
-              h += '<div class="tt-meta" style="color:'+C.blocked+'">⚠ external need: '+dd.ext.map(e=>e.needs+(e.likely_module?' ['+e.likely_module+']':'')).join(' · ')+'</div>';
-          } else {
-            if (dd.description) h += '<div class="tt-story">'+dd.description+'</div>';
-            if (dd.total_us) h += '<div class="tt-meta">Σ '+dd.total_us+' items · '+dd.total_sp+' pts</div>';
-            if (dd.roles && dd.roles.length) h += '<div class="tt-meta">◢ '+dd.roles.join(' · ')+'</div>';
-          }
-          tooltip.innerHTML=h; tooltip.classList.add('visible');
+          tooltip.innerHTML=detailHTML(d.data); tooltip.classList.add('visible');
           tooltip.style.left=Math.min(ev.clientX+16, innerWidth-396)+'px';
           tooltip.style.top=Math.max(66, ev.clientY-10)+'px';
         })
@@ -231,8 +286,10 @@
     clearTimeout(flash._t); flash._t = setTimeout(()=>el.className='', 1400);
   }
 
-  window.WBS = {
-    renderWBS(data, stats){ renderHeader(data, stats); render(wbsToHierarchy(data)); },
+  window.WBS = window.WBS || {};
+  Object.assign(window.WBS, {
+    renderWBS(data, stats){ renderHeader(data, stats); render(wbsToHierarchy(data)); syncModalFromHash(); },
+    renderHeader,
     flash,
-  };
+  });
 })();
